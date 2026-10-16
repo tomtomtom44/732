@@ -2702,9 +2702,10 @@ function getPragueOffsetMinutes(d) {
       timeZone: "Europe/Prague",
       timeZoneName: "longOffset"
     });
-    var tzPart = dtf.formatToParts(d).find(function(p) {
+    var tzFound = dtf.formatToParts(d).find(function(p) {
       return p.type === "timeZoneName";
-    })?.value || "GMT+2";
+    });
+    var tzPart = (tzFound && tzFound.value) || "GMT+2";
     var m = tzPart.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
     if (!m) return 120;
     var sign = m[1] === "-" ? -1 : 1,
@@ -2738,9 +2739,10 @@ function parseCzechTimeToUnix(timeStr) {
   });
   var parts = pragueFormatter.formatToParts(now);
   var getPart = function(type) {
-    return parseInt(parts.find(function(p) {
+    var pFound = parts.find(function(p) {
       return p.type === type;
-    })?.value || "0", 10);
+    });
+    return parseInt((pFound && pFound.value) || "0", 10);
   };
   var curYear = getPart("year"),
     curMonth = getPart("month"),
@@ -2779,9 +2781,10 @@ function getSportsEventTimes(ev) {
     });
     var parts = pragueFormatter.formatToParts(new Date(now));
     var getP = function(type) {
-      return parseInt(parts.find(function(p) {
+      var pFound = parts.find(function(p) {
         return p.type === type;
-      })?.value || "0", 10);
+      });
+      return parseInt((pFound && pFound.value) || "0", 10);
     };
     var curYear = getP("year"),
       curMonth = getP("month"),

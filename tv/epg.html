@@ -1403,10 +1403,13 @@
           const doc = new DOMParser().parseFromString(text, "text/xml");
           if (doc.querySelector("parsererror")) return;
           doc.querySelectorAll("programme").forEach((p) => {
-            const c = p.getAttribute("channel")?.trim();
+            const chAttr = p.getAttribute("channel");
+            const c = chAttr ? chAttr.trim() : null;
             if (!c || (fallback && epgD.has(c))) return;
-            const tt = p.querySelector("title")?.textContent || "N/A";
-            const desc = p.querySelector("desc")?.textContent || "";
+            const tEl = p.querySelector("title");
+            const tt = (tEl && tEl.textContent) || "N/A";
+            const dEl = p.querySelector("desc");
+            const desc = (dEl && dEl.textContent) || "";
             const s = window.fT(p.getAttribute("start"));
             const e = window.fT(p.getAttribute("stop"));
             const pO = {
@@ -1719,7 +1722,7 @@
             return;
           }
           const d = await r.json();
-          if (!d?.stream) {
+          if (!d || !d.stream) {
             showPlayerErrorOverlay(
               "Kanál je nedostupný",
               "Pro kanál " + n + " nebyl nalezen žádný aktivní stream.",
@@ -2812,7 +2815,7 @@
           const descEl = $("c-prog-desc");
           if (descEl) {
             descEl.textContent =
-              activeProg.desc || currentActiveProgram?.desc || "";
+              activeProg.desc || (currentActiveProgram && currentActiveProgram.desc) || "";
           }
           const startStr =
             pad2(activeProg.start.getHours()) +
@@ -4079,7 +4082,7 @@
             let catList = [...window.categories];
             let favOption = '<option value="⭐ Oblíbené"' + (cat === "⭐ Oblíbené" ? " selected" : "") + '>⭐ Oblíbené (' + favChannels.size + ')</option>';
             els.cs.innerHTML =
-              '<option value="Všechny kanály"' + (cat === "Všechny kanály" ? " selected" : "") + '>' + (TR[lang]?.cats?.["Všechny kanály"] || "Všechny kanály") + '</option>' +
+              '<option value="Všechny kanály"' + (cat === "Všechny kanály" ? " selected" : "") + '>' + (((TR[lang] && TR[lang].cats && TR[lang].cats["Všechny kanály"])) || "Všechny kanály") + '</option>' +
               favOption +
               catList
                 .filter((c) => c !== "Všechny kanály")
@@ -4310,7 +4313,7 @@
 
           const allChip = document.createElement("button");
           allChip.className = "cat-chip" + (cat === "Všechny kanály" ? " active" : "");
-          allChip.textContent = TR[lang]?.cats?.["Všechny kanály"] || "Všechny kanály";
+          allChip.textContent = ((TR[lang] && TR[lang].cats && TR[lang].cats["Všechny kanály"])) || "Všechny kanály";
           allChip.onclick = () => selectCategory("Všechny kanály");
           container.appendChild(allChip);
 
@@ -4498,16 +4501,16 @@
         if (e.key === "Escape" || e.keyCode === 27 || e.keyCode === 4) {
           e.preventDefault();
           if (isQualityOpen || isAudioOpen || isEpgDrawerOpen || isVolumePopActive) {
-            $("c-quality-menu-items")?.classList.add("hidden");
-            $("c-audio-menu-items")?.classList.add("hidden");
-            $("c-epg-drawer-panel")?.classList.add("hidden");
-            $("c-volume-pop")?.classList.remove("active");
-            if (isQualityOpen) $("c-quality-btn")?.focus();
-            else if (isAudioOpen) $("c-audio-btn")?.focus();
-            else if (isEpgDrawerOpen) $("c-epg-btn-toggle")?.focus();
+            const _q = $("c-quality-menu-items"); if (_q) _q.classList.add("hidden");
+            const _a = $("c-audio-menu-items"); if (_a) _a.classList.add("hidden");
+            const _e = $("c-epg-drawer-panel"); if (_e) _e.classList.add("hidden");
+            const _v = $("c-volume-pop"); if (_v) _v.classList.remove("active");
+            if (isQualityOpen) { const _b = $("c-quality-btn"); if (_b) _b.focus(); }
+            else if (isAudioOpen) { const _b = $("c-audio-btn"); if (_b) _b.focus(); }
+            else if (isEpgDrawerOpen) { const _b = $("c-epg-btn-toggle"); if (_b) _b.focus(); }
             return;
           }
-          $("c-exit-btn")?.click();
+          const _eb = $("c-exit-btn"); if (_eb) _eb.click();
           return;
         }
 
@@ -4598,7 +4601,7 @@
           }
           if (isEnter) {
             e.preventDefault();
-            $("c-play-btn")?.click();
+            const _pb = $("c-play-btn"); if (_pb) _pb.click();
             return;
           }
         }
@@ -4607,12 +4610,12 @@
         if (curEl && (curEl.id === "c-volume" || curEl.id === "c-mute-btn" || curEl.closest(".c-volume-box"))) {
           if (isLeft) {
             e.preventDefault();
-            $("c-audio-btn")?.focus();
+            const _ab = $("c-audio-btn"); if (_ab) _ab.focus();
             return;
           }
           if (isRight) {
             e.preventDefault();
-            ($("c-pip-btn") || $("c-fs-btn"))?.focus();
+            const _tb = $("c-pip-btn") || $("c-fs-btn"); if (_tb) _tb.focus();
             return;
           }
           if (isUp) {
@@ -4672,12 +4675,12 @@
           }
           if (isDown) {
             e.preventDefault();
-            ($("c-fs-btn") || $("c-quality-btn") || bottomControls[0])?.focus();
+            const _tb2 = $("c-fs-btn") || $("c-quality-btn") || bottomControls[0]; if (_tb2) _tb2.focus();
             return;
           }
           if (isUp) {
             e.preventDefault();
-            $("c-seekbar-input")?.focus();
+            const _sb = $("c-seekbar-input"); if (_sb) _sb.focus();
             return;
           }
         }
@@ -4686,17 +4689,17 @@
         if (curEl && curEl.id === "c-seekbar-input") {
           if (isDown) {
             e.preventDefault();
-            ($("c-play-btn-large") || $("c-fs-btn"))?.focus();
+            const _tb3 = $("c-play-btn-large") || $("c-fs-btn"); if (_tb3) _tb3.focus();
             return;
           }
           if (isLeft) {
             e.preventDefault();
-            $("c-back-10-btn")?.click();
+            const _bb = $("c-back-10-btn"); if (_bb) _bb.click();
             return;
           }
           if (isRight) {
             e.preventDefault();
-            $("c-fwd-10-btn")?.click();
+            const _fb = $("c-fwd-10-btn"); if (_fb) _fb.click();
             return;
           }
         }
@@ -4704,13 +4707,13 @@
         // Default shortcut fallbacks when no specific element has focus
         if (k === "KeyF") {
           e.preventDefault();
-          $("c-fs-btn")?.click();
+          const _fsb = $("c-fs-btn"); if (_fsb) _fsb.click();
         } else if (k === "KeyM") {
           e.preventDefault();
-          $("c-mute-btn")?.click();
+          const _mb = $("c-mute-btn"); if (_mb) _mb.click();
         } else if (k === "Space" || k === "KeyK") {
           e.preventDefault();
-          $("c-play-btn")?.click();
+          const _pb = $("c-play-btn"); if (_pb) _pb.click();
         }
       });
 
@@ -4942,17 +4945,17 @@
           }
           if (e.key === "p" || e.key === "P") {
             e.preventDefault();
-            $("btn-prime")?.click();
+            const _prb = $("btn-prime"); if (_prb) _prb.click();
             return;
           }
           if (e.key === "f" || e.key === "F") {
             e.preventDefault();
-            $("btn-fav-filter")?.click();
+            const _ffb = $("btn-fav-filter"); if (_ffb) _ffb.click();
             return;
           }
           if (e.key === "/") {
             e.preventDefault();
-            $("program-search")?.focus();
+            const _psb = $("program-search"); if (_psb) _psb.focus();
             return;
           }
         }

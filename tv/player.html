@@ -1377,7 +1377,8 @@ function renderProAudioFlags() {
   const seen = new Set();
 
   tracks.forEach(t => {
-    const key = `${t.language}_${t.audioId || t.roles?.join('_') || ''}`;
+    const rolesStr = (t.roles && t.roles.join('_')) || '';
+    const key = `${t.language}_${t.audioId || rolesStr}`;
     if (!seen.has(key) && t.language) {
       seen.add(key);
       audioTracks.push(t);
@@ -1556,9 +1557,10 @@ const MultiView = {
       const cell = document.createElement('div');
       cell.className = `mv-cell ${i === 0 ? 'active-audio' : ''}`;
       cell.id = `mv-cell-${i}`;
+      const sName = (this.streams[i] && this.streams[i].name) || 'Feed #' + (i + 1);
       cell.innerHTML = `
         <div class="mv-cell-toolbar">
-          <span class="mv-title">${escapeHTML(this.streams[i]?.name || 'Feed #' + (i + 1))}</span>
+          <span class="mv-title">${escapeHTML(sName)}</span>
           <div>
             <button class="mv-btn ${i === 0 ? 'solo' : ''}" title="Solo Audio" onclick="MultiView.setAudioSolo(${i})"><i class="fa fa-volume-up"></i></button>
             <button class="mv-btn" title="Fullscreen" onclick="MultiView.fullscreenCell(${i})"><i class="fa fa-expand"></i></button>
@@ -1578,7 +1580,7 @@ const MultiView = {
         cellPlayer.configure({ drm: { clearKeys } });
       }
 
-      const streamUrl = this.streams[i]?.url || mainUrl;
+      const streamUrl = (this.streams[i] && this.streams[i].url) || mainUrl;
       if (streamUrl) {
         cellPlayer.load(streamUrl).catch(() => {});
       }
@@ -1589,7 +1591,7 @@ const MultiView = {
     for (let i = 0; i < this.players.length; i++) {
       const vEl = document.getElementById(`mv-video-${i}`);
       const cellEl = document.getElementById(`mv-cell-${i}`);
-      const soloBtn = cellEl?.querySelector('.mv-btn');
+      const soloBtn = cellEl ? cellEl.querySelector('.mv-btn') : null;
       if (vEl) {
         vEl.muted = (i !== idx);
         if (cellEl) cellEl.classList.toggle('active-audio', i === idx);
@@ -2058,8 +2060,10 @@ on('btn-fetch-m3u-url', 'click', async () => {
 on('m3u-search', 'input', (e) => {
   const q = e.target.value.toLowerCase().trim();
   document.querySelectorAll('#m3u-channel-list .channel-item').forEach(item => {
-    const name = item.querySelector('.channel-name')?.textContent.toLowerCase() || '';
-    const url = item.querySelector('.channel-url')?.textContent.toLowerCase() || '';
+    const nEl = item.querySelector('.channel-name');
+    const uEl = item.querySelector('.channel-url');
+    const name = (nEl && nEl.textContent.toLowerCase()) || '';
+    const url = (uEl && uEl.textContent.toLowerCase()) || '';
     item.style.display = (name.includes(q) || url.includes(q)) ? 'flex' : 'none';
   });
 });

@@ -1814,9 +1814,10 @@ video {
       }
 
       if (currentProg) {
-        document.getElementById('activeProgTitle').textContent = currentProg.epg_program_name || 'Bez názvu';
-        const stStr = currentProg.epg_time_start.split(' ')[1]?.slice(0, 5) || '';
-        const etStr = currentProg.epg_time_end.split(' ')[1]?.slice(0, 5) || '';
+        const sParts = currentProg.epg_time_start.split(' ');
+        const eParts = currentProg.epg_time_end.split(' ');
+        const stStr = (sParts[1] && sParts[1].slice(0, 5)) || '';
+        const etStr = (eParts[1] && eParts[1].slice(0, 5)) || '';
         document.getElementById('activeProgTime').innerHTML = `<i class="fa-regular fa-clock"></i> ${stStr} - ${etStr}`;
         document.getElementById('activeProgDesc').textContent = currentProg.epg_program_info || 'Popis pořadu není k dispozici.';
         if (currentProg.epg_program_imageuri) {
@@ -2143,8 +2144,10 @@ video {
             const isLive = now >= st && now <= et;
             const isPast = now > et;
 
-            const stStr = p.epg_time_start.split(' ')[1]?.slice(0, 5) || '';
-            const etStr = p.epg_time_end.split(' ')[1]?.slice(0, 5) || '';
+            const pSParts = p.epg_time_start.split(' ');
+            const pEParts = p.epg_time_end.split(' ');
+            const stStr = (pSParts[1] && pSParts[1].slice(0, 5)) || '';
+            const etStr = (pEParts[1] && pEParts[1].slice(0, 5)) || '';
 
             const itemEl = document.createElement('div');
             itemEl.className = `epg-item ${isLive ? 'is-live' : isPast ? 'is-past' : ''}`;
@@ -2233,7 +2236,8 @@ video {
     function setDate(d, btnId) {
       document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
       if (btnId) {
-        document.getElementById(btnId)?.classList.add('active');
+        var el = document.getElementById(btnId);
+        if (el) el.classList.add('active');
       }
 
       selectedDateStr = getFormattedDate(d);

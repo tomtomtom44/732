@@ -2544,10 +2544,10 @@ const CHANNELS_DATA = [
                 txt = activeCategory.toUpperCase();
             } else if (activeCategory === 'All' && activeCountry !== 'All') {
                 const conf = COUNTRIES_CONFIG.find(x => x.id === activeCountry);
-                txt = (conf?.label || activeCountry).toUpperCase();
+                txt = ((conf && conf.label) || activeCountry).toUpperCase();
             } else {
                 const conf = COUNTRIES_CONFIG.find(x => x.id === activeCountry);
-                txt = `${activeCategory.toUpperCase()} — ${(conf?.label || activeCountry).toUpperCase()}`;
+                txt = `${activeCategory.toUpperCase()} — ${((conf && conf.label) || activeCountry).toUpperCase()}`;
             }
             titleEl.textContent = txt;
         }
@@ -2729,7 +2729,8 @@ const CHANNELS_DATA = [
             const seen = new Set();
 
             tracks.forEach(t => {
-                const key = `${t.language}_${t.audioId || t.roles?.join('_') || ''}`;
+                const rolesStr = (t.roles && t.roles.join('_')) || '';
+                const key = `${t.language}_${t.audioId || rolesStr}`;
                 if (!seen.has(key) && t.language) {
                     seen.add(key);
                     audioTracks.push(t);
