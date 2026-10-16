@@ -2596,9 +2596,6 @@ if (typeof window.fetch === "function" && !window.fetch._cetinPatched) {
         delete init.headers["referer"];
       }
     }
-    if (!init.mode && typeof url === "string" && /^https?:\/\//i.test(url) && !url.includes(location.hostname)) {
-      init.mode = "cors";
-    }
     return origFetch.call(this, input, init);
   };
   window.fetch._cetinPatched = true;
@@ -3879,26 +3876,46 @@ function plyUrl(i, r, o, isManualClick) {
           var a, n;
           if (m === loadGen) {
             console.warn("Shaka load failed, trying next source or native fallbacks:", e);
+            var currentError = e;
             checkAndNotifyOtteFirefoxError(s);
-            if (r && r.links && r.links.length && -1 !== (e = r.links.indexOf(i)) && e < r.links.length - 1) {
-              a = r.links[e + 1];
+            var linkIdx = -1;
+            if (r && r.links && r.links.length) {
+              linkIdx = r.links.indexOf(i);
+            }
+            if (linkIdx !== -1 && linkIdx < r.links.length - 1) {
+              a = r.links[linkIdx + 1];
               showToast("cs" === lang ? "Zdroj selhal, zkouším další..." : "Source failed, trying next...", "warning");
               if (n = DOM.srcL) {
-                (n = n.querySelectorAll(".src-btn")).length > e + 1 && (n.forEach(function(e) {
+                (n = n.querySelectorAll(".src-btn")).length > linkIdx + 1 && (n.forEach(function(e) {
                   e.classList.remove("active");
-                }), n[e + 1].classList.add("active"));
+                }), n[linkIdx + 1].classList.add("active"));
               }
               plyUrl(a, r, o);
             } else if (n = DOM.video) {
-              n.src = s;
-              n.play().catch(function(e) {
-                console.error("Native failover failed:", e);
-                checkAndNotifyOtteFirefoxError(s);
-                showToast(t("streamErr"), "error");
-              });
+              (async function() {
+                try {
+                  console.log("Attempting clean native failover for:", s);
+                  if (player) {
+                    try { await player.unload(); } catch (_) {}
+                    try { await player.detach(); } catch (_) {}
+                  }
+                  n.removeAttribute("src");
+                  n.load();
+                  var playUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(s) : s;
+                  n.src = playUrl;
+                  n.load();
+                  await n.play();
+                } catch (playErr) {
+                  console.error("Native failover failed:", playErr);
+                  checkAndNotifyOtteFirefoxError(s);
+                  var errCode = (currentError && currentError.code) ? " (Kód " + currentError.code + ")" : (playErr && playErr.message ? " (" + playErr.message + ")" : "");
+                  showToast(t("streamErr") + errCode, "error");
+                }
+              })();
             } else {
               checkAndNotifyOtteFirefoxError(s);
-              showToast(t("streamErr"), "error");
+              var errCode = (currentError && currentError.code) ? " (Kód " + currentError.code + ")" : "";
+              showToast(t("streamErr") + errCode, "error");
             }
           }
         })
@@ -3918,11 +3935,24 @@ function plyUrl(i, r, o, isManualClick) {
             return void plyUrl(p, r, o);
           }
         }
-        (l = DOM.video) ? (l.src = s, l.play().catch(function(e) {
-          console.error("Native playback fallback failed:", e);
-          checkAndNotifyOtteFirefoxError(s);
-          showToast(t("streamErr"), "error");
-        })) : (checkAndNotifyOtteFirefoxError(s), showToast(t("streamErr"), "error"));
+        (l = DOM.video) ? ((async function() {
+          try {
+            if (player) {
+              try { await player.unload(); } catch (_) {}
+              try { await player.detach(); } catch (_) {}
+            }
+            l.removeAttribute("src");
+            l.load();
+            var playUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(s) : s;
+            l.src = playUrl;
+            l.load();
+            await l.play();
+          } catch (playErr) {
+            console.error("Native playback fallback failed:", playErr);
+            checkAndNotifyOtteFirefoxError(s);
+            showToast(t("streamErr"), "error");
+          }
+        })()) : (checkAndNotifyOtteFirefoxError(s), showToast(t("streamErr"), "error"));
       }
     else d.classList.remove("active"), resetShaka(), c.classList.add("active"), u.src = s
   }

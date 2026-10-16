@@ -615,10 +615,15 @@ function appendChannelCard(channel){
 function resetAndRender(){grid.innerHTML='';renderedCount=0;const filtered=getFilteredChannels();if(filtered.length===0){grid.innerHTML='<div class="empty-state"><i class="fas fa-tv" style="font-size:3rem; margin-bottom:1rem; display:block"></i>' + t('noChannels') + '</div>';loadMoreContainer.style.display='none';return}renderNextBatch()}
 
 async function unloadShaka(){
-    if(shakaPlayer){try{await shakaPlayer.unload()}catch(e){}}
+    if(shakaPlayer){
+        try{await shakaPlayer.unload()}catch(e){}
+        try{await shakaPlayer.detach()}catch(e){}
+    }
     videoElem.pause();
+    videoElem.removeAttribute('src');
     videoElem.removeAttribute('poster');
     videoElem.poster='';
+    videoElem.load();
 }
 
 async function initShakaOnce(){
@@ -787,7 +792,9 @@ async function playChannel(channel, cardElem){
             try {
                 console.log('Attempting native direct video playback failover:', modifiedStreamUrl);
                 await unloadShaka();
-                videoElem.src = modifiedStreamUrl;
+                var playUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(modifiedStreamUrl) : modifiedStreamUrl;
+                videoElem.src = playUrl;
+                videoElem.load();
                 await videoElem.play();
                 return;
             } catch (nativeErr) {

@@ -65,13 +65,99 @@
   window.__NATIVE_ANDROID__ = false;
   window.isTvPlatform = true;
 
-  // ── 3. No-Referrer Policy Enforcement on Fetch & XHR ─────────────────
+  // ── 3. TizenBrew Local Proxy Integration & Network Enforcement ─────────
+  var PROXY_PORT = 3007;
+  var PROXY_HOST = 'http://127.0.0.1:' + PROXY_PORT;
+  window.__TB_PROXY_PORT__ = PROXY_PORT;
+  window.__TB_PROXY_HOST__ = PROXY_HOST;
+  window.__TB_PROXY_ACTIVE__ = false;
+
+  function pingProxy() {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', PROXY_HOST + '/ping', true);
+      xhr.timeout = 2000;
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          if (!window.__TB_PROXY_ACTIVE__) {
+            console.log('[TizenAdapter] Local streaming proxy detected on ' + PROXY_HOST);
+          }
+          window.__TB_PROXY_ACTIVE__ = true;
+        }
+      };
+      xhr.onerror = function() {
+        window.__TB_PROXY_ACTIVE__ = false;
+      };
+      xhr.ontimeout = function() {
+        window.__TB_PROXY_ACTIVE__ = false;
+      };
+      xhr.send();
+    } catch (e) {}
+  }
+  pingProxy();
+  setInterval(pingProxy, 5000);
+
+  function wrapWithProxy(u) {
+    if (!u || typeof u !== 'string') return u;
+    if (u.indexOf(PROXY_HOST) === 0) return u;
+    if (/^https?:\/\//i.test(u)) {
+      return PROXY_HOST + '/proxy?url=' + encodeURIComponent(u);
+    }
+    return u;
+  }
+  window.__wrapWithProxy = wrapWithProxy;
+
+  // Global Shaka Player proxy interceptor
+  function hookShakaProxy() {
+    if (typeof window !== 'undefined' && window.shaka && window.shaka.Player && !window.shaka.Player._tbProxyHooked) {
+      window.shaka.Player._tbProxyHooked = true;
+      var origLoad = window.shaka.Player.prototype.load;
+      window.shaka.Player.prototype.load = function(assetUri, startTime, mimeType) {
+        var u = assetUri;
+        if (typeof u === 'string' && window.__TB_PROXY_ACTIVE__ && /^https?:\/\//i.test(u)) {
+          u = wrapWithProxy(u);
+        }
+        return origLoad.call(this, u, startTime, mimeType);
+      };
+
+      var origAttach = window.shaka.Player.prototype.attach;
+      window.shaka.Player.prototype.attach = function(mediaEl, opt_init) {
+        var res = origAttach.call(this, mediaEl, opt_init);
+        try {
+          var netEngine = this.getNetworkingEngine && this.getNetworkingEngine();
+          if (netEngine && !this._tbProxyFilterRegistered) {
+            this._tbProxyFilterRegistered = true;
+            netEngine.registerRequestFilter(function(type, request) {
+              if (window.__TB_PROXY_ACTIVE__ && request && request.uris && request.uris.length) {
+                for (var i = 0; i < request.uris.length; i++) {
+                  var curUri = request.uris[i];
+                  if (typeof curUri === 'string' && /^https?:\/\//i.test(curUri)) {
+                    if (curUri.indexOf(PROXY_HOST) !== 0) {
+                      request.uris[i] = wrapWithProxy(curUri);
+                    }
+                  }
+                }
+              }
+            });
+          }
+        } catch (e) {}
+        return res;
+      };
+    }
+  }
+  hookShakaProxy();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', hookShakaProxy);
+  }
+  window.addEventListener('load', hookShakaProxy);
+  setInterval(hookShakaProxy, 1000);
+
   if (typeof window.fetch === 'function' && !window.fetch._nativeAppPatched) {
     var _origFetch = window.fetch;
     window.fetch = function(input, init) {
-      var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
-      var isYasuoyone = typeof url === 'string' && (
-        url.includes('.yasuoyone.org') || url.includes('//yasuoyone.org')
+      var urlStr = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+      var isYasuoyone = typeof urlStr === 'string' && (
+        urlStr.includes('.yasuoyone.org') || urlStr.includes('//yasuoyone.org')
       );
       init = Object.assign({}, init || {});
       if (!isYasuoyone) {
@@ -80,6 +166,17 @@
       } else {
         init.referrerPolicy = 'origin';
         init.referrer = 'https://yasuoyone.org/';
+      }
+
+      if (window.__TB_PROXY_ACTIVE__ && typeof urlStr === 'string' && /^https?:\/\//i.test(urlStr)) {
+        if (urlStr.indexOf(PROXY_HOST) !== 0 && !urlStr.includes(location.hostname)) {
+          var proxied = wrapWithProxy(urlStr);
+          if (typeof input === 'string') {
+            input = proxied;
+          } else if (input && typeof Request !== 'undefined' && input instanceof Request) {
+            input = new Request(proxied, init);
+          }
+        }
       }
       return _origFetch.call(this, input, init);
     };
@@ -93,7 +190,12 @@
         url.includes('.yasuoyone.org') || url.includes('//yasuoyone.org')
       );
       if (!isYasuoyone) {
-        try { this.referrerPolicy = 'no-referrer'; } catch(e) {}
+        try { this.referrerPolicy = 'no-referrer'; } catch (e) {}
+      }
+      if (window.__TB_PROXY_ACTIVE__ && typeof url === 'string' && /^https?:\/\//i.test(url)) {
+        if (url.indexOf(PROXY_HOST) !== 0 && !url.includes(location.hostname)) {
+          url = wrapWithProxy(url);
+        }
       }
       return _origOpen.apply(this, arguments);
     };
