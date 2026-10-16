@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+  <meta name="referrer" content="no-referrer">
+  <script src="tizen-adapter.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>404 - Page Not Found / Stránka nenalezena</title>
+    <link rel="icon" type="image/x-icon" href="https://i.ibb.co/VWNQX8Fd/uw0ql0.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+    <style>:root{--black:#000000;--bg:#0a0a0a;--bg-card:#141414;--white:#f5f5f0;--text:#e0e0dc;--text-secondary:#888888;--accent:#ffc629;--accent-warm:#ffb800;--grad-accent:linear-gradient(135deg, #ffc629, #ff9f00);--border:hsla(0, 0%, 100%, 0.06);--shadow-lg:0 16px 48px rgba(0, 0, 0, 0.7);--shadow-glow:0 4px 24px hsla(46, 100%, 58%, 0.15)}*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Outfit',sans-serif;background:var(--black);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}body::before{content:"";position:absolute;inset:0;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;z-index:1}.bg-glow{position:absolute;width:300px;height:300px;background:radial-gradient(circle, rgba(255, 198, 41, 0.08) 0%, transparent 70%);border-radius:50%;top:50%;left:50%;transform:translate(-50%, -50%);pointer-events:none;z-index:0}.container{position:relative;z-index:2;text-align:center;padding:40px 24px;max-width:480px;width:90%;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);animation:cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both}@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}.icon-box{font-size:3.5rem;color:var(--accent);margin-bottom:20px;display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;background:rgba(255, 198, 41, 0.08);border:1px solid rgba(255, 198, 41, 0.15);border-radius:50%;animation:pulse 2s infinite ease-in-out}@keyframes pulse{0%, 100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255, 198, 41, 0.2)}50%{transform:scale(1.05);box-shadow:0 0 20px 8px rgba(255, 198, 41, 0.05)}}h1{font-family:'Bebas Neue',sans-serif;font-size:5rem;line-height:1;letter-spacing:2px;color:var(--accent);margin-bottom:10px;background:var(--grad-accent);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}h2{font-size:1.3rem;font-weight:700;color:var(--white);margin-bottom:15px}p{font-size:0.9rem;color:var(--text-secondary);line-height:1.6;margin-bottom:30px}.btn{display:inline-flex;align-items:center;gap:10px;background:var(--grad-accent);color:var(--black);font-weight:700;font-size:0.9rem;text-decoration:none;padding:14px 28px;border-radius:8px;box-shadow:var(--shadow-glow);transition:all 0.22s cubic-bezier(0.25, 0.1, 0.25, 1)}.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px hsla(46, 100%, 58%, 0.25)}.btn:active{transform:translateY(0)}.lang-switch{margin-top:40px;display:flex;justify-content:center;gap:15px}.lang-btn{background:none;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:6px 12px;opacity:0.4;transition:all 0.2s;display:flex;align-items:center;justify-content:center}.lang-btn:hover, .lang-btn.active{opacity:1;border-color:var(--accent);background:rgba(255, 198, 41, 0.05)}.lang-btn img{width:24px;height:16px;border-radius:1px;box-shadow:0 1px 3px rgba(0,0,0,0.3)}</style>
+  </head>
+  <body>
+    <div class="bg-glow"></div>
+    <div class="container">
+      <div class="icon-box">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h1 id="code">404</h1>
+      <h2 id="title">Stránka nenalezena</h2>
+      <p id="desc">Omlouváme se, ale požadovaná stránka neexistuje nebo byla přesunuta.</p>
+      <a href="/" class="btn" id="btn-text">
+        <i class="fa-solid fa-house"></i>
+        <span>Přejít na úvod</span>
+      </a>
+      
+      <div class="lang-switch">
+        <button class="lang-btn active" id="btn-cs" onclick="setLang('cs')">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Crect width='3' height='2' fill='%23fff'/%3E%3Crect width='3' height='1' y='1' fill='%23d7141a'/%3E%3Cpolygon points='0,0 1.5,1 0,2' fill='%2311457e'/%3E%3C/svg%3E" alt="Čeština">
+        </button>
+        <button class="lang-btn" id="btn-en" onclick="setLang('en')">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'%3E%3CclipPath id='s'%3E%3Cpath d='M0,0 v30 h60 v-30 z'/%3E%3C/clipPath%3E%3CclipPath id='t'%3E%3Cpath d='M30,15 L0,0 v15 z M30,15 L60,0 h-30 z M30,15 L60,30 v-15 z M30,15 L0,30 h30 z'/%3E%3C/clipPath%3E%3Cg clip-path='url(%23s)'%3E%3Cpath d='M0,0 L60,30 M60,0 L0,30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M0,0 L60,30 M60,0 L0,30' stroke='%23012169' stroke-width='4'/%3E%3Cpath d='M0,0 L60,30 M60,0 L0,30' stroke='%23c8102e' stroke-width='2' clip-path='url(%23t)'/%3E%3Cpath d='M30,0 v30 M0,15 h60' stroke='%23fff' stroke-width='10'/%3E%3Cpath d='M30,0 v30 M0,15 h60' stroke='%23c8102e' stroke-width='6'/%3E%3C/g%3E%3C/svg%3E" alt="English">
+        </button>
+      </div>
+    </div>
+    <script>const TR={cs:{title:"Stránka nenalezena",desc:"Omlouváme se, ale požadovaná stránka neexistuje nebo byla přesunuta.",btn:"Přejít na úvod"},en:{title:"Page Not Found",desc:"We are sorry, but the page you are looking for does not exist or has been moved.",btn:"Go Back Home"}};let lang=localStorage.getItem("tv_lang");if(!lang){const userLangs=navigator.languages||[navigator.language||""];const isCs=userLangs.some(l=>l.toLowerCase().startsWith("cs")||l.toLowerCase().startsWith("sk"));lang=isCs?"cs":"en"}function setLang(e){lang=e;localStorage.setItem("tv_lang",e);document.getElementById("title").textContent=TR[e].title;document.getElementById("desc").textContent=TR[e].desc;document.getElementById("btn-text").querySelector("span").textContent=TR[e].btn;document.getElementById("btn-cs").classList.toggle("active",e==="cs");document.getElementById("btn-en").classList.toggle("active",e==="en")}setLang(lang);</script>
+  </body>
+</html>

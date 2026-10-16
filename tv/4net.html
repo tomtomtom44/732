@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="referrer" content="no-referrer">
+  <script src="../tizen-adapter.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Multi-Stream Master Monitor (Ultra Sharp UI)</title>
+    
+    <!-- Google Fonts for developer/cyber aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Shaka Player 4.15.11 core + UI assets -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/controls.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/shaka-player.ui.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-primary: #050507;
+            --bg-secondary: #0b0b0e;
+            --bg-glass: rgba(11, 11, 14, 0.95);
+            --bg-input: #101014;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --border-accent: rgba(0, 210, 255, 0.15);
+            --border-hover: rgba(0, 210, 255, 0.5);
+            --accent-red: #ff003c;
+            --accent-red-hover: #ff2255;
+            --accent-green: #00ff66;
+            --accent-amber: #ffaa00;
+            --accent-blue: #00d2ff;
+            --accent-blue-hover: #33ddff;
+            --text-main: #f5f5f7;
+            --text-muted: #74747c;
+            --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-code: 'JetBrains Mono', 'Courier New', Courier, monospace;
+            --radius-main: 4px;
+            --radius-sub: 2px;
+            --shadow-premium: 0 8px 32px rgba(0, 0, 0, 0.7);
+            --transition-speed: 0.15s;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: -0.2px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { background: #222228; border-radius: var(--radius-sub); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+        #header-bar {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 14px 20px;
+            border-radius: var(--radius-main);
+            border: 1px solid var(--border-accent);
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            font-family: var(--font-ui);
+            background: linear-gradient(90deg, #fff 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        #status-text {
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 600;
+            font-family: var(--font-code);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-upload-btn {
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 9px 14px;
+            border-radius: var(--radius-sub);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-upload-btn:hover {
+            border-color: var(--border-hover);
+            background: rgba(0, 210, 255, 0.04);
+        }
+
+        .file-upload-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-premium {
+            background: var(--accent-blue);
+            color: #000;
+            border: none;
+            padding: 9px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            border-radius: var(--radius-sub);
+            box-shadow: 0 2px 10px rgba(0, 210, 255, 0.2);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.35);
+            background: var(--accent-blue-hover);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 9px 14px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            border-radius: var(--radius-sub);
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .search-container { position: relative; }
+        .search-input {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            padding: 9px 12px 9px 32px;
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            font-size: 13px;
+            width: 150px;
+            transition: all var(--transition-speed);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.15);
+            width: 200px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        #video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 16px;
+        }
+
+        .player-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-main);
+            position: relative;
+            aspect-ratio: 16/9;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all var(--transition-speed);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .player-container:hover {
+            border-color: var(--border-hover);
+            z-index: 10;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 210, 255, 0.15);
+        }
+
+        .player-container.healthy { border-color: rgba(0, 255, 102, 0.12); }
+        .player-container.healthy:hover { border-color: var(--accent-green); box-shadow: 0 8px 20px rgba(0, 255, 102, 0.1); }
+        .player-container.stalled { border-color: rgba(255, 170, 0, 0.15); animation: pulse-stalled 2s infinite ease-in-out; }
+        .player-container.stalled:hover { border-color: var(--accent-amber); box-shadow: 0 8px 20px rgba(255, 170, 0, 0.1); }
+
+        @keyframes pulse-stalled {
+            0%, 100% { border-color: rgba(255, 170, 0, 0.15); }
+            50% { border-color: rgba(255, 170, 0, 0.45); }
+        }
+
+        .player-container.dead { border-color: rgba(255, 0, 60, 0.25); opacity: 0.6; }
+        .player-container.dead:hover { border-color: var(--accent-red); box-shadow: 0 8px 20px rgba(255, 0, 60, 0.15); }
+
+        video{
+            width: 100%;
+            height: 100%;
+            object-fit:contain !important;
+            border-radius: calc(var(--radius-main) - 1px);
+        }
+
+        .channel-name {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(5, 5, 7, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 10;
+            color: var(--text-main);
+            border-radius: var(--radius-sub);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-code);
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            display: inline-block;
+        }
+
+        .healthy .status-dot { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+        .stalled .status-dot { background: var(--accent-amber); box-shadow: 0 0 6px var(--accent-amber); }
+        .dead .status-dot { background: var(--accent-red); box-shadow: 0 0 6px var(--accent-red); }
+
+        .error-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 5, 7, 0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            color: var(--accent-red);
+            backdrop-filter: blur(4px);
+            text-align: center;
+            padding: 12px;
+        }
+
+        .dead .error-overlay { display: flex; }
+
+        .err-reason {
+            font-family: var(--font-code);
+            margin-top: 6px;
+            background: rgba(255, 0, 60, 0.05);
+            padding: 3px 6px;
+            border-radius: var(--radius-sub);
+            border: 1px solid rgba(255, 0, 60, 0.15);
+            font-size: 10px;
+        }
+
+        #focus-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 3, 5, 0.99);
+            z-index: 999;
+            overflow-y: auto;
+            padding: 30px 24px;
+            box-sizing: border-box;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        #focus-container {
+            width: 100%;
+            max-width: 1050px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: modal-fade var(--transition-speed) ease-out;
+        }
+
+        @keyframes modal-fade {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #focus-wrapper {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            position: relative;
+            border-radius: var(--radius-main);
+            border: 1px solid var(--border-accent);
+            overflow: hidden;
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.9);
+        }
+
+        #close-btn {
+            background: rgba(255, 0, 60, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            padding: 8px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: var(--radius-sub);
+            transition: all var(--transition-speed);
+            letter-spacing: 0.5px;
+        }
+
+        #close-btn:hover {
+            background: var(--accent-red);
+            color: white;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 12px rgba(255, 0, 60, 0.3);
+        }
+
+        .dashboard-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-main);
+            padding: 20px;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dashboard-section-title {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-left: 2px solid var(--accent-blue);
+            padding-left: 8px;
+        }
+
+        .surf-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            padding: 10px 14px;
+        }
+
+        .surf-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: var(--radius-sub);
+            padding: 6px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition-speed);
+            font-family: var(--font-ui);
+            font-size: 12px;
+        }
+
+        .surf-btn:hover {
+            background: var(--accent-blue);
+            color: #000;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.25);
+        }
+
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 10px;
+        }
+
+        .telemetry-card {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .telemetry-card.res { border-left: 3px solid var(--accent-blue); }
+        .telemetry-card.bit { border-left: 3px solid var(--accent-green); }
+        .telemetry-card.fps { border-left: 3px solid var(--accent-blue); }
+        .telemetry-card.buf { border-left: 3px solid var(--accent-amber); }
+        .telemetry-card.drop { border-left: 3px solid var(--accent-red); }
+
+        .telemetry-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .telemetry-value {
+            font-size: 14px;
+            font-weight: 700;
+            font-family: var(--font-code);
+            color: var(--text-main);
+        }
+
+        .detail-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-input-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            padding: 3px 3px 3px 10px;
+        }
+
+        .detail-input-container:focus-within {
+            border-color: rgba(0, 210, 255, 0.3);
+        }
+
+        .detail-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-code);
+            font-size: 12px;
+            padding: 6px 0;
+            outline: none;
+            width: 100%;
+        }
+
+        .btn-copy {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: var(--radius-sub);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--transition-speed);
+        }
+
+        .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-copy.copied {
+            background: rgba(0, 255, 102, 0.1) !important;
+            border-color: var(--accent-green) !important;
+            color: var(--accent-green) !important;
+        }
+
+        #manual-add-panel {
+            display: none;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-accent);
+            border-radius: var(--radius-main);
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-premium);
+            flex-direction: column;
+            gap: 14px;
+            animation: slide-down var(--transition-speed) ease-out;
+        }
+
+        @keyframes slide-down {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sub);
+            padding: 8px 12px;
+            color: white;
+            font-family: var(--font-ui);
+            font-size: 13px;
+            transition: all var(--transition-speed);
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-blue);
+            outline: none;
+        }
+
+        .form-input.mono {
+            font-family: var(--font-code);
+            font-size: 12px;
+        }
+    
+:fullscreen, :-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}
+:fullscreen video, :-webkit-full-screen video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+</style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <div id="header-bar">
+        <div class="header-left">
+            <div style="font-size: 22px;">📺</div>
+            <div class="header-title-container">
+                <h1 class="header-title">HLS ULTRAPLAYER</h1>
+                <div id="status-text">Ready. Loading playlist...</div>
+            </div>
+        </div>
+        <div class="header-controls">
+            <!-- Search bar -->
+            <div class="search-container">
+                <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Search channel..." oninput="filterGrid()">
+            </div>
+            
+            <!-- File upload -->
+            <div class="file-upload-wrapper">
+                <button class="file-upload-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Upload Playlist
+                </button>
+                <input type="file" id="fileInput" accept=".txt,.m3u,.m3u8">
+            </div>
+            
+            <button class="btn-premium" onclick="startLoading()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                START ENGINE
+            </button>
+            
+            <button class="btn-secondary" onclick="toggleManualAdd()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                MANUAL ADD
+            </button>
+            
+            <button class="btn-secondary" onclick="clearCache()" style="color:#ff3355;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                RESET
+            </button>
+        </div>
+    </div>
+
+    <!-- Sliding custom manual stream adder -->
+    <div id="manual-add-panel">
+        <h3 style="margin: 0; font-size: 13px; color: var(--accent-blue); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Add Custom HLS Stream</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="manual-name">Channel Name / ID</label>
+                <input type="text" id="manual-name" class="form-input" placeholder="e.g. Channel 332">
+            </div>
+            <div class="form-group">
+                <label for="manual-url">HLS Stream URL (.m3u8)</label>
+                <input type="text" id="manual-url" class="form-input mono" placeholder="https://example.com/live.m3u8">
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 2px;">
+            <button class="btn-premium" onclick="addManualStream()">Save Stream</button>
+            <button class="btn-secondary" onclick="toggleManualAdd()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- The Grid of low-resolution HLS streams -->
+    <div id="video-grid"></div>
+
+    <!-- Scrollable Focus Modal (Theatre Mode) -->
+    <div id="focus-modal">
+        <div id="focus-container">
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width:100%;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-dot" style="background:var(--accent-green); box-shadow:0 0 8px var(--accent-green); width:8px; height:8px;"></span>
+                    <h2 id="focus-title" style="margin: 0; font-size: 20px; font-weight: 700; color: #fff; font-family:var(--font-code); text-transform:uppercase;">Channel Name</h2>
+                </div>
+                <button id="close-btn" onclick="closeFocus()">CLOSE & RESUME GRID</button>
+            </div>
+            
+            <!-- Video Player Wrapper -->
+            <div id="focus-wrapper">
+                <div id="focus-ui-container" style="width:100%; height:100%;">
+                    <video id="focus-video" style="width:100%; height:100%;" autoplay playsinline></video>
+                </div>
+            </div>
+            
+            <!-- Diagnostics & Details under the player -->
+            <div id="focus-info-panel" class="dashboard-panel">
+                
+                <!-- Channel Surfing controls -->
+                <div class="surf-bar">
+                    <button class="surf-btn" onclick="playAdjacentChannel(-1)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        PREV CHANNEL
+                    </button>
+                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); font-family: var(--font-code);">SURF STREAMS [ ← / → KEYS ]</span>
+                    <button class="surf-btn" onclick="playAdjacentChannel(1)">
+                        NEXT CHANNEL
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                </div>
+
+                <!-- Telemetry Grid -->
+                <div>
+                    <h3 class="dashboard-section-title">Telemetry Diagnostics</h3>
+                    <div class="telemetry-grid" style="margin-top:10px;">
+                        <div class="telemetry-card res">
+                            <span class="telemetry-label">Active Resolution</span>
+                            <span id="stat-resolution" class="telemetry-value">Detecting...</span>
+                        </div>
+                        <div class="telemetry-card bit">
+                            <span class="telemetry-label">Bitrate / Bandwidth</span>
+                            <span id="stat-bandwidth" class="telemetry-value">Detecting...</span>
+                        </div>
+                        <div class="telemetry-card fps">
+                            <span class="telemetry-label">Frame Rate</span>
+                            <span id="stat-fps" class="telemetry-value">Detecting...</span>
+                        </div>
+                        <div class="telemetry-card buf">
+                            <span class="telemetry-label">Buffer Health</span>
+                            <span id="stat-buffering" class="telemetry-value">0.0s</span>
+                        </div>
+                        <div class="telemetry-card drop">
+                            <span class="telemetry-label">Dropped Frames</span>
+                            <span id="stat-dropped" class="telemetry-value" style="color:var(--accent-amber);">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HLS Manifest Link Details -->
+                <div class="detail-row">
+                    <div class="detail-header">
+                        <h3 class="dashboard-section-title">HLS Master Playlist (.m3u8)</h3>
+                    </div>
+                    <div class="detail-input-container">
+                        <input type="text" id="focus-m3u8-url" class="detail-input" readonly value="https://example.com/live.m3u8">
+                        <button id="btn-copy-m3u8" class="btn-copy" onclick="copyM3u8Link()">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy M3U8 URL</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    let loadedEntries = [];
+    let activeGridItems = [];
+    let focusPlayer = null;
+    let focusUI = null;
+    let currentFocusIndex = -1;
+    let statsInterval = null;
+
+    shaka.polyfill.installAll();
+
+    // Keyboard navigation (Arrow keys for surfing)
+    document.addEventListener('keydown', (e) => {
+        const modal = document.getElementById('focus-modal');
+        if (modal.style.display === 'flex') {
+            if (e.key === 'ArrowLeft') playAdjacentChannel(-1);
+            if (e.key === 'ArrowRight') playAdjacentChannel(1);
+            if (e.key === 'Escape') closeFocus();
+        }
+    });
+
+    // Startup initializer
+    window.addEventListener('DOMContentLoaded', async () => {
+        // 1. Try local cache first
+        const cached = localStorage.getItem('hls_monitor_channels');
+        if (cached) {
+            try {
+                loadedEntries = JSON.parse(cached);
+                if (loadedEntries.length > 0) {
+                    document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels (Cached)`;
+                    await renderGrid();
+                    return;
+                }
+            } catch (e) {
+                console.error("Cache parse error:", e);
+            }
+        }
+
+        // 2. Fetch working_urls.txt automatically
+        try {
+            let response = await fetch('../../working_urls.txt');
+            if (!response.ok) response = await fetch('../working_urls.txt');
+            if (!response.ok) response = await fetch('working_urls.txt');
+
+            if (response.ok) {
+                const text = await response.text();
+                loadedEntries = parsePlaylistText(text);
+                if (loadedEntries.length > 0) {
+                    localStorage.setItem('hls_monitor_channels', JSON.stringify(loadedEntries));
+                    document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels (Loaded working_urls.txt)`;
+                    await renderGrid();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Auto-fetch working_urls.txt failed:", e);
+        }
+
+        document.getElementById('status-text').innerText = `Ready. Upload playlist or click Start Engine`;
+    });
+
+    async function startLoading() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            try {
+                let response = await fetch('../../working_urls.txt');
+                if (!response.ok) response = await fetch('../working_urls.txt');
+                if (!response.ok) response = await fetch('working_urls.txt');
+                if (response.ok) {
+                    const text = await response.text();
+                    loadedEntries = parsePlaylistText(text);
+                }
+            } catch (e) {}
+
+            if (loadedEntries.length === 0) return alert("Select a playlist file (.txt or .m3u) first!");
+        } else {
+            try {
+                const text = await file.text();
+                loadedEntries = parsePlaylistText(text);
+            } catch (e) {
+                return alert("Error reading file: " + e.message);
+            }
+        }
+
+        if (loadedEntries.length === 0) {
+            alert("No channels found in playlist!");
+            return;
+        }
+
+        localStorage.setItem('hls_monitor_channels', JSON.stringify(loadedEntries));
+        document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels`;
+        await renderGrid();
+    }
+
+    function extractChannelName(url, defaultIndex) {
+        try {
+            const match = url.match(/channel=(\d+)/i);
+            if (match && match[1]) {
+                return `Channel ${match[1]}`;
+            }
+            const parts = url.split('/');
+            let name = parts[parts.length - 1].split('?')[0];
+            return name || `Stream ${defaultIndex + 1}`;
+        } catch (e) {
+            return `Stream ${defaultIndex + 1}`;
+        }
+    }
+
+    function parsePlaylistText(text) {
+        const results = [];
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        
+        let currentExtInf = null;
+
+        lines.forEach((line, idx) => {
+            if (line.startsWith('#EXTINF:')) {
+                const parts = line.split(',');
+                if (parts.length > 1) {
+                    currentExtInf = parts.slice(1).join(',').trim();
+                }
+            } else if (line.startsWith('http://') || line.startsWith('https://')) {
+                const name = currentExtInf || extractChannelName(line, results.length);
+                results.push({ url: line, name: name });
+                currentExtInf = null;
+            }
+        });
+
+        return results;
+    }
+
+    async function renderGrid() {
+        // Stop current running grid items and clear watchdogs
+        activeGridItems.forEach(item => {
+            if (item.watchdogInterval) clearInterval(item.watchdogInterval);
+            try { item.player.destroy(); } catch (e) {}
+        });
+
+        const grid = document.getElementById('video-grid');
+        grid.innerHTML = '';
+        activeGridItems = [];
+
+        const fragment = document.createDocumentFragment();
+        const itemsToInit = [];
+
+        for (let i = 0; i < loadedEntries.length; i++) {
+            const data = loadedEntries[i];
+            const container = document.createElement('div');
+            container.className = 'player-container healthy';
+            container.id = `grid-item-${i}`;
+            container.innerHTML = `
+                <div class="channel-name">
+                    <span class="status-dot"></span>
+                    <span>${data.name}</span>
+                </div>
+                <div class="error-overlay">
+                    <div style="font-size:20px; margin-bottom:5px;">⚠️</div>
+                    <div style="font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">OFFLINE</div>
+                    <div class="err-reason">Error</div>
+                </div>
+            `;
+
+            const video = document.createElement('video');
+            video.muted = true;
+            video.autoplay = true;
+            video.playsInline = true;
+
+            container.appendChild(video);
+            container.onclick = () => openFocusByIndex(i);
+            fragment.appendChild(container);
+
+            itemsToInit.push({ container, video, data, index: i });
+        }
+
+        grid.appendChild(fragment);
+
+        // Initialize grid streams sequentially with 180ms delay to prevent 4net server rate-limiting (Error 1001)
+        for (let i = 0; i < itemsToInit.length; i++) {
+            const item = itemsToInit[i];
+            initGridPlayer(item).catch(() => {});
+            await new Promise(r => setTimeout(r, 180));
+        }
+    }
+
+    async function initGridPlayer({ container, video, data, index }) {
+        // If container was already destroyed or marked dead, exit
+        if (container.classList.contains('dead')) return;
+
+        // Shaka 4.15+ non-deprecated attach initialization
+        const player = new shaka.Player();
+        try {
+            await player.attach(video);
+        } catch (e) {
+            console.error("Attach failed:", e);
+            markDead("Attach Failed");
+            return;
+        }
+
+        player.configure({
+            preferredAudioLanguage: 'eng',
+            manifest: {
+                retryParameters: { maxAttempts: 6, timeout: 20000, backoffFactor: 1.5 }
+            },
+            streaming: {
+                bufferingGoal: 0.5,           // Minimal buffer to conserve bandwidth
+                rebufferingGoal: 0.2,
+                bufferBehind: 1,
+                retryParameters: { maxAttempts: 6, timeout: 20000, backoffFactor: 1.5 }
+            },
+            abr: {
+                enabled: true,
+                defaultBandwidthEstimate: 150000 // Force lowest bitrate variant for grid preview
+            }
+        });
+
+        const itemObj = { 
+            player, 
+            video, 
+            data, 
+            container, 
+            index, 
+            watchdogInterval: null 
+        };
+        activeGridItems.push(itemObj);
+
+        const markDead = (reason) => {
+            container.classList.remove('healthy', 'stalled');
+            container.classList.add('dead');
+            container.querySelector('.err-reason').innerText = reason;
+            if (itemObj.watchdogInterval) clearInterval(itemObj.watchdogInterval);
+            try { player.destroy(); } catch (e) {}
+        };
+
+        // Only mark dead on CRITICAL severity errors (ignore non-fatal warnings/retries)
+        player.addEventListener('error', (e) => {
+            const err = e.detail || e;
+            // Ignore non-fatal network retries
+            if (err && err.severity === shaka.util.Error.Severity.CRITICAL && err.code !== 1001) {
+                console.warn("Grid Player critical error:", err);
+                markDead("Error " + (err.code || ""));
+            }
+        });
+
+        // Retry loop with exponential backoff specifically for HTTP Rate Limit / Status 1001 errors
+        let loaded = false;
+        for (let attempt = 0; attempt < 4; attempt++) {
+            try { 
+                video.muted = true;
+                video.defaultMuted = true;
+                await player.load(data.url);
+                await video.play().catch(() => {});
+                loaded = true;
+                break;
+            } catch (e) {
+                const errCode = e ? (e.code || (e.detail && e.detail.code)) : null;
+                // HTTP 1001 rate limiting error -> back off 1.5s per retry to let server window reset
+                const delay = (errCode === 1001) ? 1500 * (attempt + 1) : 800;
+                await new Promise(r => setTimeout(r, delay));
+            }
+        }
+
+        if (!loaded) {
+            markDead("Server Limit (1001)");
+            return;
+        }
+
+        // Start watchdog monitoring ONLY after player.load completes successfully
+        let lastTime = -1;
+        let stuckCount = 0;
+        let playAttempts = 0;
+
+        itemObj.watchdogInterval = setInterval(() => {
+            if (container.classList.contains('dead') || !itemObj.video) {
+                clearInterval(itemObj.watchdogInterval);
+                return;
+            }
+
+            const curTime = video.currentTime;
+
+            if (!video.paused && curTime > 0) {
+                if (curTime === lastTime) {
+                    stuckCount++;
+                    if (stuckCount >= 3) {
+                        container.classList.remove('healthy');
+                        container.classList.add('stalled');
+                        container.querySelector('.err-reason').innerText = "Stalled";
+                    }
+                    if (stuckCount >= 20) {
+                        markDead("Frozen/No Video");
+                    }
+                } else {
+                    stuckCount = 0;
+                    container.classList.remove('dead', 'stalled');
+                    container.classList.add('healthy');
+                }
+            } else {
+                if (video.paused) {
+                    playAttempts++;
+                    video.muted = true;
+                    video.play().catch(() => {});
+                    if (playAttempts >= 20) {
+                        markDead("Autoplay Blocked");
+                    }
+                }
+            }
+
+            lastTime = curTime;
+        }, 3500);
+    }
+
+    async function openFocusByIndex(index) {
+        if (index < 0 || index >= loadedEntries.length) return;
+        currentFocusIndex = index;
+        const data = loadedEntries[index];
+
+        // 1. CLEANUP PREVIOUS INSTANCES (Critical to prevent duplicate UI controls)
+        stopStatsInterval();
+        if (focusUI) {
+            try { await focusUI.destroy(); } catch (e) {}
+            focusUI = null;
+        }
+        if (focusPlayer) {
+            try { await focusPlayer.destroy(); } catch (e) {}
+            focusPlayer = null;
+        }
+
+        // 2. PAUSE GRID VIDEOS
+        activeGridItems.forEach(item => { if (item.video) item.video.pause(); });
+
+        // 3. SHOW MODAL AND POPULATE DETAILS
+        document.getElementById('focus-modal').style.display = 'flex';
+        document.getElementById('focus-title').innerText = data.name;
+        document.getElementById('focus-m3u8-url').value = data.url;
+
+        // Wipe and recreate container DOM element so Shaka UI Overlay is clean
+        const uiContainer = document.getElementById('focus-ui-container');
+        uiContainer.innerHTML = `<video id="focus-video" style="width:100%; height:100%;" autoplay playsinline></video>`;
+        const video = document.getElementById('focus-video');
+
+        // Set initial volume to 20% (0.2) when clicked on
+        video.muted = false;
+        video.volume = 0.2;
+
+        // Reset Telemetry display
+        document.getElementById('stat-resolution').innerText = 'Detecting...';
+        document.getElementById('stat-fps').innerText = 'Detecting...';
+        document.getElementById('stat-bandwidth').innerText = 'Detecting...';
+        document.getElementById('stat-dropped').innerText = '0';
+        document.getElementById('stat-buffering').innerText = '0.0s';
+
+        // 4. INITIALIZE PLAYER (Shaka 4.15+ attach pattern) & UI OVERLAY
+        focusPlayer = new shaka.Player();
+        await focusPlayer.attach(video);
+        focusUI = new shaka.ui.Overlay(focusPlayer, uiContainer, video);
+
+        const config = { 
+            'fadeDelay': 8,
+                'controlPanelElements': [
+                'play_pause', 
+                'volume',
+                'time_and_duration', 
+                'spacer', 
+                'overflow_menu',
+                'fullscreen'
+            ] 
+        };
+        focusUI.configure(config);
+
+        focusPlayer.configure({
+            preferredAudioLanguage: 'eng',
+            restrictions: { maxHeight: Infinity, maxBandwidth: Infinity },
+            abr: { enabled: true }
+        });
+
+        video.onplaying = () => startStatsInterval();
+
+        try { 
+            await focusPlayer.load(data.url);
+            video.volume = 0.2; // Ensure 20% volume post-load
+        } catch (e) { 
+            console.error("Focus stream load error:", e); 
+            document.getElementById('stat-resolution').innerText = 'Loading Error';
+        }
+    }
+
+    async function closeFocus() {
+        stopStatsInterval();
+        
+        if (focusUI) {
+            try { await focusUI.destroy(); } catch (e) {}
+            focusUI = null;
+        }
+        if (focusPlayer) {
+            try { await focusPlayer.destroy(); } catch (e) {}
+            focusPlayer = null;
+        }
+
+        document.getElementById('focus-modal').style.display = 'none';
+
+        // Resume all non-dead grid items
+        activeGridItems.forEach(item => {
+            if (item.video && !item.container.classList.contains('dead')) {
+                item.video.play().catch(() => {});
+            }
+        });
+    }
+
+    function startStatsInterval() {
+        if (statsInterval) clearInterval(statsInterval);
+        statsInterval = setInterval(() => {
+            if (!focusPlayer) return;
+            try {
+                const stats = focusPlayer.getStats();
+                if (stats.width && stats.height) {
+                    document.getElementById('stat-resolution').innerText = `${stats.width}x${stats.height}`;
+                }
+                if (stats.streamBandwidth || stats.estimatedBandwidth) {
+                    const bw = stats.streamBandwidth || stats.estimatedBandwidth;
+                    document.getElementById('stat-bandwidth').innerText = `${(bw / 1000000).toFixed(2)} Mbps`;
+                }
+                if (stats.decodedFrames && stats.playTime) {
+                    document.getElementById('stat-fps').innerText = `${Math.round(stats.decodedFrames / stats.playTime)} FPS`;
+                } else {
+                    document.getElementById('stat-fps').innerText = '50 FPS';
+                }
+                document.getElementById('stat-dropped').innerText = stats.droppedFrames || 0;
+                document.getElementById('stat-buffering').innerText = `${(stats.bufferingTime || 0).toFixed(1)}s`;
+            } catch (e) {}
+        }, 1000);
+    }
+
+    function stopStatsInterval() {
+        if (statsInterval) {
+            clearInterval(statsInterval);
+            statsInterval = null;
+        }
+    }
+
+    async function playAdjacentChannel(direction) {
+        if (loadedEntries.length <= 1) return;
+        let newIndex = currentFocusIndex + direction;
+        if (newIndex < 0) newIndex = loadedEntries.length - 1;
+        if (newIndex >= loadedEntries.length) newIndex = 0;
+        await openFocusByIndex(newIndex);
+    }
+
+    function copyM3u8Link() {
+        const url = document.getElementById('focus-m3u8-url').value;
+        const btn = document.getElementById('btn-copy-m3u8');
+        navigator.clipboard.writeText(url).then(() => {
+            const orig = btn.innerHTML;
+            btn.classList.add('copied');
+            btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> <span>Copied!</span>`;
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = orig;
+            }, 1500);
+        });
+    }
+
+    function filterGrid() {
+        const term = document.getElementById('search-input').value.toLowerCase().trim();
+        activeGridItems.forEach(item => {
+            const name = item.data.name.toLowerCase();
+            const url = item.data.url.toLowerCase();
+            if (!term || name.includes(term) || url.includes(term)) {
+                item.container.style.display = 'block';
+            } else {
+                item.container.style.display = 'none';
+            }
+        });
+    }
+
+    function toggleManualAdd() {
+        const panel = document.getElementById('manual-add-panel');
+        if (panel.style.display === 'flex') {
+            panel.style.display = 'none';
+        } else {
+            panel.style.display = 'flex';
+            document.getElementById('manual-name').focus();
+        }
+    }
+
+    function addManualStream() {
+        const name = document.getElementById('manual-name').value.trim() || "Custom Stream";
+        const url = document.getElementById('manual-url').value.trim();
+
+        if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+            return alert("Enter a valid HLS URL starting with http:// or https://");
+        }
+
+        loadedEntries.unshift({ name, url });
+        localStorage.setItem('hls_monitor_channels', JSON.stringify(loadedEntries));
+        document.getElementById('manual-name').value = '';
+        document.getElementById('manual-url').value = '';
+        document.getElementById('manual-add-panel').style.display = 'none';
+        document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels`;
+        renderGrid();
+    }
+
+    function clearCache() {
+        if (confirm("Reset playlist cache?")) {
+            localStorage.removeItem('hls_monitor_channels');
+            loadedEntries = [];
+            document.getElementById('status-text').innerText = "Cache reset. Refresh or upload file.";
+            renderGrid();
+        }
+    }
+</script>
+</body>
+</html>

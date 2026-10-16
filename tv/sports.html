@@ -1,0 +1,2932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
+    <script src="../tizen-adapter.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#040508">
+    <title>Pro Sports TV - Live DASH Streams</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Shaka Player CDN -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/controls.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/shaka-player.ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/7.1.0/mux.min.js"></script>
+
+    <style>
+:root{--bg-dark:#040508;--bg-surface:#0a0c12;--bg-elevated:#11141f;--bg-card:#141722;--bg-card-hover:#1b2030;--text-main:#f8fafc;--text-muted:#94a3b8;--text-dim:#475569;--accent-gold:#ffc629;--accent-gold-hover:#ffd45e;--accent-gold-glow:rgba(255,198,41,0.25);--accent-cyan:#00f0ff;--accent-cyan-glow:rgba(0,240,255,0.25);--accent-red:#ff2a5f;--accent-red-glow:rgba(255,42,95,0.35);--border-subtle:rgba(255,255,255,0.07);--border-gold:rgba(255,198,41,0.4);--border-cyan:rgba(0,240,255,0.4);--radius-lg:4px;--radius-md:2px;--radius-sm:0px;--shadow-card:0 10px 30px rgba(0,0,0,0.6);--shadow-glow:0 0 20px rgba(255,198,41,0.15);--font-ui:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono',monospace;--font-display:'Bebas Neue',sans-serif;--transition:all 0.22s cubic-bezier(0.16,1,0.3,1)}*{box-sizing:border-box;margin:0;padding:0}body{background-color:var(--bg-dark);color:var(--text-main);font-family:var(--font-ui);min-height:100vh;line-height:1.5;overflow-x:hidden;letter-spacing:-0.2px}body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 10% 10%,rgba(255,198,41,0.04) 0%,transparent 45%),radial-gradient(circle at 90% 90%,rgba(0,240,255,0.04) 0%,transparent 45%);pointer-events:none;z-index:0}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:var(--bg-dark)}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:var(--radius-sm)}::-webkit-scrollbar-thumb:hover{background:var(--accent-gold)}.navbar{position:sticky;top:0;z-index:100;background:rgba(10,12,18,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-subtle);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand-area{display:flex;align-items:center;gap:14px}.brand-icon{width:42px;height:42px;background:var(--bg-elevated);border:1px solid var(--border-gold);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--accent-gold);font-size:1.2rem;box-shadow:0 0 15px var(--accent-gold-glow)}.brand-text{display:flex;flex-direction:column}.brand-title{font-family:var(--font-display);font-size:2.2rem;letter-spacing:2px;background:linear-gradient(90deg,#ffffff 40%,var(--accent-gold) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:0.9}.brand-tag{font-family:var(--font-mono);font-size:0.65rem;color:var(--accent-cyan);letter-spacing:1px;text-transform:uppercase}.status-pill{font-family:var(--font-mono);font-size:0.72rem;font-weight:700;color:var(--accent-gold);background:rgba(255,198,41,0.08);border:1px solid var(--border-gold);padding:6px 14px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:8px}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent-gold);box-shadow:0 0 8px var(--accent-gold-glow)}.search-area{position:relative;width:340px}.search-area i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none}.search-input{width:100%;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);color:var(--text-main);padding:11px 16px 11px 44px;font-family:var(--font-ui);font-size:0.9rem;outline:none;transition:var(--transition)}.search-input:focus{border-color:var(--accent-gold);box-shadow:0 0 15px var(--accent-gold-glow)}.hero-banner{position:relative;z-index:10;max-width:1600px;margin:28px auto 0;padding:0 40px}.hero-card{background:linear-gradient(135deg,rgba(20,23,34,0.9) 0%,rgba(10,12,18,0.95) 100%);border:1px solid var(--border-subtle);border-left:4px solid var(--accent-gold);border-radius:var(--radius-lg);padding:28px 36px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-card)}.hero-meta{display:flex;align-items:center;gap:12px}.hero-badge{font-family:var(--font-mono);font-size:0.7rem;font-weight:700;color:var(--accent-cyan);background:rgba(0,240,255,0.1);border:1px solid var(--border-cyan);padding:4px 10px;border-radius:var(--radius-sm);text-transform:uppercase}.hero-heading{font-family:var(--font-display);font-size:2.5rem;letter-spacing:2px;color:#fff;line-height:1}.hero-sub{color:var(--text-muted);font-size:0.92rem;max-width:700px}.categories-section{max-width:1600px;margin:24px auto 0;padding:0 40px;display:flex;flex-direction:column;gap:14px}.filter-row{display:flex;flex-direction:column;gap:8px}.filter-row-title{font-family:var(--font-mono);font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:6px}.filter-row-title i{color:var(--accent-gold)}.categories-bar{display:flex;align-items:center;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}.cat-pill{background:var(--bg-surface);border:1px solid var(--border-subtle);color:var(--text-muted);padding:10px 20px;border-radius:var(--radius-md);font-family:var(--font-ui);font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--transition);display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:0.5px}.cat-pill:hover{background:var(--bg-elevated);color:var(--text-main);border-color:rgba(255,255,255,0.2)}.cat-pill.active{background:var(--accent-gold);color:#000;border-color:var(--accent-gold);box-shadow:0 0 15px var(--accent-gold-glow);font-weight:800}.cat-pill .count{font-family:var(--font-mono);font-size:0.72rem;padding:2px 6px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.12)}.cat-pill.active .count{background:rgba(0,0,0,0.15);color:#000}.country-pill{background:var(--bg-surface);border:1px solid var(--border-subtle);color:var(--text-muted);padding:7px 16px;border-radius:var(--radius-md);font-family:var(--font-ui);font-size:0.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--transition);display:flex;align-items:center;gap:6px}.country-pill:hover{background:var(--bg-elevated);color:var(--text-main);border-color:rgba(255,255,255,0.2)}.country-pill.active{background:var(--accent-cyan);color:#000;border-color:var(--accent-cyan);box-shadow:0 0 12px var(--accent-cyan-glow);font-weight:800}.country-pill .count{font-family:var(--font-mono);font-size:0.68rem;padding:1px 5px;border-radius:var(--radius-sm);background:rgba(255,255,255,0.12)}.country-pill.active .count{background:rgba(0,0,0,0.18);color:#000}.grid-container{max-width:1600px;margin:24px auto 60px;padding:0 40px}.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.section-title-wrap{display:flex;align-items:center;gap:12px}.section-title-wrap i{color:var(--accent-gold);font-size:1.2rem}.section-title-text{font-family:var(--font-display);font-size:1.7rem;letter-spacing:1px;color:var(--text-main)}.section-counter{font-family:var(--font-mono);font-size:0.82rem;color:var(--text-muted)}.section-counter b{color:var(--accent-cyan)}.sports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px}.channel-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:var(--transition);display:flex;flex-direction:column;box-shadow:var(--shadow-card);position:relative}.channel-card:hover{background:var(--bg-card-hover);border-color:var(--border-gold);transform:translateY(-50px);box-shadow:0 12px 30px rgba(0,0,0,0.8),0 0 18px var(--accent-gold-glow)}.card-preview{width:100%;aspect-ratio:16/9;background:#07090e;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;border-bottom:1px solid var(--border-subtle)}.card-preview img{max-width:80%;max-height:80%;object-fit:contain;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.8));transition:var(--transition)}.channel-card:hover .card-preview img{transform:scale(1.08)}.card-preview .fallback-icon{font-size:2.5rem;color:var(--text-dim)}.badge-live{position:absolute;top:8px;left:8px;background:rgba(255,42,95,0.15);border:1px solid rgba(255,42,95,0.4);color:var(--accent-red);font-family:var(--font-mono);font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:var(--radius-sm);text-transform:uppercase;display:flex;align-items:center;gap:4px}.badge-live::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent-red);box-shadow:0 0 6px var(--accent-red-glow)}.badge-country{position:absolute;top:8px;left:64px;background:rgba(10,12,18,0.85);border:1px solid rgba(255,255,255,0.15);color:#fff;font-family:var(--font-mono);font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:4px;backdrop-filter:blur(4px)}.badge-drm{position:absolute;top:8px;right:8px;background:rgba(0,240,255,0.1);border:1px solid var(--border-cyan);color:var(--accent-cyan);font-family:var(--font-mono);font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:var(--radius-sm);text-transform:uppercase}.card-details{padding:14px;display:flex;flex-direction:column;gap:4px}.channel-title{font-size:0.95rem;font-weight:700;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:24px}.channel-category{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);text-transform:uppercase}.card-action-bar{margin-top:6px;display:flex;align-items:center;justify-content:space-between}.card-action{font-size:0.75rem;font-weight:700;color:var(--accent-gold);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:6px}.btn-info-icon{background:rgba(255,255,255,0.06);border:1px solid var(--border-subtle);color:var(--text-muted);width:28px;height:28px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:0.85rem;cursor:pointer;transition:var(--transition)}.btn-info-icon:hover{background:var(--accent-cyan);color:#000;border-color:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan-glow)}.info-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(4,5,8,0.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:10000;align-items:center;justify-content:center;padding:20px}.info-modal-backdrop.active{display:flex}.info-modal-card{width:100%;max-width:650px;background:#0d1018;border:1px solid var(--border-cyan);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(0,0,0,0.9),0 0 25px var(--accent-cyan-glow);padding:28px;display:flex;flex-direction:column;gap:20px;animation:modalFadeIn 0.2s cubic-bezier(0.16,1,0.3,1)}@keyframes modalFadeIn{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}.info-modal-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-subtle);padding-bottom:14px}.info-brand{display:flex;align-items:center;gap:12px}.info-icon-badge{width:36px;height:36px;background:rgba(0,240,255,0.1);border:1px solid var(--border-cyan);color:var(--accent-cyan);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:1.1rem}.info-modal-title{font-size:1.2rem;font-weight:700;color:#fff}.btn-close-info{background:rgba(255,255,255,0.08);border:1px solid var(--border-subtle);color:var(--text-muted);width:32px;height:32px;border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.9rem;transition:var(--transition)}.btn-close-info:hover{background:var(--accent-red);color:#fff;border-color:var(--accent-red)}.field-group{display:flex;flex-direction:column;gap:8px}.field-label{font-family:var(--font-mono);font-size:0.75rem;font-weight:700;color:var(--accent-gold);text-transform:uppercase;display:flex;align-items:center;gap:8px}.field-box{display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:8px 12px}.field-input{flex:1;background:transparent;border:none;outline:none;color:var(--text-main);font-family:var(--font-mono);font-size:0.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.btn-copy{background:rgba(255,198,41,0.12);border:1px solid var(--border-gold);color:var(--accent-gold);padding:6px 14px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.72rem;font-weight:700;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;transition:var(--transition)}.btn-copy:hover{background:var(--accent-gold);color:#000;box-shadow:0 0 12px var(--accent-gold-glow)}.player-modal-backdrop{display:none;position:fixed;inset:0;background:rgba(4,5,8,0.94);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);z-index:9999;align-items:center;justify-content:center;padding:20px}.player-modal-backdrop.active{display:flex}.player-modal-window{width:100%;max-width:1100px;max-height:90vh;background:#080a10;border:1px solid var(--border-gold);border-radius:var(--radius-lg);box-shadow:0 20px 60px rgba(0,0,0,0.95),0 0 30px var(--accent-gold-glow);display:flex;flex-direction:column;overflow:hidden}.player-window-header{padding:14px 20px;background:rgba(14,17,26,0.98);border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;gap:16px}.player-channel-meta{display:flex;align-items:center;gap:14px}.player-channel-icon{width:32px;height:32px;object-fit:contain}.player-channel-name{font-size:1.1rem;font-weight:700;color:#fff}.player-channel-sub{font-family:var(--font-mono);font-size:0.7rem;color:var(--accent-gold)}.btn-close-player{background:rgba(255,42,95,0.12);border:1px solid rgba(255,42,95,0.35);color:var(--accent-red);padding:8px 16px;border-radius:var(--radius-md);font-family:var(--font-ui);font-size:0.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:var(--transition)}.btn-close-player:hover{background:var(--accent-red);color:#fff;box-shadow:0 0 20px var(--accent-red-glow)}.player-window-body{position:relative;width:100%;aspect-ratio:16 / 9;max-height:75vh;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}.shaka-video-container{position:relative !important;width:100% !important;height:100% !important;max-width:100% !important;max-height:100% !important}.shaka-video-container video{width:100% !important;height:100% !important;object-fit:contain !important}.shaka-controls-container{z-index:100 !important}.shaka-controls-button-panel{background:linear-gradient(0deg,rgba(4,5,8,0.95) 0%,rgba(4,5,8,0.4) 70%,transparent 100%) !important;padding:10px 20px !important}.shaka-current-time{color:var(--accent-gold) !important;font-family:var(--font-mono) !important;font-size:0.85rem !important}.shaka-play-button{color:var(--accent-gold) !important}#error-banner{display:none;position:absolute;top:20px;left:50%;transform:translateX(-50%);background:rgba(255,42,95,0.95);border:1px solid var(--accent-red);color:#fff;padding:10px 20px;border-radius:var(--radius-md);font-family:var(--font-mono);font-size:0.82rem;z-index:3000;box-shadow:0 8px 30px rgba(0,0,0,0.9)}@media (max-width:850px){.navbar{padding:16px 20px;flex-direction:column;align-items:stretch}.hero-banner,.categories-section,.grid-container{padding:0 20px}.search-area{width:100%}.hero-card{padding:20px 24px}.hero-heading{font-size:2rem}.sports-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}.player-modal-backdrop{padding:10px}}.badge-f1-session{position:absolute;bottom:8px;left:8px;background:rgba(255,198,41,0.15);border:1px solid rgba(255,198,41,0.4);color:var(--accent-gold);font-family:var(--font-mono);font-size:0.58rem;font-weight:700;padding:2px 6px;border-radius:var(--radius-sm);text-transform:uppercase;display:flex;align-items:center;gap:4px;box-shadow:0 0 10px rgba(255,198,41,0.15)}.f1-notice-banner{background:rgba(255,198,41,0.08);border:1px solid var(--border-gold);color:var(--accent-gold);padding:12px 18px;border-radius:var(--radius-md);font-family:var(--font-mono);font-size:0.78rem;margin-bottom:20px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 15px rgba(255,198,41,0.08)}.btn-pro-icon{background:rgba(255,0,60,0.12);border:1px solid rgba(255,0,60,0.35);color:#ff4d79;padding:4px 8px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:0.65rem;font-weight:700;cursor:pointer;transition:var(--transition)}.btn-pro-icon:hover{background:var(--accent-red);color:#fff;box-shadow:0 0 12px var(--accent-red-glow)}.btn-open-pro{background:linear-gradient(135deg,rgba(255,0,60,0.2),rgba(0,240,255,0.2));border:1px solid var(--border-cyan);color:var(--accent-cyan);padding:8px 14px;border-radius:var(--radius-md);font-family:var(--font-ui);font-size:0.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:var(--transition)}.btn-open-pro:hover{background:var(--accent-cyan);color:#000;box-shadow:0 0 15px var(--accent-cyan-glow)}.player-tools-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 16px;background:rgba(10,12,18,0.95);border-top:1px solid var(--border-subtle);flex-wrap:wrap}.audio-flags-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.audio-flag-pill{background:rgba(255,255,255,0.06);border:1px solid var(--border-subtle);color:var(--text-main);padding:3px 8px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.68rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:var(--transition)}.audio-flag-pill:hover{background:rgba(255,255,255,0.15);border-color:var(--accent-cyan)}.audio-flag-pill.active{background:rgba(0,240,255,0.18);border-color:var(--accent-cyan);color:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan-glow)}.latency-wrap{display:flex;align-items:center;gap:6px}.latency-lbl{font-family:var(--font-mono);font-size:0.68rem;color:var(--text-muted);display:flex;align-items:center;gap:4px}.latency-btn{background:rgba(255,255,255,0.05);border:1px solid var(--border-subtle);color:var(--text-muted);padding:3px 8px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.68rem;font-weight:600;cursor:pointer;transition:var(--transition)}.latency-btn:hover{color:#fff;background:rgba(255,255,255,0.1)}.latency-btn.active{background:var(--accent-gold);color:#000;border-color:var(--accent-gold);box-shadow:0 0 8px var(--accent-gold-glow);font-weight:800}
+    
+video {
+    background-color: transparent !important;
+}
+.shaka-big-buttons-container,
+.shaka-play-button-container,
+.shaka-play-button,
+.shaka-video-container.pip-placeholder,
+.pip-poster,
+.pip-blur-overlay {
+    display: none !important;
+}
+
+</style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="navbar">
+        <a href="../index.html" class="top-back-btn" onclick="window.history.length>1?window.history.back():window.location.href='../index.html'" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:rgba(255,255,255,0.06);border:1px solid var(--border-gold);color:var(--accent-gold);border-radius:var(--radius-sm);text-decoration:none;font-weight:700;font-size:0.85rem;" tabindex="0"><i class="fa-solid fa-arrow-left"></i><span>Rozcestník</span></a>
+        <div class="brand-area">
+            <div class="brand-icon"><i class="fa-solid fa-trophy"></i></div>
+            <div class="brand-text">
+                <span class="brand-title">PRO SPORTS TV</span>
+                <span class="brand-tag">SHAKA PLAYER DRM</span>
+            </div>
+        </div>
+
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>209 VERIFIED SPORTS STREAMS ONLINE</span>
+        </div>
+
+        <div class="search-area">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" class="search-input" placeholder="Search sports channel...">
+        </div>
+    </header>
+
+    <!-- Hero Feature Banner -->
+    <section class="hero-banner">
+        <div class="hero-card">
+            <div class="hero-meta">
+                <span class="hero-badge">DASH / CLEARKEY & WIDEVINE</span>
+            </div>
+            <h1 class="hero-heading">LIVE ENGLISH SPORTS CHANNELS</h1>
+            <p class="hero-sub">Select any sports channel below to launch live high-definition playback inside Shaka Player.</p>
+        </div>
+    </section>
+
+    <!-- Categories Nav -->
+    <section class="categories-section">
+        <div class="filter-row">
+            <div class="filter-row-title"><i class="fa-solid fa-trophy"></i> <span>SPORTS DISCIPLINE</span></div>
+            <div class="categories-bar" id="categories-bar"></div>
+        </div>
+        <div class="filter-row">
+            <div class="filter-row-title"><i class="fa-solid fa-earth-americas"></i> <span>COUNTRY & REGION</span></div>
+            <div class="categories-bar" id="countries-bar"></div>
+        </div>
+    </section>
+
+    <!-- Channels Grid Container -->
+    <section class="grid-container">
+        <div class="section-header">
+            <div class="section-title-wrap">
+                <i class="fa-solid fa-bolt"></i>
+                <h2 class="section-title-text" id="active-category-title">ALL SPORTS CHANNELS</h2>
+            </div>
+            <div class="section-counter">
+                Showing <b id="visible-counter">0</b> channels
+            </div>
+        </div>
+
+        <div id="f1-live-notice" class="f1-notice-banner" style="display:none;"><i class="fa-solid fa-flag-checkered" style="font-size:1.1rem;"></i><span><b>F1 SESSION NOTICE:</b> Driver camera feeds & onboard streams are active live during official Formula 1 weekend sessions.</span></div>
+        <div class="sports-grid" id="sports-grid">
+            <!-- Grid cards populated dynamically -->
+        </div>
+    </section>
+
+    <!-- Stream Keys & Info Modal Popup -->
+    <div class="info-modal-backdrop" id="info-modal">
+        <div class="info-modal-card">
+            <div class="info-modal-header">
+                <div class="info-brand">
+                    <div class="info-icon-badge"><i class="fa-solid fa-circle-info"></i></div>
+                    <div class="info-modal-title" id="info-channel-title">Channel Details</div>
+                </div>
+                <button class="btn-close-info" id="btn-close-info" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- MPD Field -->
+            <div class="field-group">
+                <label class="field-label"><i class="fa-solid fa-link"></i> STREAM MANIFEST (MPD URL)</label>
+                <div class="field-box">
+                    <input type="text" id="info-mpd-input" class="field-input" readonly>
+                    <button class="btn-copy" onclick="copyField('info-mpd-input', this)">
+                        <i class="fa-regular fa-copy"></i> COPY
+                    </button>
+                </div>
+            </div>
+
+            <!-- Keys Field -->
+            <div class="field-group">
+                <label class="field-label"><i class="fa-solid fa-key"></i> DRM KEYS / LICENSE SERVER</label>
+                <div class="field-box">
+                    <input type="text" id="info-keys-input" class="field-input" readonly>
+                    <button class="btn-copy" onclick="copyField('info-keys-input', this)">
+                        <i class="fa-regular fa-copy"></i> COPY
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Perfect Fit Player Modal Window -->
+    <div class="player-modal-backdrop" id="player-modal">
+        <div class="player-modal-window">
+            <div class="player-window-header">
+                <div class="player-channel-meta">
+                    <img id="player-logo-img" class="player-channel-icon" src="" alt="" style="display:none;">
+                    <div>
+                        <div class="player-channel-name" id="player-channel-name">Channel Name</div>
+                        <div class="player-channel-sub" id="player-channel-sub">DASH Stream | ClearKey</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn-open-pro" id="btn-modal-open-pro" title="Open Stream in Ultra Pro Player Studio" onclick="launchCurrentInProPlayer()">
+                        <i class="fa-solid fa-up-right-from-square"></i> PRO PLAYER
+                    </button>
+                    <button class="btn-close-player" id="btn-close-modal">
+                        <i class="fa-solid fa-xmark"></i> CLOSE
+                    </button>
+                </div>
+            </div>
+
+            <div class="player-window-body">
+                <div id="error-banner"></div>
+                
+                <div id="shaka-container" class="shaka-video-container" data-shaka-player-container>
+                    <video id="shaka-video" data-shaka-player autoplay playsinline webkit-playsinline></video>
+                </div>
+            </div>
+
+            <!-- Player Tools: Audio Flags & Buffer Latency Tuner -->
+            <div class="player-tools-bar" id="player-tools-bar">
+                <div class="audio-flags-wrap" id="modal-audio-flags">
+                    <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);"><i class="fa-solid fa-headphones"></i> AUDIO:</span>
+                    <!-- Dynamic audio pills -->
+                </div>
+                <div class="latency-wrap">
+                    <span class="latency-lbl"><i class="fa-solid fa-clock"></i> BUFFER:</span>
+                    <button class="latency-btn" id="btn-buf-5" onclick="setLiveOffset(-5)">-5s Low</button>
+                    <button class="latency-btn active" id="btn-buf-7" onclick="setLiveOffset(-7)">-7s Nitro</button>
+                    <button class="latency-btn" id="btn-buf-15" onclick="setLiveOffset(-15)">-15s Safe</button>
+                    <button class="latency-btn" id="btn-buf-30" onclick="setLiveOffset(-30)">-30s Smooth</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Safe DOM removeChild patch to prevent Shaka Player MediaSource cleanup NotFoundError
+        (function() {
+            const origRemoveChild = Node.prototype.removeChild;
+            Node.prototype.removeChild = function(child) {
+                if (child && child.parentNode === this) {
+                    return origRemoveChild.call(this, child);
+                }
+                return child;
+            };
+        })();
+
+const CHANNELS_DATA = [
+  {
+    "name": "beIN Sports 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ghwcl6hv68/out/v1/83536910d8034e9b9895a20fbe1c1687/cenc.mpd",
+    "keys": "335DAD778109954503DCBB21DC92015F:24bfd75d436cbf73168a2a2dccd40281",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/bein-sports-1-french-fr.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "beIN Sports 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/8m8cd46i1t/out/v1/83985c68e4174e90a58a1f2c024be4c9/cenc.mpd",
+    "keys": "0b42be2664d7e811d04f3e504e0924c5:ae24090123b8c72ac5404dc152847cb8",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/bein-sports-2-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "beIN Sports 3 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/q4u5nwaogz/out/v1/18de6d3e65934f3a8de4358e69eab86c/cenc.mpd",
+    "keys": "7995c724a13748ed970840a8ab5bb9b3:67bdaf1e2175b9ff682fcdf0e2354b1e",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/bein-sports-3-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "CBS Sports",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/rbem8rorcw/out/v1/5318821e2c3c44c2a439681b9aa86e9b/cenc.mpd",
+    "keys": "d9623774ac5c8c351aafe97c5fe70267:5164e6d05164a2d65fa8fcc962aa4861",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/cbs-sports-network-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "CBS Sports Golazo Network",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/5qz8wmdome/out/v1/b9323e853dce427eac214b77bd48a204/cenc.mpd",
+    "keys": "d9623774ac5c8c351aafe97c5fe70267:5164e6d05164a2d65fa8fcc962aa4861",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/cbs-sports-golazo-network-us.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "DAZN FAST",
+    "mpd": "https://ac-003.live.p7s1video.net/63f8995e/t_003/dazn-fast-hd/cenc-default.mpd",
+    "keys": "8bcec6b31cc9edcb6768ab26548e22c3:e3c5b07328894c33734a4de6ae55a87f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/dazn-fast-de.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "EUROSPORT 1",
+    "mpd": "https://cache07.zapitv.com/live/eds_c2/eurosport_1_hd/dash_live_ez/eurosport_1_hd.mpd",
+    "keys": "0f4751abc997473d9138d17b5944be04:a0aefedd2376a54b8b50f9b7c2d50ac7",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/eurosport-1-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "EUROSPORT 2",
+    "mpd": "https://cache01.zapitv.com/live/eds_c2/eurosport_2_hd/dash_live_ez/eurosport_2_hd.mpd",
+    "keys": "e369d9ab101d4b60ba13c0384f503528:041e35e31381521b3398af5c6dd99414",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/eurosport-2-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "F1 TV US Stream 1",
+    "mpd": "https://a184aivottlinear-a.akamaihd.net/OTTB/iad-nitro/live/clients/dash/enc/5fjow0mrvw/out/v1/f870533ee24b4f3bb98d2afe4b1e1bac/cenc.mpd",
+    "keys": "505616380de706936e493fdd1c25d0b6:5b313f49c63c682236eab3357400e216",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "F1 TV US Stream 2",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/duqbirmk0d/out/v1/40f53c7cbc95498db3afd081c377d776/cenc.mpd",
+    "keys": "609d795905904705028ef54653019af7:2c791eb611e57a7d7f203022bc1b9ba3",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "FIFA+",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/pjpsn1xdop/out/v1/c9699d08ed434e53bd49b709f8b3136d/cenc.mpd",
+    "keys": "61b535258a2c45b1a3f899b39e03a75b:665713a1678fe41efe5510d32bfbe26d",
+    "icon": "https://i.imgur.com/pmxPlyG.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FOX (FHD Dolby Audio)",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/rgmw19qjux/out/v1/c6ac7e638a9d4998891ae85aba377c59/cenc.mpd",
+    "keys": "48afc63fa0ecccc3a71f46d3fda20249:c7cd8801e238a263fe4349a95682b83b",
+    "icon": "https://i.ibb.co.com/58HXy9T/foxdeportes.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FOX (FHD)",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd",
+    "keys": "f6564ec2aee819046328a0e153be574d:ff46a8a1031eb27ef22576a077c98ab7",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/croatia/fox-hr.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Fox Sports 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/tmpzbbdj9y/out/v1/962736723a534ba294e7592fef49827b/cenc.mpd",
+    "keys": "5466ebd70704bdeb657f0abf3c5ca4ef:bdd79b72d8e48ed483aa623cc38a8a16",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fox-sports-1-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "FOX Sports 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/awxnrqkbo5/out/v1/716529a4091947b0877e6cb80dbd6ccb/cenc.mpd",
+    "keys": "09453ce820d65fbc675de3185f9e454c:98cff9600995fa381c76fdacf3c7edae",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fox-sports-2-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "FOX Sports 3 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/wybgz0orr8/out/v1/2f6d1612abd44f5883917f8a585b955f/cenc.mpd",
+    "keys": "11c8c1c2ef0385cf1e64d44bb9c3a395:5769730ffbdc4b2fd8945929d9ace063",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/mexico/fox-sports-3-mx.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "Fox Sports Premium HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/fdx74zqzhu/out/v1/7d7a8c6981a842b98a683e9fbfe51d17/cenc.mpd",
+    "keys": "9f327d24c66fbd84e15ab5c9ead7c7a4:83837185529c0c4048f81386c2d36426",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/mexico/fox-sports-premium-mx.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "Fubo Sports 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/3b7qwiqzk3/out/v1/9f14895badca43e6a716db021dcd0c31/cenc.mpd",
+    "keys": "dc69b6159a0f9f0a4e03b3ff91cbacd5:d0dcbcd7723bc40df0bf34c9c092d51f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fubo-sports-network-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "Fubo Sports 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/uiffe4jhf0/out/v1/3534efafca8c4815adbb4d2e9a1fe003/cenc.mpd",
+    "keys": "3dcfbec0e7146928baa55210bf2cb62f:bc85f74f815d9be5ae1dd6defaa05135",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fubo-sports-network-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "INDOSIAR.",
+    "mpd": "https://tvratu.my.id/vid/index.mpd?id=205&type=dash",
+    "keys": "https://tvratu.my.id/vid/index.mpd?id=205&type=drm",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/indonesia/indosiar-id.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "LaLiga TV Hypermotion",
+    "mpd": "https://cache07.zapitv.com/live/eds_c2/HYPERMOTION1/dash_live_ez/HYPERMOTION1.mpd",
+    "keys": "a88617e904504ee291f49f0e60a51d49:17f92d59fde3b6d2bf4ffb48e8ca720a",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/spain/laliga-tv-hypermotion-es.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "ES"
+  },
+  {
+    "name": "MLB TV",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/djeuespy2a/out/v1/26429339ac0c436985f84926afe2fcf4/cenc.mpd",
+    "keys": "09738c977ad0335cccc46b1e401c5fb0:753798bf3898e85bc46df59e7c94f869",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/mlb-extra-innings-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "MotoGP Channel",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/wjeweupwyc/out/v1/8197c8e055c94a868623653ac55c10bf/cenc.mpd",
+    "keys": "e03f302ec4dabcccca82cc9f76731ec9:53ea1027d2bf2893a552cf15bc0366de",
+    "icon": "https://cdn.motorsport.com/images/mgl/YN1RZ4b2/s1000/motogp-logo.jpg",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "NBA Channel",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/vgkshf22lc/out/v1/9dbd7e519cf34fe2a53a85ee85bc407f/cenc.mpd",
+    "keys": "4ee9b41e5053ef434c13dbb783df9e32:a275236600bfaedf230286f7b71b0a99",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/nba-tv-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "NBA TV",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/2jbycgm3g3/out/v1/066dd9325648468c9ecdc8b272370931/cenc.mpd",
+    "keys": "84077d18bcf234a42de3745be106a87f:aee3069c062ec8ee6bfdd32985f287ef",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/nba-tv-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "NFL Channel",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/k8uj7jkhvp/out/v1/8254104536924acda5a103b9d093d8a6/cenc.mpd",
+    "keys": "b6b6164097b8e3b8e66b0a73298839f3:8ff917bbb1136864be35423a5ac1c51d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/nfl-network-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "One Championship TV",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/kkfdbi2d1c/out/v1/a5b9b32dafd5499688240287ef8c9b90/cenc.mpd",
+    "keys": "308006101c8fd0262c0f529319b9c127:37683aadc75b1450efa82d62c647984d",
+    "icon": "https://www.c15.studio/wp-content/uploads/2025/04/ONE_Championship_TV_Logo.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Racer Select",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/z9xcywljho/out/v1/2a376f34bb234fccafa3b15a307d897f/cenc.mpd",
+    "keys": "e0461da17fe9dec99feb1ac6ce958814:51d6b6ea2fd4d7fb7ca7ef85cf37695e",
+    "icon": "https://i.imgur.com/xpHcSt8.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Sportdigital Fußball 🇩🇪",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ssdefyhkkr/out/v1/cf01290cb7f64525bdf861580a016ca8/cenc.mpd",
+    "keys": "0ad4080cdff8c60b1233b22087f0b340:285f129c5eca01dd08a5d5a14ad801c8",
+    "icon": "https://i.ibb.co.com/ZM5C37H/sportdigital.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "Sportsnet 360 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ccupb3gevq/out/v1/d9d54c61efab463981d1a7d04ceeb44c/cenc.mpd",
+    "keys": "60de674d9db66df9ba090e06871d3554:18071eac168232fc3d45549049c1de6b",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/sportsnet-360-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "Sportnet Ontario",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/poqx3mcyvb/out/v1/8e4df29dfd1b4f9b926cd6b13548cba6/cenc.mpd",
+    "keys": "a022db2cb103fb56712cd38dee06b3f3:8f4cb500d2e1604ae190c91effadb5c1",
+    "icon": "https://i.imgur.com/WAyzgfh.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "SpoTV 2 🇵🇭",
+    "mpd": "https://qp-pldt-live-grp-13-prod.akamaized.net/out/u/dr_spotv2hd.mpd",
+    "keys": "7eea72d6075245a99ee3255603d58853:6848ef60575579bf4d415db1032153ed",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/philippines/spotv2-ph.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "ID"
+  },
+  {
+    "name": "SpoTV 🇵🇭",
+    "mpd": "https://qp-pldt-live-grp-11-prod.akamaized.net/out/u/dr_spotvhd.mpd",
+    "keys": "ec7ee27d83764e4b845c48cca31c8eef:9c0e4191203fccb0fde34ee29999129e",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/philippines/spotv-ph.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "ID"
+  },
+  {
+    "name": "Tennis Channel",
+    "mpd": "https://ac-009.live.p7s1video.net/e335a8ac/t_009/tennis-channel-hd/cenc-default.mpd",
+    "keys": "2b8cd782fe332547063317b3f58de936:98c9c8f4e23e3a7a083d26857d5881ab",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/tennis-channel-us.png",
+    "category": [
+      "Tennis & Golf"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "Tennis Channel 2 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/bfigtl960n/out/v1/5ba5484550e84681bff2e8ca994266c1/cenc.mpd",
+    "keys": "59F50679C9E60963BD0CB6640992AAAA:8685817c4d31f322e08940feeae2855a",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/tennis-channel-us.png",
+    "category": [
+      "Tennis & Golf"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TSN 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/w0rehjjrwe/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd",
+    "keys": "14eeabf30c14b7fbf3008c03099ce011:17d2ac8dbc5429bd70af3433aa12158d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/tsn-1-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TSN 2",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/5xrogwf1bx/out/v1/d67356c474724ecc9ced667c7630dcab/cenc.mpd",
+    "keys": "66e14add60c30be992503fa9a0ae5e20:8c736ae52ce3cab1e918d5f9e8ed6c62",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/tsn-2-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TSN 3 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/lsibpqruq1/out/v1/748887d614a84913ba8bcdf3c82823e6/cenc.mpd",
+    "keys": "d3250252765347a0c2603c6cb4869f8c:0c19319460da7e9ed816db46ce839b37",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/tsn-3-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TSN 4 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ihys8nw4wv/out/v1/fde190f369484bc6b6117cc16cd82a9f/cenc.mpd",
+    "keys": "abc5b2883121012850ebda05b528c5ec:e5250924f4b738905f7163a0134587a7",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/tsn-4-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TSN 5 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/cscevwljkq/out/v1/972185041b244140860b7d56398e9aaf/cenc.mpd",
+    "keys": "385ceb9714b75e0cef61254f80b31002:18dce92a2891fee68d21ede5173230f8",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/tsn-5-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TV4 Tennis 🇸🇪",
+    "mpd": "https://live.streaming.a2d.tv/asset/20465727.isml/dash.mpd",
+    "keys": "{\"keys\":[{\"kty\":\"oct\",\"k\":\"lXsyUI/srxp/hC6dibx1Nw\",\"kid\":\"vTKtYI6MNTaNuwrL+pTY4A\"}],\"type\":\"temporary\"}",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/sweden/tv4-tennis-se.png",
+    "category": [
+      "Tennis & Golf"
+    ],
+    "country": "SE"
+  },
+  {
+    "name": "Tv4Futbol 🇸🇪",
+    "mpd": "https://live.streaming.a2d.tv/asset/20465725.isml/dash.mpd",
+    "keys": "a518c629bd683a4eba5f2a793bcb48d6:49642d2151ac6c3f8453bbfc4b3fdfc0",
+    "icon": "https://images.seeklogo.com/logo-png/49/2/tv4-logo-png_seeklogo-494141.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "SE"
+  },
+  {
+    "name": "UEFA Champions League",
+    "mpd": "https://a166aivottlinear-a.akamaihd.net/OTTB/pdx-nitro/live/clients/dash-sd/enc/yh2psenrh0/out/v1/544d9dc64fff4def8672c7f25e342dd6/cenc-sd.mpd",
+    "keys": "b22284453c42c451bf2780193e064869:fe1365dc80a324cf6e2ec5c137175b83",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "UFC",
+    "mpd": "https://a151aivottlinear-a.akamaihd.net/OTTB/lhr-nitro/live/clients/dash/enc/8mxwjnh2te/out/v1/356704796c0c4bed81f67cd3518d0c8a/cenc.mpd",
+    "keys": "a49085f8da5e65af1efff0edac830b1f:4659bc58a85c062e3fe0c039a446fe47",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/ufc-us.png",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "W-Sport",
+    "mpd": "https://tglmp02.akamaized.net/out/v1/1063ebb215c14312ba9d4e415ac706d2/manifest.mpd",
+    "keys": "9e8888ac964d430cbfef9c922ee6714b:9b1dbd9f59a39a9ebaf1fb8e665a3ef3",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/australia/fox-sports-news-au.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Willow Sports",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/tll6uwepxa/out/v1/a7f67cbb33df46539312956427343886/cenc.mpd",
+    "keys": "290e09c837da78d5cd961978d390515c:b748836c71e6a4ca68ef5b5652db6247",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/willow-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "CAZE TV 1",
+    "mpd": "https://dfr80qz435crc.cloudfront.net/MNOP/Amagi/Caze/Caze_TV_BR/Caze_TV.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/QFNLqBkW/cazetv.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "UFC Sport HD",
+    "mpd": "https://aegis-cloudfront-1.tubi.video/a78ea283-8666-44a1-a0f6-fde5d229ac21/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/ufc-us.png",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "HBO Boxing",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/cmtyd9kpfe/out/v1/813bba04214e4f4dab57f0129365635a/cenc.mpd",
+    "keys": "a4b2fe10c9d62d32220e8ea2dceda6f9:e6e1173c892f7fbd60a37a76a78935cb",
+    "icon": "https://www.thefightcity.com/wp-content/uploads/2019/10/HBO-logo-image-1.jpg",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "Rally TV",
+    "mpd": "https://rally-tv-live.akamaized.net/hls/live/2117704/RallyTV-Pri/master.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co/Xz9k81W/rallytv.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "BEIN SPORTS XTRA",
+    "mpd": "https://d9ssxzmclhfo4.cloudfront.net/bein_sports.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/bein-sports-xtra-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FloRacing",
+    "mpd": "https://amg02278-amg02278c1-flosports-worldwide-7592.playouts.now.amagi.tv/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://d2779tscntxxsw.cloudfront.net/605cca808881c.png?width=650&quality=80",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "DAZN Ringside",
+    "mpd": "https://aegis-cloudfront-1.tubi.video/bfad29e2-5bee-44f3-8256-127324e8b106/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/tJP1cxn/daznfastplus.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "NASCAR Channel",
+    "mpd": "https://amg00115-amg00115c1-nascar-northamerica-6927.playouts.now.amagi.tv/ts-us-w2-n1/playlist/amg00115-nascar-nascar-nascarnorthamerica/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://hips.hearstapps.com/autoweek/assets/s3fs-public/nascar_white_rgb.jpg",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "World Poker Tour",
+    "mpd": "https://amg00218-wptenterprisesi-worldpokertour-xumo-us.amagi.tv/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/misc/vod/wpt-world-poker-tour-vod-us.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Motorvision",
+    "mpd": "https://stream.ads.ottera.tv/playlist.m3u8?network_id=535",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/motorvision-tv-de.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "Pickleball TV",
+    "mpd": "https://amg01444-tennischannel-amg01444c3-tennischannel-us-1912.playouts.now.amagi.tv/playlist/amg01444-tennischannelfast-pickleball-tennischannelus/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://pickleballtv.com/wp-content/themes/bootscore-child-main/img/logo/logo-sm.svg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Redbull TV",
+    "mpd": "https://dms.redbull.tv/v5/destination/rbtv/linear-borb/personal_computer/http/ph/en/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/red-bull-tv-int.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Fight TV",
+    "mpd": "https://streams2.sofast.tv/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/70e45fc8-1f6c-4492-ac26-9868f70f4e02/manifest.m3u8",
+    "keys": "None",
+    "icon": "https://iyadtv.pages.dev/images/fight_tv_98.png",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Elche Vs Barcelona (Live)",
+    "mpd": "https://serieAleague.akamaized.net/hls/live/2107107/tap-BK-PSL-D1-E/master.m3u8",
+    "keys": "None",
+    "icon": "https://d34080pnh6e62j.cloudfront.net/images/channels/ChannelFeaturedAppthumb/1787453964540x302.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Premier Sports 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/m6sqanvm2m/out/v1/f6beb46c6e9a4132ad739f3ca27df6aa/cenc.mpd",
+    "keys": "1444f4235529f183f0a5a486befe9cdb:e5e3fec67a1bb3472a2089c8a0a2557f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/premier-sports-1-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GB"
+  },
+  {
+    "name": "FanCode 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/b3b3fkmrbl/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd",
+    "keys": "82dfca238e8c4b430a3269db71965db9:a00b28caf4ac628e77a553d440c0ddca",
+    "icon": "https://i.ibb.co/jvS7zkgW/images.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FanCode 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/avqlywnuzx/out/v1/aefca6420f944a9482e117f315de535f/cenc.mpd",
+    "keys": "1994b1df7dfd2e8a8d7b9bf3fb900285:22a1444b3da18e139191665b3d652835",
+    "icon": "https://i.ibb.co/jvS7zkgW/images.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "STREAM TV + HD",
+    "mpd": "https://file.genoads.com/ch1.m3u8",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "DSports HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/z5oyxzsxdk/out/v1/7695a0f64a0e424b973d5b09a2a3eb91/cenc.mpd",
+    "keys": "f836853d8eac19446ed9535f5fc568b1:b3bc5ef00602b29abac7e482d3d9fbf3",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "PREMIERER4 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/tirjor64kh/out/v1/fd2ed9916d994f09a3bd62b64141b9cb/cenc.mpd",
+    "keys": "e23365c2ad97870c871712b73f0d6195:58709c714320bb862dbd07270df81c94",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/premiere-clubes-br.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "PREMIERER3 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/6onrfniyry/out/v1/f23069c61dbf4e00890a40b705a84079/cenc.mpd",
+    "keys": "d23f7433798a652a7d4f6791d9e1036c:4942eebd598b5727c5cc484cc62b52e8",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/premiere-clubes-br.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "PREMIERER1 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/nelfyucw9a/out/v1/6ffb2c365ad14f88b154591beb43d1f6/cenc.mpd",
+    "keys": "56b79c1782b30e6b6fc973b0e8fd4104:fa38aaa865a57eda7c77444697ba8ed3",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/premiere-clubes-br.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "TENNIS PLUS",
+    "mpd": "https://amg01935-amg01935c1-amgplt0020.playout.now3.amagi.tv/playlist/amg01935-amg01935c1-amgplt0020/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co/jPv7P49q/Sktenn.png",
+    "category": [
+      "Tennis & Golf"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FOX Sports 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/fsu3wl2rwb/out/v1/be61206c04e643349d53fb22301f3b50/cenc.mpd",
+    "keys": "5466ebd70704bdeb657f0abf3c5ca4ef:bdd79b72d8e48ed483aa623cc38a8a16",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fox-sports-1-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "ITV1 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/0eiyyz8qzm/out/v1/dd17af8835fe4bd087d1a4e359b635d7/cenc.mpd",
+    "keys": "30089c52924f037b225b82c616fee2a5:f55dc8b66ed4fc6753d6035ae7e17144",
+    "icon": "https://pbs.twimg.com/profile_images/1597146257889312773/b_9FkAVp_400x400.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TNT Sports 3 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/dev1hjwzh9/out/v1/a5f0ee7ad7b24906b14f43bebbbe4678/cenc.mpd",
+    "keys": "cc91508324ce9dcaf425a43d58f1d9d4:643e5474d9edd87c7d9091c8c97994ca",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/tnt-sports-3-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GB"
+  },
+  {
+    "name": "EURO ES 2 - FHD",
+    "mpd": "https://dash2.antik.sk/stream/nvidia_eurosport2/playlist_cenc.mpd",
+    "keys": "11223344556677889900112233445566:4b80724d0ef86bcb2c21f7999d67739d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/france/europe-2-pop-tv-fr.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "SK"
+  },
+  {
+    "name": "TNT Sports 4 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/tdijwiga2k/out/v1/f5fde318678f4f7583bf27b7231bde1f/cenc.mpd",
+    "keys": "fa34fa8c90336dd528c7a23871cad1fe:552a78d1aeb74f1650d68255c5749408",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/tnt-sports-4-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GB"
+  },
+  {
+    "name": "WILLOW FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/0braugdism/out/v1/58c7cad63d844b4c94b136f6b4246e25/cenc.mpd",
+    "keys": "4b18ee1fa4688bbfc61b3203a803c90d:d1559280fce999fc6f4f17301e62045d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/willow-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TNT Sports 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/puehlftk5j/out/v1/f7f0da1ee112481ca0024e6d4dd97f4a/cenc.mpd",
+    "keys": "f3df7843080ae743bf865dc5fdf64c68:567c863bc12eb74788ea74888c042e1b",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/tnt-sports-2-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GB"
+  },
+  {
+    "name": "TNT Sports 1 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/rhf2dwosdt/out/v1/ee550d2a68d846c797e6ce4de2e8b76d/cenc.mpd",
+    "keys": "69a5aa835a061ce64a630d1046727e40:d02feac8a999bd06bf4059bf33411749",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/tnt-sports-1-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GB"
+  },
+  {
+    "name": "WILLOW FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/bgaa4dgisl/out/v1/3266dcf325074b0082099977768f1e7a/cenc.mpd",
+    "keys": "29d072b25f76b3780e17d9b234023ebd:e4fff1626205ed70ed25e551044afeb8",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/willow-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "CRICKET FHD",
+    "mpd": "https://bl.rutube.ru/livestream/7c13a51576b9ff2601f08f5d57dd5169/index.m3u8?s=uiXES2ePt7xTpQnbJxn7Dg&e=2074684474&scheme=https",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "WILLOW FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/wm7nvzuo81/out/v1/4be515e8c9c3450c9d73b2d2d8c25d46/cenc.mpd",
+    "keys": "f3b91297bf1b32f957b9ad9df063cccf:1dffa592b7bbeeda714ac1ba3b70f04b",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/willow-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "WILLOW FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/rtfmzwubqz/out/v1/96db69b89e7c41a5ad6767652065d799/cenc.mpd",
+    "keys": "fc5a85ca10054503c67e27a40f44e3b1:5703934488656b40f3beaf12fc964585",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/willow-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "T SPORTS HD",
+    "mpd": "https://s1.itcnbd.live/T-Sports-HD/tracks-v1a1/mono.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/argentina/america-sports-ar.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Premier Sports 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/bcj3iscpd6/out/v1/fcd137b391214f7cb99dd4d7be90ca87/cenc.mpd",
+    "keys": "1a5df53609ebc9857898c490f4724918:77f62980d582ec541280796acf8b2d19",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/premier-sports-2-uk.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GB"
+  },
+  {
+    "name": "TUDN 🇲🇽",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/o2vy4aahsh/out/v1/e293c932745a44dcaf897573dfc53532/cenc.mpd",
+    "keys": "763ce1ebcaf23502c8cf357c6ef423e1:0c5e6c0820a1ea28753721db00272411",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/mexico/tudn-mx.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "MX"
+  },
+  {
+    "name": "FUBO SPORTS FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ssxpsgkjtp/out/v1/9030b59b336d4deabda16d8ab696670d/cenc.mpd",
+    "keys": "b91a2794be508748d3799a24b4ee0f3f:517fe2a7ab2b4d81eb6575dbdba6a214",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fubo-sports-network-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "FUBO2 SPORTS FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/u38bs9lgbm/out/v1/13ae04ebeb824856ba2f42be17628ddb/cenc.mpd",
+    "keys": "c2f1290bf922a8ba99baa75cf733f8ec:bc64b8d290b9905caa19dbfc8c389c21",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fubo-sports-network-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "KOREAN HD",
+    "mpd": "https://live.vivo200.com/live/hd-en-1-4558473.m3u8?txSecret=d64aa3ba0c4b39a29ae7ed62da767b88&txTime=6A8B2066",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Cazétv TV FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/3ynrpdanq2/out/v1/81fd4c26584044d2b1a1cc5b32fa9af0/cenc.mpd",
+    "keys": "34475edab991ad5e92548aebd710410a:501b209cccd323ac00bf5ac15b406cb4",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "PARAMOUNT+ FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/startover/clients/dash/manipulated-manifest-pdx-prod/enc/utpx7kmpkm/out/v1/90faaad22b41479fba8f7b9b6e0a8878/db8d9dfd-f48a-46e9-a87d-206efc318b13-cenc.mpd",
+    "keys": "af5ee7c2df5dce26557e0f7dbb05ffcc:64ad422ea5c6951a28dda5de071bc0fd",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "PARAMOUNT+ FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/startover/clients/dash/manipulated-manifest-iad-prod/enc/ehemyu8ik5/out/v1/75d053165493411ca2d661269152f920/66e510d2-2252-4c00-ac6b-ada94bbde9d5-cenc.mpd",
+    "keys": "95d3a165b9f126edf3be3513b3504b75:785aa02de9f30b1c211fccb38bd050c6",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "beiN ES HD",
+    "mpd": "https://bein-esp-xumo.amagi.tv/playlistR720P.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/v1bpVxN/beinxtraen.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "AD1 SPORTS FHD",
+    "mpd": "https://admn-live-cdn-lb.starzplayarabia.com/out/v1/admn_tv/abudhabi_sports_1/abudhabi_sports_1_dash_enc/index.mpd",
+    "keys": "e78769d87a41e15036a4fb8bfdf1371e:37be0375dc9fe544c3c6de6a105f7c0a",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Beix Sports XTRA",
+    "mpd": "https://amg01334-beinsportsllc-beinxtra-localnow-kcy6r.amagi.tv/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "PARAMOUNT+ FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/startover/clients/dash/manipulated-manifest-iad-prod/enc/1zyfvjwxvu/out/v1/b8fef07e5a8445dc85327be7d7eb28f5/39bfe204-1970-4079-81c5-342e62e62fa6-cenc.mpd",
+    "keys": "f9d41adff97af76ee78e707b645e4a0c:ca288bed9cd99eb13be3655b534e506c",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "PARAMOUNT+ FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/startover/clients/dash/manipulated-manifest-iad-prod/enc/q2w5pjhjym/out/v1/0d16b570be3647c39c53d814b28e1dcf/cfcc302b-06ac-4a9f-a848-946d6f5150d1-cenc.mpd",
+    "keys": "730f0371e5ccb4810c00c02ca63ac554:7a86dd247b2a954c8af8abf3b09817ea",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "SPORT 1 CZ FHD",
+    "mpd": "https://dash2.antik.sk/stream/nvidia_sport_1/playlist_cenc.mpd",
+    "keys": "11223344556677889900112233445566:4b80724d0ef86bcb2c21f7999d67739d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/slovakia/arena-sport-1-sk.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "SK"
+  },
+  {
+    "name": "PRIME VIDEO FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/78yadthwhn/out/v1/7ce475ea35b74693abdf651e2ee2fef3/cenc.mpd",
+    "keys": "62dbac124bbef865507610070019f875:3dca8ca0a86cca296de7f91583d88939",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/misc/media/prime-video-hz.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "USA TV (US VPN)",
+    "mpd": "https://g001-sle-us-cmaf-prd-ak.pcdn03.cssott.com/Content/CMAF_OS1-CTR-4s-v2/Live/channel(12010340-12010340-4445585a62764)/master_2hr.mpd",
+    "keys": "58551b13211b37d5b325d67e5c6cabef:3b4c3f8b4236fc57d66cdb54a606fe41",
+    "icon": "https://www.wwe.com/f/styles/wwe_show_logo_l/public/all/2024/09/Smackdown_LOGO--c8e0b09904cb1356d309a8ea2acb0422.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "SPORT TV HD",
+    "mpd": "https://t7.ultrastream.vip/sporttv4/index.m3u8?",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TNT MAX HD",
+    "mpd": "https://cast.zlive.st/p/auto-tnt-sports-2-0/index.m3u8?",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Tap Sports SD",
+    "mpd": "https://qp-pldt-live-grp-11-prod.akamaized.net/out/u/dr_tapsports.mpd",
+    "keys": "eabd2d95c89e42f2b0b0b40ce4179ea0:0e7e35a07e2c12822316c0dc4873903f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/philippines/tap-sports-ph.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TSN 2 HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/cjglydxghe/out/v1/8977baf175da4b94873194613dd3fe55/cenc.mpd",
+    "keys": "85b277daf5aae05833fe43a68f587968:d52d7e9bc0bcd98787efd547ac91eca0",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/tsn-2-ca.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "STREAM 2",
+    "mpd": "https://tglmp02.akamaized.net/out/v1/3170252e3fb0453085f2f4b0f8401a6b/manifest.mpd",
+    "keys": "60dc08aae52f4c0b806a8e43f24a12c8:30d5b579966d822b215ec51a91d8a271",
+    "icon": "https://i.ibb.co/qfjhxpT/20260313-084834.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "STREAM 3",
+    "mpd": "https://v4-pan-n79-cdn-01.live.cdn.cgates.lt/live/dash/561402/index.mpd",
+    "keys": "a6b967afcb974bb5a549377b4f09befd:87d993257a099324ccd0215475fc61a0",
+    "icon": "https://i.ibb.co/qfjhxpT/20260313-084834.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FOX DEPORTES FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/vkpoljjpkj/out/v1/502bcf68b3514cd28a220e6f0a43816f/cenc.mpd",
+    "keys": "d1a163914db8ffad2c3e94f979896a0d:9728800a3959aafdd5b0bcfbf3768811",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fox-deportes-us.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "MX"
+  },
+  {
+    "name": "Sport Tv BR FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/4yiko4it8k/out/v1/b77dd424c745443aba2f3f88d418f797/cenc-sd.mpd",
+    "keys": "9009b7189e3e68cc09d17811f2beb55a:dd3f96a94c909da48ff40c92aabf8cf3",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "APPLE TV FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/bloqv62cg8/out/v1/0f6b2626aef2496e97bce1b5998b49b5/cenc.mpd",
+    "keys": "c0a9d1e7eaf683120499b4017314a518:990018b9907cf9b5ae4c3dd9eb948255",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Mixed On Board",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/15swxuvnbu/out/v1/556a7548256645b496e9b4fdbe2d2fbf/cenc.mpd",
+    "keys": "162b362c3e3dcf9c8965cc506a9f2de7:767ea1980f274bcc8e4b6991d536ddfc",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Driver Tracker FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/snuntbrra5/out/v1/c875e4f8e2fe4c878aa0796a462dc413/cenc.mpd",
+    "keys": "09c69c9b95596228c03b1fc758b8c1a3:aa3bf036e7b874e626cb71a985616e5c",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "SKY F1 Italia [IT]",
+    "mpd": "https://g006-lin-it-cmaf-prd-sn.pcdn07.cssott02.com/v~1-0-0_e~1787562417_f~0_g~1_s~b49d4c2c-191d-4dc2-bd47-74574d400810_u~fe3b84cbbdf5bc565dd1012e5306ba8dc943c4ee57b1c5b2555a972552c5c85df5468f3aaf797d103da27a492f48c64a_k~A_l~56_x~7e57dd894e4387a541ba800f3ed0d364/nowitlin2/Content/CMAF_CTR_H1/Live/channel(skysportf1)/master_2hr-all.mpd",
+    "keys": "1118309a2acda72cfc3cb3cc9e047a3b:a9e90af10faf93b3c935bb0a807d285a",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Driver Data FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/kjtuyjgps1/out/v1/a33f356b57744981b0ec8681a485d8f4/cenc.mpd",
+    "keys": "d202e00c4caa89b88f32f45f94eb094c:52ce12b7f78d4fedaca01fa3f127b69f",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "P1 Driver FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/t1mjuwf1wp/out/v1/ec0575cd4af241c4be5484f55b41ecba/cenc.mpd",
+    "keys": "ed417cda3ffc1734204e2eb3d70207fd:e60e93cba0df4c4e1781fe5f162ea259",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "P2 Driver FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/igfz4csdrj/out/v1/bb70be234ff24b688cd5e871c537666a/cenc.mpd",
+    "keys": "b2a9f9577aea0cb056f5aad08d7a1ca2:6be712cd2efbfb0f371c03a64f202cb6",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "P3 Driver FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/6mcpso8kcb/out/v1/b56e95538e314425805ef442b04a1590/cenc.mpd",
+    "keys": "8223eb076c41795c2a0d8fc946b0dc33:bd2f609fd396724f1eb86523c84536a9",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "MAX Verstappen",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/q7clywyytb/out/v1/990d0b082dc94275a09a66abc0548c91/cenc.mpd",
+    "keys": "528006dc5aad7f036001662e4bea24e0:3a2bfc846bda9330a597d80387144ae9",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "SPORTS3 TV FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/6otiglnptp/out/v1/add7499679b0422cb6791f7701f95ecc/cenc.mpd",
+    "keys": "902e5ec0e3d05e665daa32fc23f4f59e:7b2322a273843921a43e2c61dac7cae3",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "APPLE TV HDR",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/eihx5jcvpx/out/v1/02b3c045272c49b890e8074af2daf11b/cenc.mpd",
+    "keys": "6e78c43952d3b415ff4e0d3ef4946347:250cfc6c4e1e0fc070298c9a8ce14830",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Lewis Hamilton",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/xjyr7sx6zi/out/v1/e34cdcfa05e6435195499b62481fef17/cenc.mpd",
+    "keys": "ea717955259a1c827f44a80e8aebf867:a3a5235c7f235ca675c0dc94ee081874",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Lando Norris",
+    "mpd": "https://otte.cache.aiv-cdn.net/x8v4gcndx3/out/v1/a35dbc3ba03f457f887598dc12fed168/cenc.mpd",
+    "keys": "1e6e2b2d9759e6c7ff82ff7adce536f7:dd64f0c311221b91c54b63bd92d7108b",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "George Russell",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ruswb6h8qp/out/v1/8daa5b4195be4c3d96182f5a3634be12/cenc.mpd",
+    "keys": "4fce3279cfa40aa10f943a2ab0ffc57d:2c265f4a36de4258bd266c20db75137a",
+    "icon": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEisf1lphGAPsJzz9s89f8AVGiITtEZIrt3Xwg1u-SlmqQtIH13DRgSeOLExqvR4u0jaEtlAtfFyqqBXgBEnw9hP9BWoKQpErNFyEDJkKU4zXuIeqaFoQORWs3fnGWd2o6_TazAZn5ihmLgmNdbGmnWCnUQKP_BfRj44Lpck_OtE49p7n2Kk6k6KWjHOTsA/s1600/1000009765.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Charles Leclerc",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/br5yrh7bxp/out/v1/7195ae9b140e43689749ec7aa471c576/cenc.mpd",
+    "keys": "e96e5408c0c3c5b366c8baf83ef983eb:e8d309bba84b672a151b9f741a89cbd1",
+    "icon": "https://logodownload.org/wp-content/uploads/2024/05/f1-tv-logo-0.png",
+    "category": [
+      "Formula 1"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Sky Sport F1 DE",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_f1_hd/dash/sky_sport_f1_hd.mpd",
+    "keys": "6695688f79dc36f7a41f7db13bff5aca:22ef689af2162aefbf745cba2adb4fe9",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-f1-hd-at.png",
+    "category": [
+      "Sky Sport Austria",
+      "Formula 1"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "PK2 IP SPORTS",
+    "mpd": "https://cdn04khi-n.tamashaweb.com:8087/jazzauth/FIH-HWCC2026-abr/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://pbs.twimg.com/profile_images/2082386023133122560/zEXUDVoy_400x400.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TOP IP PK",
+    "mpd": "https://cdn02khi-n.tamashaweb.com:8087/jazzauth/FIH-HWC2026B-abr/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://pbs.twimg.com/profile_images/2082386023133122560/zEXUDVoy_400x400.jpg",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "EUROSPORT FHD",
+    "mpd": "https://cache01.zapitv.com/live/eds_c2/eurosport_1_hd/dash_live_ez/eurosport_1_hd.mpd",
+    "keys": "0f4751abc997473d9138d17b5944be04:a0aefedd2376a54b8b50f9b7c2d50ac7",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/india/eurosport-in.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "EUROSPORT FHD",
+    "mpd": "https://dash2.antik.sk/stream/nvidia_eurosport1/playlist_cenc.mpd",
+    "keys": "11223344556677889900112233445566:4b80724d0ef86bcb2c21f7999d67739d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/india/eurosport-in.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "SK"
+  },
+  {
+    "name": "CTV SPORTS FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/fyfcwdbtmr/out/v1/02411c3777274c9eb5d572a0fb22a5b4/cenc.mpd",
+    "keys": "51a4a5ab615c381304b8dd795282fd7e:1e6f4096000b31668c11d5cd339d8cac",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "CANAL 5 MEXICO FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/ntkdl68eob/out/v1/bd5dfb7676994383881bc6e71877d29d/cenc.mpd",
+    "keys": "d695093ea3e66d75a4d213a3e2cbf360:01be3f645e89a067d2786c295f68dde4",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "MX"
+  },
+  {
+    "name": "TVE LA 1 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/c7di7zkdor/out/v1/f7d5b356e048494a8325563e8916d50b/cenc.mpd",
+    "keys": "745cd6ec34a58f2f7ac2af35dc3da6d2:ae008f1e47e6567fe4201a6ff8f1ae54",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "CAZE TV FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/iayg0kyrof/out/v1/91dc04907f56415b897faccfa9d252da/cenc.mpd",
+    "keys": "1223d5105392cabf1bb9c2c1fdf6539a:340b409f4b8f78a343e0363a7938df38",
+    "icon": "https://i.ibb.co.com/QFNLqBkW/cazetv.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "SporTV 1 🇧🇷",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/w8kwdfmlgs/out/v1/3aa321e477504937a439b602e078eb18/cenc.mpd",
+    "keys": "51c0ef23b17297e5c01cd7f36dd0a6ce:8823f713ba6fdb9bbe0a2ad82d309a4b",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/brazil/sportv-br.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "FOX SPORTS 4K UHD",
+    "mpd": "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/enc/xperu6ixu9/out/v1/31d30c91fc65458789b84209d3fa22e4/cenc.mpd",
+    "keys": "1f68713028d439ec03be07f56c1d6213:20093db6455160fffed4c394def3193d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/argentina/fox-sports-ar.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FOX ONE HD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/bc3y4t1rpk/out/v1/df2b71a9487a4c369c9742e7ea62a2e2/cenc.mpd",
+    "keys": "d0f2e537aa6d576e355c271b22caeaca:d5869f84abacfe205c524c59e62d3803",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/australia/foxtel-one-au.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "ZDF SPORT HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/zdf_hd/dash4h/zdf_hd.mpd",
+    "keys": "c1a0ac1044a433d0856ccdc08f245084:7f0e8800a6d63d7915ac181bb88ce813",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "ORF 1 SPORT HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/orf_1_hd-1/dash4h/orf_1_hd-1.mpd",
+    "keys": "429bcf031bbf3146a67f3f583e4c4355:d1b92aba5a38a518c8b8a1fd2bca4398",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "SKY SPORT TENNIS",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_tennis_hd/dash/sky_sport_tennis_hd.mpd",
+    "keys": "b29b2b7da32e33b08fe391d25d00b3f1:dc7f4b1c6c63838a60182d9a72c563dd",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-tennis-hd-at.png",
+    "category": [
+      "Sky Sport Austria",
+      "Tennis & Golf"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "DIRECTV MUNDIAL",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/x0srg3jjpz/out/v1/f779c49314394d61886d63f58d9d52e4/cenc.mpd",
+    "keys": "4f4c3a9912ea752e88f4497864a1bc8b:278128004fe8c6ffb2cd2a0c154a241a",
+    "icon": "https://i.ibb.co/fYS9CLJ6/DSports.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "CAZE TV 2 FHD",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/vzeco5ty0v/out/v1/44c6b8f31a2544e3b2a9bb41ed5e241e/cenc.mpd",
+    "keys": "ac7abaa9c9481aacfbdac64fc3ec3312:c0c504a2ed2e70b879a650b8770a38c6",
+    "icon": "https://i.ibb.co.com/QFNLqBkW/cazetv.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "BR"
+  },
+  {
+    "name": "DSPORTS PLUS",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/dash/enc/ud6bnhthpj/out/v1/2639a2f4480f4269953de466d5f46463/cenc.mpd",
+    "keys": "83f81c4cc1443991543de4e22eea7586:ddfd7ca653d6f35543d8edb3c688e20f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/world-latin-america/dsports-plus-lam.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "DSPORTS 1 LATAM",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/3gg2jnixjn/out/v1/e1840e01f3f14563b66bbb944d5cc54c/cenc.mpd",
+    "keys": "f8b207c10f3f76aeba32a360ec52b9e4:afad49d20eb39670e93e371c1d669921",
+    "icon": "https://app.femon.net/tv/banners/69fdc67d88e581.36033201.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "DSPORTS 2 LATAM",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/dash/enc/rgilyeubta/out/v1/09a67027b18f4fd78aaa3794a2aacfe8/cenc.mpd",
+    "keys": "03f12d6a3dbfd3a6fa7dd7f6417e0c11:ea07b87acdf2e45be824cde4a1cf3504",
+    "icon": "https://app.femon.net/tv/banners/69fdc67d88e581.36033201.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Sky Sport Golf HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_golf_hd/dash/sky_sport_golf_hd.mpd",
+    "keys": "e571f67594c530f8a4b861ca41004a4f:9156d299e8ced2f112ab58706a8bf5b2",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-golf-hd-at.png",
+    "category": [
+      "Sky Sport Austria",
+      "Tennis & Golf"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Premier League HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_premier_league_hd/dash/sky_sport_premier_league_hd.mpd",
+    "keys": "446af6dd9ec0395eaf5ab6adac2b8234:a70a5944e51312f5a045b1e81651d033",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-premier-league-hd-at.png",
+    "category": [
+      "Sky Sport Austria",
+      "Football & Soccer"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 1 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_1_hd/dash/sky_sport_austria_1_hd.mpd",
+    "keys": "a34f9ab7a5563fec950689caf656670d:c76e93190eae7b1d2a12343085895303",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-1-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 2 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_2_hd/dash/sky_sport_austria_2_hd.mpd",
+    "keys": "3966152269b73412a242d20266ff4dde:fef1f9bfe73a15601d9ccd40e89db3e7",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-2-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 3 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_3_hd/dash/sky_sport_austria_3_hd.mpd",
+    "keys": "27eadbdda48b3e2a80ca4da0a9950634:87f044870a3bfda02047b2170f05d47e",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-3-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 4 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_4_hd/dash/sky_sport_austria_4_hd.mpd",
+    "keys": "ea3f2578d9793c0d9573467485bcd26b:e2621a0d8baf292f0f8b93203533e0f4",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-4-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 5 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_5_hd/dash/sky_sport_austria_5_hd.mpd",
+    "keys": "a970b0d47df7340b98eba3e1b4b77469:b5dccb068234f0e32933fd1c039345a1",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-5-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 6 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_6_hd/dash/sky_sport_austria_6_hd.mpd",
+    "keys": "0a06819116d93abd86de4c49b19261dd:ea22888183d9d9fe82884b464a3d85c1",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-6-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 7 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_7_hd/dash/sky_sport_austria_7_hd.mpd",
+    "keys": "01bd650456873075a7dccf2fec27fa09:5b33ea6e3b8bb5938eaa7835190d0b6f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-7-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport Austria 8 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_austria_8_hd/dash/sky_sport_austria_8_hd.mpd",
+    "keys": "a5b64c851975392ea5638921191ec52f:e98048ed027c6f1c555222e212f9b0fb",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-austria-1-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 1 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_1_hd/dash/sky_sport_1_hd.mpd",
+    "keys": "d8f0663ec8283ca0aef8f12a7868afbc:ec674895f8a0021dc0ba02da95c7fab1",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-1-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 2 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_2_hd/dash/sky_sport_2_hd.mpd",
+    "keys": "8ade9637c7c73ce2a9ff418fea41d8d6:e9e9d8af5a476a08749541071326a954",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-2-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 3 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_3_hd/dash/sky_sport_3_hd.mpd",
+    "keys": "1184321e329737189b8beb6fcd88a0ce:aa1d895be57f390e9e9a134c13b68c2a",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-3-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 4 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_4_hd/dash/sky_sport_4_hd.mpd",
+    "keys": "cf96ff7fd56d39beb072d01dfe5cfdec:10e5a0f3d923d55128021d1e706d1a21",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-4-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 5 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_5_hd/dash/sky_sport_5_hd.mpd",
+    "keys": "5e47723998213e518808bbefce8ef673:38f0b12208f2c07f249f1deb2e89e6bb",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-5-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 6 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_6_hd/dash/sky_sport_6_hd.mpd",
+    "keys": "dd30fb88f1ca3d77a368e5cd302e4d2e:3f11ab2591ce4be5fdf0b532bf1b6fcc",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-6-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 7 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_7_hd/dash/sky_sport_7_hd.mpd",
+    "keys": "c7f17f8a65b63d72ac7ce48568501b74:fe28c2683e9bb181e88f8471c2931046",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-7-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 8 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_8_hd/dash/sky_sport_8_hd.mpd",
+    "keys": "8b1e79740887330c824553bc9eacca8a:ef2c04e9d59195de14720f065ac08265",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-8-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 9 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_9_hd/dash/sky_sport_9_hd.mpd",
+    "keys": "e5587464cf893abf8453921facd85c68:61cfc0cbdc3982982b1aee03ead21493",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-9-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport 10 HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_10_hd/dash/sky_sport_10_hd.mpd",
+    "keys": "ea78dd6d8dbd3b1eb2461d229fc9e16e:830bce4403341f48f902eea35fdb360c",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sky-sport/old/sky-sport-10-de.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "Sky Sport News HD",
+    "mpd": "https://simplitv-live.mdn.ors.at/live/eds/sky_sport_news_hd/dash/sky_sport_news_hd.mpd",
+    "keys": "66b11332364e3a45a2328fc24a075e28:a8968f08b78f992005498d9377d9de06",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/austria/hd/sky-sport-news-hd-at.png",
+    "category": [
+      "Sky Sport Austria"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "beIN SPORTS XTRA",
+    "mpd": "https://bein-xtra-bein.amagi.tv/playlist.m3u8",
+    "keys": "ec7ee27d83764e4b845c48cca31c8eef:9c0e4191203fccb0fde34ee29999129e",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/bein-sports-xtra-us.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "DAZN 2",
+    "mpd": "https://ac-003.live.p7s1video.net/4a37da02/t_003/dazn-rise-hd/cenc-default.mpd",
+    "keys": "75508caa27239cd34ca45ee862f1bbf2:d38f9f2b690bad3fcc838013242cc5e4",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/belgium/dazn-2-be.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "MOTORVISION+",
+    "mpd": "https://op-flashcon-digdayahd-1.dens.tv/h/h09/index.m3u8?app_type=web&userid=lite&chname=Motorvision%2B",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/motorvision-tv-de.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "FOX SPORTS",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/oboxe53wyo/out/v1/f7892a9d706d419a846d738fa22ea33e/cenc.mpd",
+    "keys": "2fbdaa3bea0d0323ae011b318d1db716:8726ef7eaf5b9dce15fb6aa9f80bd53f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/argentina/fox-sports-ar.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FOX SPORTS 2",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/tepjqej1ys/out/v1/c9c9159baee749a19612b1598495859a/cenc.mpd",
+    "keys": "8836fb04d62dc64c9f8a39ef8640d5eb:d4f05ce56c5231b7cdf53455bea58621",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/fox-sports-2-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "TSN The Ocho",
+    "mpd": "https://d3pnbvng3bx2nj.cloudfront.net/v1/master/3722c60a815c199d9c0ef36c5b73da68a62b09d1/cc-rds8g35qfqrnv/TSN_The_Ocho.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/HYzgFbZ/tsn1.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "Red Bull TV 1",
+    "mpd": "https://3ea22335.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWdiX1JlZEJ1bGxUVl9ITFM/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/red-bull-tv-int.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Red Bull TV 2",
+    "mpd": "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/international/red-bull-tv-int.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "MTRSPT1",
+    "mpd": "https://amg02873-kravemedia-mtrspt1-samsungau-2anp4.amagi.tv/playlist/amg02873-kravemedia-mtrspt1-samsungau/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://cdn.motorsport.com/images/mgl/YN1RZ4b2/s1000/motogp-logo.jpg",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "AU"
+  },
+  {
+    "name": "RACER International",
+    "mpd": "https://amg00378-mavtv-amg00378c2-rakuten-us-1048.playouts.now.amagi.tv/playlist/amg00378-mavtvfast-motorsportsnetwork-rakutenus/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://static.cdnlogo.com/logos/c/20/cbs-sports-thumb.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FloHockey",
+    "mpd": "https://amg02278-amg02278c2-flosports-worldwide-9916.playouts.now.amagi.tv/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://www.icevault.com/images/Generic/Flo/FloHockey575.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "REAL MADRID TV",
+    "mpd": "https://rmtv.akamaized.net/hls/live/2043153/rmtv-es-web/bitrate_3.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/spain/real-madrid-tv-es.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "ES"
+  },
+  {
+    "name": "BARCA TV",
+    "mpd": "https://amg17560-fcb-amg17560c1-rakuten-uk-4891.playouts.now.amagi.tv/playlist/amg17560-fcbarcelona-topbarcaenglish-rakutenuk/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/spain/barca-tv-es.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "ES"
+  },
+  {
+    "name": "INTER TV",
+    "mpd": "https://ilglobotv-live.akamaized.net/channels/InterTV/Live.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/italy/inter-tv-it.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "IT"
+  },
+  {
+    "name": "Stadium",
+    "mpd": "https://wurl120sports.global.transmit.live/hls/679a907dce42a042c23ace37/v1/stadium_gracenote/samsung_us/latest/main/hls/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/stadium-us.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Action Sports 1",
+    "mpd": "https://ottlive.dishhome.com.np/protected/vVnVkZ4Bnu3lGwDQJxH-/dash/manifest.mpd",
+    "keys": "2bb7f4489e5f421eb0de90035cffb2bc:96b09b69c638dac184f42910e0095933",
+    "icon": "https://img1.wsimg.com/isteam/ip/d08bca69-c528-4050-938f-bd511aa0a61f/blob-0004.png/:/cr=t:0%25,l:22.59%25,w:54.82%25,h:54.82%25",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Action Sports 2",
+    "mpd": "https://ottlive.dishhome.com.np/protected/BlnekZ4Bnu3lGwDQwBL2/dash/manifest.mpd",
+    "keys": "e6136af0960e4fb8b535dd6b1dd307c8:7e73113b6fbcc167612a0b2e58715bd8",
+    "icon": "https://img1.wsimg.com/isteam/ip/d08bca69-c528-4050-938f-bd511aa0a61f/blob-0004.png/:/cr=t:0%25,l:22.59%25,w:54.82%25,h:54.82%25",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "ARENA SPORT 4 PREMIUM 🇭🇷",
+    "mpd": "https://webtvstream.bhtelecom.ba/hls15/as_premium4.mpd?n=browsernull-cdn.sam.net",
+    "keys": "c18b6aa739be4c0b774605fcfb5d6b68:e41c3a6f7532b2e3a828d9580124c89d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/croatia/arena-sport-4-hr.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "HR"
+  },
+  {
+    "name": "ARENA SPORT 5 PREMIUM 🇭🇷",
+    "mpd": "https://webtvstream.bhtelecom.ba/hls15/as_premium5.mpd?n=browsernull-cdn.sam.net",
+    "keys": "c18b6aa739be4c0b774605fcfb5d6b68:e41c3a6f7532b2e3a828d9580124c89d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/croatia/arena-sport-5-hr.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "HR"
+  },
+  {
+    "name": "ARENA SPORT 7 🇭🇷",
+    "mpd": "https://webtvstream.bhtelecom.ba/hls10/arena7.mpd?n=browsernull-cdn.sam.net",
+    "keys": "c18b6aa739be4c0b774605fcfb5d6b68:e41c3a6f7532b2e3a828d9580124c89d",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/croatia/arena-sport-7-hr.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "HR"
+  },
+  {
+    "name": "BAHRAIN SPORTS 1 🇧🇭",
+    "mpd": "https://5c7b683162943.streamlock.net/live/ngrp:sportsone_all/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/pdX3T4f/bhsports1.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "BAHRAIN SPORTS 2 🇧🇭",
+    "mpd": "https://5c7b683162943.streamlock.net/live/ngrp:bahrainsportstwo_all/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/K9QkP01/bhsports2.png",
+    "category": [
+      "General Sports"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "BEIN SPORTS XTRA En Español 🇺🇸",
+    "mpd": "https://amg01334-beinsportsllc-beinxtraesp-localnow-aekzc.amagi.tv/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://i.ibb.co.com/v1bpVxN/beinxtraen.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "MOTORVISION 🇩🇪",
+    "mpd": "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg00451-dazn-motorvisiontv-dazn/9fc71168-a0be-4dc0-a9bd-330ccf976c8d/stream.mpd",
+    "keys": "8ab47741930c476780515f9a00decb0a:7ab4b9ae5a48aa526e511a913b832769",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/motorvision-tv-de.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "NBA TV 🇺🇸 🇲🇽 HEVC",
+    "mpd": "https://live1-ott.izzigo.tv/7/out/u/dash/NBA-HD-H265/default.mpd",
+    "keys": "08f8fb6d69482c151f73dd8461dca352:8aea016cd974cb95e8bf030b196f4818",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/nba-tv-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "MX"
+  },
+  {
+    "name": "NBA TV",
+    "mpd": "https://otte.live.fly.ww.aiv-cdn.net/enc/qio4cutx9r/out/v1/c89ef71f801b42b7abe65c7777adc6c4/cenc.mpd",
+    "keys": "4ee9b41e5053ef434c13dbb783df9e32:a275236600bfaedf230286f7b71b0a99",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/nba-tv-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "NFL NETWORK 🇺🇸",
+    "mpd": "https://ac-009.live.p7s1video.net/e0e064c8/t_004/ran-nflnetwork-de-hd/cenc-default.mpd",
+    "keys": "b26a662a10074eb0756404c8e90e765a:76e376bd25f92bed939435d982f92d3f",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/nfl-network-us.png",
+    "category": [
+      "US Major Leagues"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "Sat.1 🇩🇪",
+    "mpd": "https://ac-009.live.p7s1video.net/27a90190/t_009/sat1-de-hd/cenc-default.mpd",
+    "keys": "540313f2e5eda2c17df277afc085f33c:3a2ac903e4299a7815111e256369d9d4",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sat1-de.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "Sat.1 🇦🇹",
+    "mpd": "https://ac-001.live.p7s1video.net/a30b657a/t_001/sat1-at/cenc-default.mpd",
+    "keys": "47d68f825cdea389eb3b75a39275fc61:97e8875d20f9b95a2b59ed79b4a358a1",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sat1-de.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "AT"
+  },
+  {
+    "name": "SPORT1 HD 🇩🇪",
+    "mpd": "https://ac-009.live.p7s1video.net/181aa0bf/t_009/sport1-de/cenc-default.mpd",
+    "keys": "98f2ab49605f0469a4b97de40277fca0:7ed06b6908edc372f2cb8ef2df2615d0",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/germany/sport1-de.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "DE"
+  },
+  {
+    "name": "SuperTennis 1 🇮🇹",
+    "mpd": "https://421b2081187a40368f24e4fb496bfc26.msvdn.net/channel1/manifest.mpd",
+    "keys": "0000",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/italy/supertennis-it.png",
+    "category": [
+      "Tennis & Golf"
+    ],
+    "country": "IT"
+  },
+  {
+    "name": "SuperTennis+ 🇮🇹",
+    "mpd": "https://421b2081187a40368f24e4fb496bfc26.msvdn.net/channel4/manifest.mpd",
+    "keys": "0000",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/italy/supertennis-it.png",
+    "category": [
+      "Tennis & Golf"
+    ],
+    "country": "IT"
+  },
+  {
+    "name": "TNT 🇲🇽 HEVC",
+    "mpd": "https://live1-ott.izzigo.tv/6/out/u/dash/TNT-HD-H265/default.mpd",
+    "keys": "37971d47c9e64d7584058efcfdc424b3:9944ecda48ef3d6325ccf89ab32bef83",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/argentina/tnt-ar.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "MX"
+  },
+  {
+    "name": "TV4 Motor 🇸🇪",
+    "mpd": "https://live.streaming.a2d.tv/asset/20465726.isml/dash.mpd",
+    "keys": "f5b4f9bd84c434fe97e27488b06f3f1a:79c073d1dc0ee83b204d930309e80ed7",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/sweden/tv4-motor-se.png",
+    "category": [
+      "Motorsport"
+    ],
+    "country": "SE"
+  },
+  {
+    "name": "TV4 Hockey 🇸🇪",
+    "mpd": "https://live.streaming.a2d.tv/asset/20465723.isml/dash.mpd",
+    "keys": "4acd16b6b6933abca01a66f865eef7c1:b2a4e27e05d34e98dd7c09fadd96ab09",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/sweden/tv4-hockey-se.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "SE"
+  },
+  {
+    "name": "TV4 SportKanalen 🇸🇪",
+    "mpd": "https://live.streaming.a2d.tv/asset/20465728.isml/dash.mpd",
+    "keys": "20f9a036eabc3930b2b1d124778090e6:b557b2e61b73935ef74bfa22d8ea2c34",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/sweden/tv4-sportkanalen-se.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "SE"
+  },
+  {
+    "name": "TV4 Live 1 🇸🇪",
+    "mpd": "https://live.streaming.a2d.tv/asset/20465729.isml/dash.mpd",
+    "keys": "6c2908a6d85d35fd9a33db46d6b157b2:2327be90af966a52a164cc46e18b35f5",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/sweden/tv4-se.png",
+    "category": [
+      "Sports Networks"
+    ],
+    "country": "SE"
+  },
+  {
+    "name": "MMA TV",
+    "mpd": "https://streams2.sofast.tv/ptnr-sportstrible/title-MMA_Sportstrible/v1/master/611d79b11b77e2f571934fd80ca1413453772ac7/f6b049e4-885e-4551-85ac-8eef0b33d3a2/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://imgcdn.powr-media.com/extend:1:ce/enlarge:1/resize:fit/w:80/h:45/gravity:ce/czM6Ly91bnJlZWxtZWRpYS9wcm9kL2ZyZWVsaXZlc3BvcnRzL2xvZ28vOWNiOWI0ZmYtMjk1OC00MTc5LWJkMGItYmM5YTQ0ODg4Y2M3",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "PFL",
+    "mpd": "https://d856dff4.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/U3BvcnRzVHJpYmFsLWdiX1BGTE1NQV9ITFM/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://imgcdn.powr-media.com/extend:1:ce/enlarge:1/resize:fit/w:80/h:45/gravity:ce/czM6Ly91bnJlZWxtZWRpYS9wcm9kL3Nwb3J0c3BsdXMvbG9nby8yYzRjYWVlOS1lMjBkLTRhODgtYWRlYS02ZGM5YzNjNzhjNDE",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TNA Wrestling",
+    "mpd": "https://d39g1vxj2ef6in.cloudfront.net/v1/master/3fec3e5cac39a52b2132f9c66c83dae043dc17d4/prod-rakuten-stitched/master.m3u8?ads.xumo_channelId=88883039",
+    "keys": "None",
+    "icon": "https://imgcdn.powr-media.com/extend:1:ce/enlarge:1/resize:fit/w:80/h:45/gravity:ce/czM6Ly91bnJlZWxtZWRpYS9wcm9kL3Nwb3J0c3BsdXMvbG9nby82N2MyZGQxNC1kOGM3LTQ3ZmEtOTllNS00NTJmMjcxNWU0MDQ",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "TNA Wrestling Channel",
+    "mpd": "https://amg00966-amg00966c1-freelivesports-emea-7712.playouts.now.amagi.tv/playlist/amg00966-anthem-tnawrestling-freelivesportsemea/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://imgcdn.powr-media.com/extend:1:ce/enlarge:1/resize:fit/w:80/h:45/gravity:ce/czM6Ly91bnJlZWxtZWRpYS9wcm9kL3Nwb3J0c3BsdXMvbG9nby82N2MyZGQxNC1kOGM3LTQ3ZmEtOTllNS00NTJmMjcxNWU0MDQ",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "UFC Network",
+    "mpd": "https://linear-893.frequency.stream/dist/xumo/893/hls/master/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-states/ufc-us.png",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "US"
+  },
+  {
+    "name": "United Fight Alliance",
+    "mpd": "https://9ab4bcc639c845d2b682105f4e9afbf8.mediatailor.us-east-1.amazonaws.com/v1/master/44f73ba4d03e9607dcd9bebdcb8494d86964f1d8/SportsTribal-eu_UnitedFightAlliance/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://imgcdn.powr-media.com/extend:1:ce/enlarge:1/resize:fit/w:80/h:45/gravity:ce/czM6Ly91bnJlZWxtZWRpYS9wcm9kL2ZyZWVsaXZlc3BvcnRzL2xvZ28vOTk0NDg1MmQtNTlkMS00Y2FjLWEyZDItZDY1ZDIxZDYxZjQy",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Glory Kickboxing",
+    "mpd": "https://6f972d29.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1X0dsb3J5S2lja2JveGluZ19ITFM/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/misc/vod/glory-kickboxing-vod.png",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "Hard Knocks Fighting",
+    "mpd": "https://d39g1vxj2ef6in.cloudfront.net/v1/manifest/3fec3e5cac39a52b2132f9c66c83dae043dc17d4/prod-rakuten-stitched/2ee2b8d4-acc4-4296-9dc8-66f1ffd0fff8/5.m3u8",
+    "keys": "None",
+    "icon": "https://images-1.rakuten.tv/storage/global-live-channel/translation/artwork/13b0a6c7-4307-4c8d-9fc4-df2a4f8e8b38-hard-knocks-fighting-1602077398-width200-quality90.jpeg",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "FIGHT NETWORK",
+    "mpd": "https://amg00966-amg00966c10-amgplt0201.playout.now3.amagi.tv/playlist/amg00966-amg00966c10-amgplt0201/playlist.m3u8",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/canada/fight-network-ca.png",
+    "category": [
+      "Combat & Fighting"
+    ],
+    "country": "GLOBAL"
+  },
+  {
+    "name": "MUTV HD",
+    "mpd": "https://fastly.live.brightcove.com/6374053280112/eu-west-1/6058004203001/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJob3N0IjoiYXplMnp5LmVncmVzcy55ODN1ZWIiLCJhY2NvdW50X2lkIjoiNjA1ODAwNDIwMzAwMSIsImVobiI6ImZhc3RseS5saXZlLmJyaWdodGNvdmUuY29tIiwiaXNzIjoiYmxpdmUtcGxheWJhY2stc291cmNlLWFwaSIsInN1YiI6InBhdGhtYXB0b2tlbiIsImF1ZCI6WyI2MDU4MDA0MjAzMDAxIl0sImp0aSI6IjYzNzQwNTMyODAxMTIifQ.CpuijBxTUYZTaso6UHbVTjXMcRD3m5x7cL4ygwCFL48/playlist-dash.mpd",
+    "keys": "None",
+    "icon": "https://raw.githubusercontent.com/tv-logo/tv-logos/main/countries/united-kingdom/hd/mutv-hd-uk.png",
+    "category": [
+      "Football & Soccer"
+    ],
+    "country": "GB"
+  }
+];
+
+        let player = null;
+        let ui = null;
+        let activeCategory = 'All';
+        let activeCountry = 'All';
+        let searchQuery = '';
+
+        const COUNTRIES_CONFIG = [
+            { id: 'All', label: '🌐 All Countries' },
+            { id: 'AT', label: '🇦🇹 Austria' },
+            { id: 'DE', label: '🇩🇪 Germany' },
+            { id: 'GB', label: '🇬🇧 UK' },
+            { id: 'US', label: '🇺🇸 USA / CA' },
+            { id: 'CZ_SK', label: '🇨🇿 🇸🇰 CZ & SK', match: ['CZ', 'SK'] },
+            { id: 'ES', label: '🇪🇸 Spain' },
+            { id: 'FR', label: '🇫🇷 France' },
+            { id: 'IT', label: '🇮🇹 Italy' },
+            { id: 'BR', label: '🇧🇷 Brazil' },
+            { id: 'SE', label: '🇸🇪 Sweden' },
+            { id: 'HR', label: '🇭🇷 Balkans / HR' },
+            { id: 'LV', label: '🇱🇻 Baltics' },
+            { id: 'MX', label: '🇲🇽 Mexico / LatAm' },
+            { id: 'AU', label: '🇦🇺 Australia / NZ' },
+            { id: 'ID', label: '🇮🇩 Indonesia / Asia' },
+            { id: 'GLOBAL', label: '🌐 World Feeds' }
+        ];
+
+        const COUNTRY_FLAGS_MAP = {
+            'AT': '🇦🇹 AT',
+            'DE': '🇩🇪 DE',
+            'GB': '🇬🇧 UK',
+            'US': '🇺🇸 US',
+            'CZ': '🇨🇿 CZ',
+            'SK': '🇸🇰 SK',
+            'ES': '🇪🇸 ES',
+            'FR': '🇫🇷 FR',
+            'IT': '🇮🇹 IT',
+            'BR': '🇧🇷 BR',
+            'SE': '🇸🇪 SE',
+            'HR': '🇭🇷 HR',
+            'LV': '🇱🇻 LV',
+            'MX': '🇲🇽 MX',
+            'AU': '🇦🇺 AU',
+            'ID': '🇮🇩 ID',
+            'GLOBAL': '🌐 WLD'
+        };
+
+        // Volume Setup
+        function initVolumeSettings(video) {
+            const savedVol = localStorage.getItem('sports_player_volume');
+            const savedMute = localStorage.getItem('sports_player_muted');
+
+            if (savedVol !== null) {
+                video.volume = parseFloat(savedVol);
+            } else {
+                video.volume = 0.5;
+                localStorage.setItem('sports_player_volume', '0.5');
+            }
+
+            if (savedMute !== null) {
+                video.muted = (savedMute === 'true');
+            } else {
+                video.muted = false;
+                localStorage.setItem('sports_player_muted', 'false');
+            }
+
+            video.addEventListener('volumechange', () => {
+                localStorage.setItem('sports_player_volume', video.volume.toString());
+                localStorage.setItem('sports_player_muted', video.muted ? 'true' : 'false');
+            });
+        }
+
+        // Force Shaka Player to select the HIGHEST QUALITY variant track
+        function selectHighestQualityTrack() {
+            if (!player) return;
+            try {
+                const tracks = player.getVariantTracks();
+                if (!tracks || tracks.length === 0) return;
+
+                tracks.sort((a, b) => (b.bandwidth || 0) - (a.bandwidth || 0));
+
+                const highestTrack = tracks[0];
+                if (highestTrack) {
+                    player.configure({ abr: { enabled: false } });
+                    player.selectVariantTrack(highestTrack, true);
+                }
+            } catch (err) {}
+        }
+
+        // Initialize Shaka Player & UI Overlay
+        async function initShaka() {
+            shaka.polyfill.installAll();
+
+            if (!shaka.Player.isBrowserSupported()) {
+                showError('Your browser or platform does not support Shaka Player.');
+                return;
+            }
+
+            const video = document.getElementById('shaka-video');
+            const container = document.getElementById('shaka-container');
+            if (!video || !container) return;
+
+            initVolumeSettings(video);
+
+            // Re-use auto-initialized Shaka UI if present to avoid DOM removal conflicts
+            if (container.ui) {
+                ui = container.ui;
+                player = ui.getControls().getPlayer();
+            } else if (!player) {
+                player = new shaka.Player();
+                await player.attach(video);
+                ui = new shaka.ui.Overlay(player, container, video);
+            }
+
+            if (ui && !window._shakaConfigured) {
+                window._shakaConfigured = true;
+                const controls = ui.getControls();
+                const defaultCfg = controls.getConfig();
+                const mergedCfg = Object.assign({}, defaultCfg, {
+                    controlPanelElements: [
+                        'play_pause',
+                        'time_and_duration',
+                        'spacer',
+                        'volume',
+                        'overflow_menu',
+                        'fullscreen'
+                    ],
+                    overflowMenuButtons: [
+                        'quality',
+                        'language',
+                        'picture_in_picture',
+                        'cast'
+                    ],
+                    addBigPlayButton: true,
+                    fadeDelay: 8,
+                    doubleClickForFullscreen: true
+                });
+                controls.configure(mergedCfg);
+            }
+
+            if (player && !window._shakaTracksBound) {
+                window._shakaTracksBound = true;
+                player.addEventListener('trackschanged', () => {
+                    selectHighestQualityTrack();
+                });
+            }
+        }
+
+        function showError(msg) {
+            const banner = document.getElementById('error-banner');
+            if (!banner) return;
+            banner.textContent = msg;
+            banner.style.display = 'block';
+            setTimeout(() => {
+                banner.style.display = 'none';
+            }, 7000);
+        }
+
+        // Render Category & Country Buttons
+        function getChannelCats(c) {
+            if (Array.isArray(c.category)) return c.category;
+            if (typeof c.category === 'string') return [c.category];
+            return [];
+        }
+
+        function renderCategories() {
+            const bar = document.getElementById('categories-bar');
+            if (!bar) return;
+            const counts = { 'All': CHANNELS_DATA.length };
+
+            CHANNELS_DATA.forEach(c => {
+                const cats = getChannelCats(c);
+                cats.forEach(cat => {
+                    counts[cat] = (counts[cat] || 0) + 1;
+                });
+            });
+
+            const catList = ['All', 'Sky Sport Austria', 'Formula 1', 'Motorsport', 'Football & Soccer', 'Combat & Fighting', 'Tennis & Golf', 'US Major Leagues', 'Sports Networks', 'General Sports'];
+
+            bar.innerHTML = catList.map(cat => {
+                const num = counts[cat] || 0;
+                if (cat !== 'All' && num === 0) return '';
+                const isActive = cat === activeCategory ? 'active' : '';
+                return `
+                    <button class="cat-pill ${isActive}" onclick="selectCategory('${cat}')">
+                        ${cat}
+                        <span class="count">${num}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderCountries() {
+            const bar = document.getElementById('countries-bar');
+            if (!bar) return;
+
+            const counts = { 'All': CHANNELS_DATA.length };
+            CHANNELS_DATA.forEach(c => {
+                const ctry = c.country || 'GLOBAL';
+                counts[ctry] = (counts[ctry] || 0) + 1;
+                if (ctry === 'CZ' || ctry === 'SK') {
+                    counts['CZ_SK'] = (counts['CZ_SK'] || 0) + 1;
+                }
+            });
+
+            bar.innerHTML = COUNTRIES_CONFIG.map(conf => {
+                let num = 0;
+                if (conf.id === 'All') num = CHANNELS_DATA.length;
+                else if (conf.match) num = counts[conf.id] || 0;
+                else num = counts[conf.id] || 0;
+
+                if (conf.id !== 'All' && num === 0) return '';
+                const isActive = conf.id === activeCountry ? 'active' : '';
+                return `
+                    <button class="country-pill ${isActive}" onclick="selectCountry('${conf.id}')">
+                        ${conf.label}
+                        <span class="count">${num}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategory(cat) {
+            activeCategory = cat;
+            updateActiveTitle();
+            renderCategories();
+            renderCountries();
+            renderGrid();
+        }
+
+        function selectCountry(countryId) {
+            activeCountry = countryId;
+            updateActiveTitle();
+            renderCountries();
+            renderGrid();
+        }
+
+        function updateActiveTitle() {
+            const titleEl = document.getElementById('active-category-title');
+            if (!titleEl) return;
+            let txt = '';
+            if (activeCategory === 'All' && activeCountry === 'All') {
+                txt = 'ALL SPORTS CHANNELS';
+            } else if (activeCategory !== 'All' && activeCountry === 'All') {
+                txt = activeCategory.toUpperCase();
+            } else if (activeCategory === 'All' && activeCountry !== 'All') {
+                const conf = COUNTRIES_CONFIG.find(x => x.id === activeCountry);
+                txt = (conf?.label || activeCountry).toUpperCase();
+            } else {
+                const conf = COUNTRIES_CONFIG.find(x => x.id === activeCountry);
+                txt = `${activeCategory.toUpperCase()} — ${(conf?.label || activeCountry).toUpperCase()}`;
+            }
+            titleEl.textContent = txt;
+        }
+
+        // Render Cards Grid
+        function renderGrid() {
+            const grid = document.getElementById('sports-grid');
+            const counter = document.getElementById('visible-counter');
+            if (!grid) return;
+
+            const filtered = CHANNELS_DATA.filter(c => {
+                const cats = getChannelCats(c);
+                const matchCat = (activeCategory === 'All') || cats.includes(activeCategory);
+
+                let matchCtry = true;
+                if (activeCountry !== 'All') {
+                    const conf = COUNTRIES_CONFIG.find(x => x.id === activeCountry);
+                    if (conf && conf.match) {
+                        matchCtry = conf.match.includes(c.country);
+                    } else {
+                        matchCtry = (c.country === activeCountry);
+                    }
+                }
+
+                const matchSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchCat && matchCtry && matchSearch;
+            });
+
+            if (counter) counter.textContent = filtered.length;
+
+            const f1Notice = document.getElementById('f1-live-notice');
+            if (f1Notice) {
+                const isF1Active = (activeCategory === 'Formula 1') || filtered.some(c => getChannelCats(c).includes('Formula 1'));
+                f1Notice.style.display = (isF1Active && searchQuery === '') ? 'flex' : 'none';
+            }
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted);">
+                        <i class="fa-solid fa-circle-exclamation" style="font-size: 2.5rem; margin-bottom: 12px;"></i>
+                        <p>No sports channels found for current filter.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(c => {
+                const hasIcon = c.icon && c.icon !== 'N/A';
+                const imgTag = hasIcon 
+                    ? `<img src="${c.icon}" alt="${c.name}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                       <i class="fa-solid fa-trophy fallback-icon" style="display:none;"></i>`
+                    : `<i class="fa-solid fa-trophy fallback-icon"></i>`;
+
+                const drmText = (c.keys && c.keys !== 'None') ? 'DRM' : 'FREE';
+                const isF1Channel = getChannelCats(c).includes('Formula 1');
+                const f1Badge = isF1Channel ? `<span class="badge-f1-session" title="Active live during F1 sessions"><i class="fa-solid fa-flag-checkered"></i> LIVE SESSIONS</span>` : '';
+                const flagBadge = COUNTRY_FLAGS_MAP[c.country] ? `<span class="badge-country">${COUNTRY_FLAGS_MAP[c.country]}</span>` : '';
+
+                return `
+                    <div class="channel-card" tabindex="0" onclick="playChannel('${c.mpd}')">
+                        <div class="card-preview">
+                            <span class="badge-live">LIVE</span>
+                            ${flagBadge}
+                            <span class="badge-drm">${drmText}</span>
+                            ${f1Badge}
+                            ${imgTag}
+                        </div>
+                        <div class="card-details">
+                            <div class="channel-title" title="${c.name}">${c.name}</div>
+                            <div class="channel-category">${Array.isArray(c.category) ? c.category.join(' &bull; ') : c.category}</div>
+                            <div class="card-action-bar">
+                                <div class="card-action">
+                                    <i class="fa-solid fa-play"></i>
+                                    <span>WATCH</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <button class="btn-pro-icon" title="Open in Ultra Pro Player (DSP, Multi-View, Diagnostics)" onclick="openInProPlayer(event, '${c.mpd}')">
+                                        <i class="fa-solid fa-up-right-from-square"></i> PRO
+                                    </button>
+                                    <button class="btn-info-icon" title="View Stream Info & Keys" onclick="openChannelInfo(event, '${c.mpd}')">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Open Info Popup Modal
+        function openChannelInfo(event, mpdUrl) {
+            if (event) event.stopPropagation();
+
+            const channel = CHANNELS_DATA.find(c => c.mpd === mpdUrl);
+            if (!channel) return;
+
+            document.getElementById('info-channel-title').textContent = channel.name;
+            document.getElementById('info-mpd-input').value = channel.mpd;
+            document.getElementById('info-keys-input').value = channel.keys || 'None';
+
+            document.getElementById('info-modal').classList.add('active');
+        }
+
+        // 1-Click Launch into Pro Player Studio (player.html)
+        function openInProPlayer(event, mpdUrl) {
+            if (event) event.stopPropagation();
+            const channel = CHANNELS_DATA.find(c => c.mpd === mpdUrl);
+            if (!channel) return;
+            const params = new URLSearchParams({
+                stream: channel.mpd,
+                keys: channel.keys && channel.keys !== 'None' ? channel.keys : '',
+                name: channel.name || '',
+                icon: channel.icon || '',
+                cat: Array.isArray(channel.category) ? channel.category.join(', ') : (channel.category || '')
+            });
+            window.open(`player.html?${params.toString()}`, '_blank');
+        }
+
+        let currentLoadedChannel = null;
+        let currentLiveOffset = -7;
+
+        function launchCurrentInProPlayer() {
+            if (!currentLoadedChannel) return;
+            openInProPlayer(null, currentLoadedChannel.mpd);
+        }
+
+        // Live Buffer Offset Tuner
+        async function setLiveOffset(offset) {
+            currentLiveOffset = offset;
+            document.querySelectorAll('.latency-btn').forEach(btn => btn.classList.remove('active'));
+            const btnId = `btn-buf-${Math.abs(offset)}`;
+            const activeBtn = document.getElementById(btnId);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (player && currentLoadedChannel) {
+                const streamUrl = (currentLoadedChannel.mpd || '').replace(/\/([a-zA-Z0-9]+)-nitro\//gi, '/fra-nitro/');
+                const isMpd = streamUrl.toLowerCase().includes('.mpd');
+                if (isMpd) {
+                    player.configure({
+                        streaming: {
+                            safeSeekOffset: Math.abs(offset),
+                            bufferingGoal: Math.max(10, Math.abs(offset) + 5),
+                            rebufferingGoal: 2
+                        }
+                    });
+                    await player.load(streamUrl, offset);
+                    selectHighestQualityTrack();
+                    renderAudioFlags();
+                    const video = document.getElementById('shaka-video');
+                    video.play().catch(() => {});
+                }
+            }
+        }
+
+        // Language Flag Icons Resolver
+        function getLangFlag(lang) {
+            if (!lang) return '🌐 AUD';
+            const l = lang.toLowerCase();
+            if (l.startsWith('en')) return '🇬🇧 ENG';
+            if (l.startsWith('de')) return '🇩🇪 DEU';
+            if (l.startsWith('cs') || l.startsWith('cz')) return '🇨🇿 CZE';
+            if (l.startsWith('es')) return '🇪🇸 ESP';
+            if (l.startsWith('fr')) return '🇫🇷 FRA';
+            if (l.startsWith('it')) return '🇮🇹 ITA';
+            if (l.startsWith('pt')) return '🇵🇹 POR';
+            if (l.startsWith('nl')) return '🇳🇱 NLD';
+            if (l.startsWith('ru')) return '🇷🇺 RUS';
+            if (l.startsWith('pl')) return '🇵🇱 POL';
+            return `🌐 ${lang.toUpperCase().slice(0, 3)}`;
+        }
+
+        function renderAudioFlags() {
+            const container = document.getElementById('modal-audio-flags');
+            if (!player || !container) return;
+
+            const tracks = player.getVariantTracks() || [];
+            const audioTracks = [];
+            const seen = new Set();
+
+            tracks.forEach(t => {
+                const key = `${t.language}_${t.audioId || t.roles?.join('_') || ''}`;
+                if (!seen.has(key) && t.language) {
+                    seen.add(key);
+                    audioTracks.push(t);
+                }
+            });
+
+            if (audioTracks.length <= 1) {
+                const singleLang = audioTracks[0] ? getLangFlag(audioTracks[0].language) : '🇬🇧 MAIN';
+                container.innerHTML = `<span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);"><i class="fa-solid fa-headphones"></i> AUDIO:</span><span class="audio-flag-pill active">${singleLang}</span>`;
+                return;
+            }
+
+            container.innerHTML = `<span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);"><i class="fa-solid fa-headphones"></i> AUDIO:</span>` +
+                audioTracks.map(t => {
+                    const label = getLangFlag(t.language);
+                    const isActive = t.active ? 'active' : '';
+                    return `<button class="audio-flag-pill ${isActive}" onclick="switchAudioTrack('${t.language}')">${label}</button>`;
+                }).join('');
+        }
+
+        function switchAudioTrack(lang) {
+            if (!player) return;
+            player.selectAudioLanguage(lang);
+            setTimeout(renderAudioFlags, 200);
+        }
+
+        // Copy Field Handler
+        function copyField(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> COPIED!`;
+                btn.style.background = 'var(--accent-cyan)';
+                btn.style.color = '#000';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                    btn.style.color = '';
+                }, 2000);
+            }).catch(() => {
+                document.execCommand('copy');
+            });
+        }
+
+        // Close Info Modal Listener
+        const btnCloseInfo = document.getElementById('btn-close-info');
+        if (btnCloseInfo) {
+            btnCloseInfo.addEventListener('click', () => {
+                document.getElementById('info-modal').classList.remove('active');
+            });
+        }
+
+        // Play Channel Function
+        async function playChannel(mpdUrl) {
+            const channel = CHANNELS_DATA.find(c => c.mpd === mpdUrl);
+            if (!channel) return;
+
+            currentLoadedChannel = channel;
+
+            document.getElementById('player-channel-name').textContent = channel.name;
+            document.getElementById('player-channel-sub').textContent = `${Array.isArray(channel.category) ? channel.category.join(', ') : channel.category} | DASH`;
+            
+            const logoImg = document.getElementById('player-logo-img');
+            if (channel.icon && channel.icon !== 'N/A') {
+                logoImg.src = channel.icon;
+                logoImg.style.display = 'block';
+            } else {
+                logoImg.style.display = 'none';
+            }
+
+            document.getElementById('player-modal').classList.add('active');
+
+            if (!player) await initShaka();
+
+            try {
+                await player.unload();
+            } catch(e) {}
+
+            const keys = channel.keys ? channel.keys.trim() : '';
+            const clearKeysMap = {};
+
+            if (keys && keys !== 'None' && keys !== 'N/A') {
+                if (keys.startsWith('http://') || keys.startsWith('https://')) {
+                    player.configure({
+                        drm: {
+                            servers: {
+                                'com.widevine.alpha': keys,
+                                'com.microsoft.playready': keys
+                            },
+                            clearKeys: {}
+                        }
+                    });
+                } else if (keys.includes(':')) {
+                    const pairs = keys.split(',');
+                    for (const pair of pairs) {
+                        const clean = pair.trim();
+                        if (clean.includes(':')) {
+                            const parts = clean.split(':').map(s => s.trim());
+                            if (parts.length === 2 && parts[0] && parts[1]) {
+                                // Add both exact, lower and upper case hex keys to ensure match
+                                clearKeysMap[parts[0]] = parts[1];
+                                clearKeysMap[parts[0].toLowerCase()] = parts[1].toLowerCase();
+                                clearKeysMap[parts[0].toUpperCase()] = parts[1].toLowerCase();
+                            }
+                        }
+                    }
+                    if (Object.keys(clearKeysMap).length > 0) {
+                        player.configure({
+                            drm: {
+                                clearKeys: clearKeysMap,
+                                servers: {}
+                            }
+                        });
+                    }
+                }
+            } else {
+                player.configure({
+                    drm: {
+                        clearKeys: {},
+                        servers: {}
+                    }
+                });
+            }
+
+            try {
+                const streamUrl = (channel.mpd || '').replace(/\/([a-zA-Z0-9]+)-nitro\//gi, '/fra-nitro/');
+                const isMpd = streamUrl.toLowerCase().includes('.mpd') || streamUrl.toLowerCase().includes('aiv-cdn.net') || streamUrl.toLowerCase().includes('pv-cdn.net');
+                if (isMpd) {
+                    player.configure({
+                        streaming: {
+                            safeSeekOffset: Math.abs(currentLiveOffset),
+                            bufferingGoal: 12,
+                            rebufferingGoal: 2,
+                            retryParameters: {
+                                maxAttempts: 4,
+                                baseDelay: 500,
+                                backoffFactor: 1.5
+                            }
+                        },
+                        manifest: {
+                            dash: {
+                                ignoreMinBufferTime: true,
+                                autoCorrectDrift: true
+                            }
+                        }
+                    });
+                }
+                await player.load(streamUrl, isMpd ? currentLiveOffset : null);
+                const video = document.getElementById('shaka-video');
+                
+                selectHighestQualityTrack();
+                renderAudioFlags();
+
+                video.play().catch(err => {
+                    console.warn('Autoplay prevented, trying muted:', err);
+                    video.muted = true;
+                    video.play().catch(() => {});
+                });
+            } catch (err) {
+                console.error('Shaka Load Error:', err.name, err.message, err.code, err.severity, err.category, err.stack || err);
+                showError('Failed to load stream: ' + (err.message || err.name || err));
+            }
+        }
+
+        // Close Player Modal Listener
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        if (btnCloseModal) {
+            btnCloseModal.addEventListener('click', async () => {
+                document.getElementById('player-modal').classList.remove('active');
+                currentLoadedChannel = null;
+                if (player) {
+                    try {
+                        await player.unload();
+                    } catch(e) {}
+                }
+            });
+        }
+
+        // Search Input Listener
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                renderGrid();
+            });
+        }
+
+        // Init on DOM ready
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategories();
+            renderCountries();
+            renderGrid();
+            initShaka();
+        });
+    </script>
+</body>
+</html>

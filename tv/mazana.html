@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta name="referrer" content="no-referrer">
+  <script src="../tizen-adapter.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAZANA</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Shaka Player 4.15.11 Core & UI Assets -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/controls.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/shaka-player.ui.min.js"></script>
+
+  <!-- Shaka Patch for Language and .m3u8s MIME Type -->
+  <script>
+    (function(){
+      if (typeof shaka !== 'undefined' && shaka.Player && !shaka.Player._patched) {
+        const oC = shaka.Player.prototype.configure;
+        shaka.Player.prototype.configure = function(c, v) {
+          if (typeof c === 'object') {
+            if (c.preferredAudioLanguage === undefined || c.preferredAudioLanguage === "" || c.preferredAudioLanguage === "en" || c.preferredAudioLanguage === "eng") c.preferredAudioLanguage = 'en';
+          } else if (typeof c === 'string' && c === 'preferredAudioLanguage') {
+            if (!v || v === 'en' || v === 'eng') v = 'en';
+          }
+          return oC.call(this, c, v);
+        };
+        const oL = shaka.Player.prototype.load;
+        shaka.Player.prototype.load = function(url, startTime, mimeType) {
+          if (url && typeof url === 'string' && url.toLowerCase().includes('.m3u8s')) {
+            mimeType = 'application/x-mpegurl';
+          }
+          return oL.call(this, url, startTime, mimeType);
+        };
+        shaka.Player._patched = true;
+      }
+    })();
+  </script>
+
+  <!-- Sajmi Category Mapping -->
+  <script>
+    (function() {
+      var tok = "";
+      try {
+        var p = new URLSearchParams(window.location.search);
+        tok = p.get("cf_clearance") || p.get("clearance") || p.get("token") || "";
+      } catch (e) {}
+      if (!tok && window.__cf_clearance_token) tok = window.__cf_clearance_token;
+      if (!tok) {
+        try {
+          if (window.parent && window.parent !== window) {
+            tok = window.parent.__cf_clearance_token ||
+                  window.parent.sessionStorage.getItem("cf_clearance_token") ||
+                  window.parent.localStorage.getItem("cf_clearance_token") || "";
+          }
+        } catch (e) {}
+      }
+      if (!tok) {
+        try {
+          tok = sessionStorage.getItem("cf_clearance_token") || localStorage.getItem("cf_clearance_token") || "";
+        } catch (e) {}
+      }
+      if (!tok) {
+        try {
+          var m = document.cookie.match(/(?:^|;\s*)cf_clearance=([^;]+)/);
+          if (m) tok = decodeURIComponent(m[1]);
+        } catch (e) {}
+      }
+      var q = tok ? ("?cf_clearance=" + encodeURIComponent(tok)) : "";
+      document.write('<script src="https://e.yasuoyone.org/category.js' + q + '"><\/script>');
+    })();
+  </script>
+
+  <style>
+    :root {
+      --bg-base: #08090d;
+      --bg-surface: #0f121a;
+      --bg-card: #151a26;
+      --bg-card-hover: #1c2333;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-color-glow: rgba(0, 242, 254, 0.4);
+      --primary: #00f2fe;
+      --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      --accent-live: #ef4444;
+      --accent-replay: #3b82f6;
+      --accent-adult: #ec4899;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      /* Shaka Player Custom Cyber Theme Variables */
+      --shaka-main-color: #00f2fe;
+      --shaka-controls-text-color: #f8fafc;
+      --shaka-controls-bg-color: rgba(15, 18, 26, 0.85);
+      --shaka-settings-menu-bg-color: #0f121a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #263045;
+      border-radius: var(--radius-sm);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    /* Navbar Header */
+    .navbar {
+      background: rgba(15, 18, 26, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      width: 260px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 12px 8px 36px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-family: var(--font-main);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sub);
+      font-size: 0.85rem;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+    }
+
+    .date-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font-main);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .date-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .date-btn.active {
+      background: var(--primary-gradient);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .date-picker-input {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-family: var(--font-main);
+      outline: none;
+      color-scheme: dark;
+    }
+
+    /* Category Filter Bar */
+    .category-bar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .cat-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cat-item:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--text-main);
+    }
+
+    .cat-item.active {
+      background: rgba(0, 242, 254, 0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .cat-item.adult-cat {
+      border-color: rgba(236, 72, 153, 0.3);
+      color: #f472b6;
+    }
+    .cat-item.adult-cat.active {
+      background: rgba(236, 72, 153, 0.15);
+      border-color: var(--accent-adult);
+      color: var(--accent-adult);
+    }
+
+    /* Layout Main Grid */
+    .app-container {
+      display: grid;
+      grid-template-columns: 1fr 440px;
+      gap: 20px;
+      padding: 20px 24px;
+      max-width: 1920px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+    }
+
+    @media (max-width: 1200px) {
+      .app-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Player View Column */
+    .player-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      background: #000;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .player-overlay-status {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .badge-live {
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .badge-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .badge-replay {
+      background: rgba(59, 130, 246, 0.9);
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Shaka Player Custom Cyber UI Styles */
+    .shaka-video-container {
+      border-radius: var(--radius-md) !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .shaka-controls-container {
+      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(8, 9, 13, 0.9) 100%) !important;
+    }
+    .shaka-bottom-controls {
+      padding: 10px 16px !important;
+    }
+    .shaka-seek-bar-container input[type=range]::-webkit-slider-thumb {
+      background: var(--primary) !important;
+      box-shadow: 0 0 10px var(--primary);
+    }
+    .shaka-settings-menu {
+      background: var(--bg-surface) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: var(--radius-sm) !important;
+      backdrop-filter: blur(16px);
+      color: var(--text-main) !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    .shaka-settings-menu button {
+      font-family: var(--font-main) !important;
+      font-size: 0.8rem !important;
+      border-radius: var(--radius-sm) !important;
+      color: var(--text-muted) !important;
+    }
+    .shaka-settings-menu button:hover {
+      background: rgba(0, 242, 254, 0.15) !important;
+      color: var(--primary) !important;
+    }
+
+    /* Custom Cyber Control Bar Below Player */
+    .player-controls {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ctrl-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .ctrl-btn.btn-return-live {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #ef4444;
+    }
+
+    .ctrl-btn.btn-return-live:hover {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .source-selector {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-family: var(--font-main);
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Channel Metadata Showcase Box */
+    .metadata-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .channel-header-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Prominent Showcase Channel Logo */
+    .channel-logo-lg {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      background: #06070a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      padding: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .channel-title-group h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .channel-id-tag {
+      font-size: 0.7rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .prog-showcase {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+    }
+
+    .prog-poster {
+      width: 120px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: #000;
+      flex-shrink: 0;
+    }
+
+    .prog-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .prog-details h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .prog-time-badge {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .prog-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary-gradient);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Sidebar / Channel & EPG List Column */
+    .sidebar-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: calc(100vh - 140px);
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+    }
+
+    .sidebar-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .channels-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    /* Channel List Card Item */
+    .chan-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chan-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .chan-card.active {
+      border-color: var(--primary);
+      background: rgba(0, 242, 254, 0.05);
+      box-shadow: inset 3px 0 0 var(--primary);
+    }
+
+    .chan-row-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .chan-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* Prominent Sidebar Channel Logo */
+    .chan-icon {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      background: #06070a;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .chan-name-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chan-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .chan-number {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+    }
+
+    .chan-live-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chan-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-epg-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.8rem;
+    }
+
+    .btn-epg-toggle:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* EPG Schedule Drawer Inside Channel Item */
+    .epg-drawer {
+      display: none;
+      border-top: 1px solid var(--border-color);
+      padding-top: 8px;
+      margin-top: 4px;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .epg-drawer.open {
+      display: flex;
+    }
+
+    .epg-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      transition: all 0.2s ease;
+    }
+
+    .epg-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .epg-item.is-live {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.08);
+    }
+
+    .epg-item.is-past {
+      opacity: 0.85;
+    }
+
+    .epg-time {
+      font-weight: 700;
+      color: var(--text-muted);
+      width: 85px;
+      flex-shrink: 0;
+    }
+
+    .epg-item.is-live .epg-time {
+      color: #ef4444;
+    }
+
+    .epg-title {
+      flex: 1;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-replay {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-replay:hover {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    /* 18+ Notification Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .adult-modal {
+      background: var(--bg-surface);
+      border: 1px solid rgba(236, 72, 153, 0.4);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      max-width: 440px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(236, 72, 153, 0.15);
+      text-align: center;
+    }
+
+    .adult-icon {
+      font-size: 2.8rem;
+      color: var(--accent-adult);
+    }
+
+    .adult-modal h3 {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .adult-modal p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .adult-modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn-confirm-adult {
+      flex: 1;
+      background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-family: var(--font-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-confirm-adult:hover {
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-cancel-adult {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-family: var(--font-main);
+      cursor: pointer;
+    }
+
+    .btn-cancel-adult:hover {
+      color: var(--text-main);
+      background: var(--bg-card-hover);
+    }
+  
+video {
+    background-color: transparent !important;
+}
+.shaka-big-buttons-container,
+.shaka-play-button-container,
+.shaka-play-button,
+.shaka-video-container.pip-placeholder,
+.pip-poster,
+.pip-blur-overlay {
+    display: none !important;
+}
+
+</style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="navbar">
+    <a href="../index.html" class="top-back-btn" onclick="window.history.length>1?window.history.back():window.location.href='../index.html'" style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#ffc629;border-radius:4px;text-decoration:none;font-weight:700;font-size:0.85rem;" tabindex="0"><i class="fa-solid fa-arrow-left"></i><span>Rozcestník</span></a>
+    <div class="brand-group">
+      <div class="brand-logo">
+        <i class="fa-solid fa-tv"></i> MAZANA TV
+      </div>
+      <span class="brand-badge">ULTRA IPTV</span>
+    </div>
+
+    <div class="nav-controls">
+      <!-- Search Input -->
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Hledat kanál nebo pořad...">
+      </div>
+
+      <!-- Date Navigator -->
+      <div class="date-nav">
+        <button class="date-btn" id="btnYesterday">Včera</button>
+        <button class="date-btn active" id="btnToday">Dnes</button>
+        <button class="date-btn" id="btnTomorrow">Zítra</button>
+      </div>
+
+      <input type="date" id="datePicker" class="date-picker-input">
+    </div>
+  </header>
+
+  <!-- Category Bar -->
+  <nav class="category-bar" id="categoryBar">
+    <div class="cat-item active" data-cat="ALL"><i class="fa-solid fa-border-all"></i> Všechny kanály</div>
+    <div class="cat-item" data-cat="Základní"><i class="fa-solid fa-star"></i> Základní</div>
+    <div class="cat-item" data-cat="Filmy a seriály"><i class="fa-solid fa-film"></i> Filmy a seriály</div>
+    <div class="cat-item" data-cat="Sport"><i class="fa-solid fa-futbol"></i> Sport</div>
+    <div class="cat-item" data-cat="Zpravodajské"><i class="fa-solid fa-newspaper"></i> Zpravodajské</div>
+    <div class="cat-item" data-cat="Dokumentární"><i class="fa-solid fa-compass"></i> Dokumentární</div>
+    <div class="cat-item" data-cat="Dětské"><i class="fa-solid fa-child"></i> Dětské</div>
+    <div class="cat-item" data-cat="Hudební"><i class="fa-solid fa-music"></i> Hudební</div>
+    <div class="cat-item" data-cat="Lifestyle"><i class="fa-solid fa-heart"></i> Lifestyle</div>
+    <div class="cat-item adult-cat" data-cat="Pro dospělé"><i class="fa-solid fa-lock"></i> Pro dospělé (18+)</div>
+    <div class="cat-item" data-cat="Ostatní"><i class="fa-solid fa-folder-open"></i> Ostatní</div>
+  </nav>
+
+  <!-- Main App Layout -->
+  <main class="app-container">
+
+    <!-- Left / Player & Active Stream Showcase -->
+    <section class="player-column">
+
+      <!-- Video Player Frame with Shaka UI Container -->
+      <div class="video-wrapper">
+        <div class="player-overlay-status" id="playerStatusBadge">
+          <span class="badge-live"><i class="fa-solid fa-circle"></i> ŽIVĚ</span>
+        </div>
+
+        <div id="videoContainer" data-shaka-player-container style="width:100%; height:100%;">
+          <video id="videoPlayer" data-shaka-player autoplay playsinline webkit-playsinline style="width:100%; height:100%;"></video>
+        </div>
+      </div>
+
+      <!-- Custom Cyber Player Control Bar -->
+      <div class="player-controls">
+        <div class="ctrl-group">
+          <button class="ctrl-btn btn-return-live" id="btnReturnLive">
+            <i class="fa-solid fa-rotate-left"></i> Návrat na Živě
+          </button>
+          <button class="ctrl-btn" id="btnSeekBack">
+            <i class="fa-solid fa-backward-step"></i> -10s
+          </button>
+          <button class="ctrl-btn" id="btnSeekFwd">
+            <i class="fa-solid fa-forward-step"></i> +10s
+          </button>
+        </div>
+
+        <div class="ctrl-group">
+          <label style="font-size: 0.78rem; color: var(--text-muted); font-weight: 600;">Zdroj / Kvalita:</label>
+          <select id="sourceSelect" class="source-selector"></select>
+        </div>
+      </div>
+
+      <!-- Active Channel Showcase & Program Info -->
+      <div class="metadata-card" id="metadataCard">
+        <div class="channel-header-info">
+          <img id="activeChanLogo" src="" alt="" class="channel-logo-lg">
+          <div class="channel-title-group">
+            <h2 id="activeChanName">Vyberte kanál <span class="channel-id-tag" id="activeChanId">#</span></h2>
+          </div>
+        </div>
+
+        <div class="prog-showcase">
+          <img id="activeProgImg" src="https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp" alt="Poster" class="prog-poster" onerror="this.src='https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp'">
+          <div class="prog-details">
+            <h3 id="activeProgTitle">Načítání EPG...</h3>
+            <div class="prog-time-badge" id="activeProgTime"><i class="fa-regular fa-clock"></i> --:-- - --:--</div>
+            <div class="prog-desc" id="activeProgDesc">Vyberte kanál z nabídky pro zobrazení programu a živého vysílání.</div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="activeProgProgress"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right / Channels & EPG List -->
+    <section class="sidebar-column">
+      <div class="sidebar-header">
+        <div class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Seznam kanálů & EPG</div>
+        <div style="font-size: 0.78rem; color: var(--text-muted);" id="chanCountBadge">0 kanálů</div>
+      </div>
+
+      <div class="channels-scroll-area" id="channelsListContainer">
+        <!-- Rendered channel cards -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 18+ Confirmation Modal -->
+  <div class="modal-backdrop" id="adultModal">
+    <div class="adult-modal">
+      <div class="adult-icon"><i class="fa-solid fa-user-shield"></i></div>
+      <h3>Upozornění na obsah pro dospělé (18+)</h3>
+      <p>Tato sekce a vybrané kanály obsahují programy určené výhradně pro dospělé diváky. Je vám více než 18 let a přejete si pokračovat?</p>
+      <div class="adult-modal-actions">
+        <button class="btn-confirm-adult" id="btnConfirmAdult">Ano, je mi 18+ (Vstoupit)</button>
+        <button class="btn-cancel-adult" id="btnCancelAdult">Zrušit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Raw Channels Data Copy-Pasted directly from mazana.txt
+    const rawChannels = [
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://proxy-2.mazana.tv/V2_emn.m3u8s?codec_id=1127&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1281&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://proxy-8.mazana.tv/V2_emn.m3u8s?codec_id=1276&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1102&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1534&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1536&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1477&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1550&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1454&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1585&session=1" },
+  { id: "11", name: "Nova Cinema", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1260&session=1" },
+  { id: "16", name: "Jihočeská TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/16@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1393&session=1" },
+  { id: "21", name: "TV Noe", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/21@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1561&session=1" },
+  { id: "21", name: "TV Noe", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/21@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1562&session=1" },
+  { id: "24", name: "Óčko Star", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/24@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1599&session=1" },
+  { id: "35", name: "Óčko", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/35@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1340&session=1" },
+  { id: "36", name: "Lux TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/36@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1359&session=1" },
+  { id: "51", name: "TVP Polonia", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/51@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1300&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1216&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1217&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1279&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://proxy-8.mazana.tv/V2_emn.m3u8s?codec_id=1274&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1473&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1548&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1456&session=1" },
+  { id: "52", name: "NOVA SD", icon: "https://soap-tv.starnet.cz/img/ww-Nova.png", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1289&session=1" },
+  { id: "53", name: "TV Barrandov", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/53@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1307&session=1" },
+  { id: "53", name: "TV Barrandov", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/53@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1308&session=1" },
+  { id: "61", name: "Clubland TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/61@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1331&session=1" },
+  { id: "62", name: "Now Rock", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/62@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1330&session=1" },
+  { id: "87", name: "ČRo Radiožurnál", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/87@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1373&session=1" },
+  { id: "88", name: "ČRo Dvojka", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/88@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1374&session=1" },
+  { id: "89", name: "ČRo Vltava", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/89@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1375&session=1" },
+  { id: "90", name: "ČRo radio Wave", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/90@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1376&session=1" },
+  { id: "91", name: "ČRo D-dur", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/91@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1377&session=1" },
+  { id: "92", name: "ČRo Junior", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/92@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1378&session=1" },
+  { id: "93", name: "ČRo Plus", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/93@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1379&session=1" },
+  { id: "94", name: "ČRo JAZZ", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/94@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1380&session=1" },
+  { id: "95", name: "ZDF", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/95@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1362&session=1" },
+  { id: "96", name: "KiKA", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/96@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1361&session=1" },
+  { id: "97", name: "ZDF Neo", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/97@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1363&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://proxy-1.mazana.tv/V2_emn.m3u8s?codec_id=1118&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://proxy-2.mazana.tv/V2_emn.m3u8s?codec_id=1124&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1135&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1136&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1509&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1510&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1505&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1506&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-10.mazana.tv/V2_emn.m3u8s?codec_id=1507&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-10.mazana.tv/V2_emn.m3u8s?codec_id=1508&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1511&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1512&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1386&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1387&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1440&session=1" },
+  { id: "120", name: "ČT Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/120@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1466&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://proxy-2.mazana.tv/V2_emn.m3u8s?codec_id=1126&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1214&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1215&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1280&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://proxy-8.mazana.tv/V2_emn.m3u8s?codec_id=1275&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1103&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-10.mazana.tv/V2_emn.m3u8s?codec_id=1160&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1332&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1333&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1541&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1478&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1443&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1481&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1556&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1602&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1451&session=1" },
+  { id: "121", name: "ČT1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/121@1x.webp", url: "https://stream-41.mazana.tv/V2_emn.m3u8s?codec_id=1589&session=1" },
+  { id: "123", name: "D-Max", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/123@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1446&session=1" },
+  { id: "123", name: "D-Max", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/123@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1603&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-1.mazana.tv/V2_emn.m3u8s?codec_id=1147&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-2.mazana.tv/V2_emn.m3u8s?codec_id=1542&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1169&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1278&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-7.mazana.tv/V2_emn.m3u8s?codec_id=1269&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-7.mazana.tv/V2_emn.m3u8s?codec_id=1270&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://proxy-8.mazana.tv/V2_emn.m3u8s?codec_id=1273&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1113&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-10.mazana.tv/V2_emn.m3u8s?codec_id=1162&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1540&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1397&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1480&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1482&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1554&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1557&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1453&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-41.mazana.tv/V2_emn.m3u8s?codec_id=1590&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1242&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1249&session=1" },
+  { id: "131", name: "Prima HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/131@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1284&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-1.mazana.tv/V2_emn.m3u8s?codec_id=1116&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-2.mazana.tv/V2_emn.m3u8s?codec_id=1543&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1168&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1212&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1213&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-6.mazana.tv/V2_emn.m3u8s?codec_id=1277&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-7.mazana.tv/V2_emn.m3u8s?codec_id=1267&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-7.mazana.tv/V2_emn.m3u8s?codec_id=1268&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://proxy-8.mazana.tv/V2_emn.m3u8s?codec_id=1272&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1098&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-10.mazana.tv/V2_emn.m3u8s?codec_id=1161&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1539&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1476&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1441&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1479&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1555&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1558&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1452&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-41.mazana.tv/V2_emn.m3u8s?codec_id=1591&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1236&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1243&session=1" },
+  { id: "132", name: "Nova HD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/132@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1285&session=1" },
+  { id: "148", name: "CS Mystery", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/148@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1334&session=1" },
+  { id: "150", name: "Radio Čas Rock", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/150@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1335&session=1" },
+  { id: "323", name: "Prima COOL", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/323@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1535&session=1" },
+  { id: "323", name: "Prima COOL", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/323@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1537&session=1" },
+  { id: "323", name: "Prima COOL", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/323@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1442&session=1" },
+  { id: "323", name: "Prima COOL", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/323@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1551&session=1" },
+  { id: "323", name: "Prima COOL", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/323@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1586&session=1" },
+  { id: "323", name: "Prima COOL", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/323@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1261&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://proxy-2.mazana.tv/V2_emn.m3u8s?codec_id=1188&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1211&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://proxy-7.mazana.tv/V2_emn.m3u8s?codec_id=1271&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1475&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1552&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1587&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1262&session=1" },
+  { id: "325", name: "Nova Action", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/325@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1283&session=1" },
+  { id: "326", name: "ČT2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/326@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1100&session=1" },
+  { id: "326", name: "ČT2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/326@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1282&session=1" },
+  { id: "326", name: "ČT2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/326@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1288&session=1" },
+  { id: "337", name: "Óčko Expres", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/337@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1576&session=1" },
+  { id: "365", name: "Baby TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/365@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1301&session=1" },
+  { id: "366", name: "Travel Channel", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/366@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1400&session=1" },
+  { id: "366", name: "Travel Channel", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/366@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1401&session=1" },
+  { id: "367", name: "National Geographic Wild", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/367@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1413&session=1" },
+  { id: "367", name: "National Geographic Wild", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/367@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1414&session=1" },
+  { id: "370", name: "Disney Channel", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/370@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1408&session=1" },
+  { id: "375", name: "Food Network", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/375@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1406&session=1" },
+  { id: "375", name: "Food Network", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/375@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1407&session=1" },
+  { id: "376", name: "National Geographic", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/376@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1415&session=1" },
+  { id: "376", name: "National Geographic", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/376@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1416&session=1" },
+  { id: "379", name: "TLC", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/379@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1419&session=1" },
+  { id: "379", name: "TLC", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/379@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1420&session=1" },
+  { id: "380", name: "Eurosport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/380@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1140&session=1" },
+  { id: "380", name: "Eurosport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/380@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1142&session=1" },
+  { id: "380", name: "Eurosport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/380@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1238&session=1" },
+  { id: "380", name: "Eurosport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/380@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1245&session=1" },
+  { id: "381", name: "Eurosport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/381@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1141&session=1" },
+  { id: "381", name: "Eurosport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/381@1x.webp", url: "https://proxy-3.mazana.tv/V2_emn.m3u8s?codec_id=1143&session=1" },
+  { id: "381", name: "Eurosport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/381@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1239&session=1" },
+  { id: "381", name: "Eurosport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/381@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1246&session=1" },
+  { id: "383", name: "Animal Planet", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/383@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1417&session=1" },
+  { id: "383", name: "Animal Planet", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/383@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1418&session=1" },
+  { id: "384", name: "Nova Sport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/384@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1240&session=1" },
+  { id: "384", name: "Nova Sport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/384@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1247&session=1" },
+  { id: "385", name: "Nova Sport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/385@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1241&session=1" },
+  { id: "385", name: "Nova Sport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/385@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1248&session=1" },
+  { id: "386", name: "FILMBOX+ One", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/386@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1515&session=1" },
+  { id: "386", name: "FILMBOX+ One", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/386@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1516&session=1" },
+  { id: "387", name: "CS Film", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/387@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1357&session=1" },
+  { id: "393", name: "Prima MAX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/393@1x.webp", url: "https://proxy-1.mazana.tv/V2_emn.m3u8s?codec_id=1125&session=1" },
+  { id: "393", name: "Prima MAX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/393@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1101&session=1" },
+  { id: "393", name: "Prima MAX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/393@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1304&session=1" },
+  { id: "393", name: "Prima MAX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/393@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1455&session=1" },
+  { id: "393", name: "Prima MAX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/393@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1286&session=1" },
+  { id: "395", name: "Kino Barrandov", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/395@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1604&session=1" },
+  { id: "395", name: "Kino Barrandov", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/395@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1384&session=1" },
+  { id: "396", name: "Barrandov Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/396@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1605&session=1" },
+  { id: "396", name: "Barrandov Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/396@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1385&session=1" },
+  { id: "399", name: "Jednotka", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/399@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1319&session=1" },
+  { id: "399", name: "Jednotka", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/399@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1320&session=1" },
+  { id: "400", name: "Dvojka", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/400@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1321&session=1" },
+  { id: "400", name: "Dvojka", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/400@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1322&session=1" },
+  { id: "408", name: "Prima SD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/prima.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1545&session=1" },
+  { id: "408", name: "Prima SD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/prima.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1546&session=1" },
+  { id: "408", name: "Prima SD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/prima.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1306&session=1" },
+  { id: "408", name: "Prima SD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/prima.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1383&session=1" },
+  { id: "408", name: "Prima SD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/prima.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1474&session=1" },
+  { id: "408", name: "Prima SD", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/prima.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1549&session=1" },
+  { id: "416", name: "Šlágr Originál", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/416@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1318&session=1" },
+  { id: "424", name: "JČ1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/424@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1255&session=1" },
+  { id: "427", name: "Prima ZOOM", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/427@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1370&session=1" },
+  { id: "427", name: "Prima ZOOM", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/427@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1287&session=1" },
+  { id: "430", name: "TV5 Monde", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/430@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1303&session=1" },
+  { id: "432", name: "France 24", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/432@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1302&session=1" },
+  { id: "440", name: "Retro Music", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/440@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1348&session=1" },
+  { id: "453", name: "Nickelodeon", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/453@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1347&session=1" },
+  { id: "455", name: "Nickelodeon Junior", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/455@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1366&session=1" },
+  { id: "456", name: "ČT 24", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/456@1x.webp", url: "https://stream-1.mazana.tv/V2_emn.m3u8s?codec_id=1111&session=1" },
+  { id: "456", name: "ČT 24", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/456@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1607&session=1" },
+  { id: "456", name: "ČT 24", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/456@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1460&session=1" },
+  { id: "456", name: "ČT 24", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/456@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1250&session=1" },
+  { id: "457", name: "ČT :D / ČT ART", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/457@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1608&session=1" },
+  { id: "457", name: "ČT :D / ČT ART", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/457@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1461&session=1" },
+  { id: "457", name: "ČT :D / ČT ART", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/457@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1251&session=1" },
+  { id: "458", name: "Markíza International", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/458@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1252&session=1" },
+  { id: "458", name: "Markíza International", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/458@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1257&session=1" },
+  { id: "459", name: "Prima Love", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/459@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1588&session=1" },
+  { id: "459", name: "Prima Love", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/459@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1253&session=1" },
+  { id: "459", name: "Prima Love", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/459@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1258&session=1" },
+  { id: "460", name: "Nova Fun", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/460@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1254&session=1" },
+  { id: "460", name: "Nova Fun", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/460@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1259&session=1" },
+  { id: "461", name: "Nova Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/461@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1606&session=1" },
+  { id: "461", name: "Nova Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/461@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1584&session=1" },
+  { id: "461", name: "Nova Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/461@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1256&session=1" },
+  { id: "472", name: "TV Gimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/472@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1394&session=1" },
+  { id: "500", name: "HBO", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/500@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1520&session=1" },
+  { id: "500", name: "HBO", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/500@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1525&session=1" },
+  { id: "501", name: "HBO 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/501@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1521&session=1" },
+  { id: "501", name: "HBO 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/501@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1526&session=1" },
+  { id: "502", name: "HBO 3", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/502@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1522&session=1" },
+  { id: "502", name: "HBO 3", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/502@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1527&session=1" },
+  { id: "503", name: "Cinemax", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/503@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1523&session=1" },
+  { id: "503", name: "Cinemax", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/503@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1528&session=1" },
+  { id: "504", name: "Cinemax 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/504@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1524&session=1" },
+  { id: "504", name: "Cinemax 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/504@1x.webp", url: "https://stream-14.mazana.tv/V2_emn.m3u8s?codec_id=1529&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1309&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1310&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1547&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1579&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-40.mazana.tv/V2_emn.m3u8s?codec_id=1580&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-41.mazana.tv/V2_emn.m3u8s?codec_id=1581&session=1" },
+  { id: "508", name: "Televize Seznam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/508@1x.webp", url: "https://stream-41.mazana.tv/V2_emn.m3u8s?codec_id=1582&session=1" },
+  { id: "509", name: "3sat", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/509@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1360&session=1" },
+  { id: "512", name: "Šlágr Muzika", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/512@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1445&session=1" },
+  { id: "523", name: "ZAK TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/523@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1292&session=1" },
+  { id: "533", name: "ORF1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/533@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1336&session=1" },
+  { id: "534", name: "ORF2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/534@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1337&session=1" },
+  { id: "540", name: "AMC", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/540@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1430&session=1" },
+  { id: "540", name: "AMC", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/540@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1431&session=1" },
+  { id: "541", name: "FILMBOX+ Comedy", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/541@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1432&session=1" },
+  { id: "542", name: "FILMBOX+ Hits", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/542@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1433&session=1" },
+  { id: "542", name: "FILMBOX+ Hits", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/542@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1434&session=1" },
+  { id: "543", name: "Film+", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/543@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1435&session=1" },
+  { id: "543", name: "Film+", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/543@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1436&session=1" },
+  { id: "544", name: "Investigation Discovery", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/544@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1402&session=1" },
+  { id: "544", name: "Investigation Discovery", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/544@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1403&session=1" },
+  { id: "545", name: "Sport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/545@1x.webp", url: "https://proxy-5.mazana.tv/V2_emn.m3u8s?codec_id=1220&session=1" },
+  { id: "545", name: "Sport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/545@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1344&session=1" },
+  { id: "545", name: "Sport 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/545@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1437&session=1" },
+  { id: "546", name: "Spektrum", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/546@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1422&session=1" },
+  { id: "546", name: "Spektrum", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/546@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1423&session=1" },
+  { id: "547", name: "JimJam", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/547@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1424&session=1" },
+  { id: "548", name: "Spektrum Home", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/548@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1425&session=1" },
+  { id: "549", name: "TV Paprika", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/549@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1426&session=1" },
+  { id: "550", name: "Sport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/550@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1428&session=1" },
+  { id: "550", name: "Sport 2", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/550@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1429&session=1" },
+  { id: "551", name: "MiniMax", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/551@1x.webp", url: "https://stream-21.mazana.tv/V2_emn.m3u8s?codec_id=1427&session=1" },
+  { id: "553", name: "FILMBOX+ Love&Crime", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/553@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1409&session=1" },
+  { id: "553", name: "FILMBOX+ Love&Crime", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/553@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1410&session=1" },
+  { id: "554", name: "FILMBOX+ Emotion", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/554@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1411&session=1" },
+  { id: "554", name: "FILMBOX+ Emotion", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/554@1x.webp", url: "https://stream-20.mazana.tv/V2_emn.m3u8s?codec_id=1412&session=1" },
+  { id: "556", name: "Radio Italia TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/556@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1404&session=1" },
+  { id: "558", name: "Radio Kiss Kiss TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/558@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1405&session=1" },
+  { id: "559", name: "Prima Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/559@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1343&session=1" },
+  { id: "559", name: "Prima Krimi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/559@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1459&session=1" },
+  { id: "564", name: "Webcam Ledenice", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/webcamledenice.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1294&session=1" },
+  { id: "566", name: "Praha TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/566@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1398&session=1" },
+  { id: "567", name: "RTVS 24", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/567@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1338&session=1" },
+  { id: "568", name: "Discovery Channel", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/568@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1290&session=1" },
+  { id: "568", name: "Discovery Channel", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/568@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1296&session=1" },
+  { id: "570", name: "TVS", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/570@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1600&session=1" },
+  { id: "572", name: "Leo TV – Late Night", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/leotvlatenight.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1395&session=1" },
+  { id: "572", name: "Leo TV – Late Night", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/leotvlatenight.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1396&session=1" },
+  { id: "574", name: "CS Horror", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/574@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1356&session=1" },
+  { id: "575", name: "CNN Prima News", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/575@1x.webp", url: "https://proxy-1.mazana.tv/V2_emn.m3u8s?codec_id=1299&session=1" },
+  { id: "575", name: "CNN Prima News", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/575@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1237&session=1" },
+  { id: "575", name: "CNN Prima News", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/575@1x.webp", url: "https://stream-48.mazana.tv/V2_emn.m3u8s?codec_id=1244&session=1" },
+  { id: "577", name: "Das Erste", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/577@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1313&session=1" },
+  { id: "578", name: "Arte", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/578@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1314&session=1" },
+  { id: "579", name: "Radio Italia Live", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/579@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1315&session=1" },
+  { id: "582", name: "České Budějovice – náměstí", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/webcamcb.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1291&session=1" },
+  { id: "585", name: "Šlágr Premium", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/585@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1349&session=1" },
+  { id: "590", name: "Prima STAR", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/590@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1293&session=1" },
+  { id: "590", name: "Prima STAR", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/590@1x.webp", url: "https://stream-5.mazana.tv/V2_emn.m3u8s?codec_id=1297&session=1" },
+  { id: "601", name: "Nova Lady", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/601@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1447&session=1" },
+  { id: "601", name: "Nova Lady", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/601@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1448&session=1" },
+  { id: "602", name: "ČRo Radiožurnál Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/602@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1381&session=1" },
+  { id: "603", name: "ČRo Pohoda", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/603@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1382&session=1" },
+  { id: "604", name: "Prima SHOW", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/604@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1449&session=1" },
+  { id: "604", name: "Prima SHOW", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/604@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1450&session=1" },
+  { id: "607", name: "TET", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/607@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1341&session=1" },
+  { id: "609", name: "RTVS Šport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/609@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1364&session=1" },
+  { id: "609", name: "RTVS Šport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/609@1x.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1365&session=1" },
+  { id: "611", name: "HGTV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/611@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1390&session=1" },
+  { id: "611", name: "HGTV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/611@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1391&session=1" },
+  { id: "613", name: "Disney Junior", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/613@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1601&session=1" },
+  { id: "615", name: "Čapí hnízdo", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/capihnizdo.webp", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1355&session=1" },
+  { id: "616", name: "Plus Plus", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/616@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1323&session=1" },
+  { id: "617", name: "Bigudi", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/617@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1342&session=1" },
+  { id: "618", name: "Ústecká TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/618@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1495&session=1" },
+  { id: "621", name: "Now 80s", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/621@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1610&session=1" },
+  { id: "623", name: "Now 70s", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/623@1x.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1609&session=1" },
+  { id: "624", name: "Leo TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/624@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1462&session=1" },
+  { id: "624", name: "Leo TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/624@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1464&session=1" },
+  { id: "625", name: "Extasy", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/625@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1463&session=1" },
+  { id: "625", name: "Extasy", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/625@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1465&session=1" },
+  { id: "626", name: "Leo TV Gold", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/626@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1457&session=1" },
+  { id: "626", name: "Leo TV Gold", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/626@1x.webp", url: "https://stream-33.mazana.tv/V2_emn.m3u8s?codec_id=1458&session=1" },
+  { id: "628", name: "Webcam Buchlovice", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/buchlovice.webp", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1399&session=1" },
+  { id: "631", name: "EroXXX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/631@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1467&session=1" },
+  { id: "631", name: "EroXXX", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/631@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1468&session=1" },
+  { id: "632", name: "DocuBox", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/632@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1469&session=1" },
+  { id: "632", name: "DocuBox", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/632@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1470&session=1" },
+  { id: "633", name: "FightBox", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/633@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1471&session=1" },
+  { id: "633", name: "FightBox", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/633@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1472&session=1" },
+  { id: "634", name: "M6 Suisse", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/634@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1483&session=1" },
+  { id: "636", name: "Arena Sport 1", icon: "https://soap-tv.starnet.cz/img/arenasport1.png", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1487&session=1" },
+  { id: "636", name: "Arena Sport 1", icon: "https://soap-tv.starnet.cz/img/arenasport1.png", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1488&session=1" },
+  { id: "637", name: "Arena Sport 2", icon: "https://soap-tv.starnet.cz/img/arenasport2.png", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1489&session=1" },
+  { id: "637", name: "Arena Sport 2", icon: "https://soap-tv.starnet.cz/img/arenasport2.png", url: "https://stream-18.mazana.tv/V2_emn.m3u8s?codec_id=1490&session=1" },
+  { id: "638", name: "TV RIK", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/638@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1491&session=1" },
+  { id: "638", name: "TV RIK", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/638@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1492&session=1" },
+  { id: "639", name: "Kanal 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/639@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1493&session=1" },
+  { id: "639", name: "Kanal 1", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/639@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1494&session=1" },
+  { id: "640", name: "Love Nature 4K", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/640@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1573&session=1" },
+  { id: "640", name: "Love Nature 4K", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/640@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1574&session=1" },
+  { id: "640", name: "Love Nature 4K", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/640@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1575&session=1" },
+  { id: "641", name: "Sporty TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/641@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1496&session=1" },
+  { id: "641", name: "Sporty TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/641@1x.webp", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1497&session=1" },
+  { id: "642", name: "Warner TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/642@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1498&session=1" },
+  { id: "642", name: "Warner TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/642@1x.webp", url: "https://stream-23.mazana.tv/V2_emn.m3u8s?codec_id=1499&session=1" },
+  { id: "644", name: "A11", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/644@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1503&session=1" },
+  { id: "644", name: "A11", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/644@1x.webp", url: "https://stream-29.mazana.tv/V2_emn.m3u8s?codec_id=1504&session=1" },
+  { id: "646", name: "Now 90s 00s", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/646@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1517&session=1" },
+  { id: "650", name: "DVTV Extra", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/650@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1560&session=1" },
+  { id: "651", name: "Noe+", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/651@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1563&session=1" },
+  { id: "651", name: "Noe+", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/651@1x.webp", url: "https://stream-12.mazana.tv/V2_emn.m3u8s?codec_id=1564&session=1" },
+  { id: "652", name: "Tralala TV", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/652@1x.webp", url: "https://stream-47.mazana.tv/V2_emn.m3u8s?codec_id=1565&session=1" },
+  { id: "653", name: "Auto Moto Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/653@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1571&session=1" },
+  { id: "653", name: "Auto Moto Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/653@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1572&session=1" },
+  { id: "654", name: "Ta3", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/654@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1569&session=1" },
+  { id: "654", name: "Ta3", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/654@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1570&session=1" },
+  { id: "655", name: "Deluxe Music", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/655@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1568&session=1" },
+  { id: "656", name: "Deluxe Dance", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/656@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1567&session=1" },
+  { id: "657", name: "Deluxe Rap", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/657@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1566&session=1" },
+  { id: "658", name: "Óčko Black", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/658@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1577&session=1" },
+  { id: "660", name: "Brazzers TV Europe", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/660@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1596&session=1" },
+  { id: "660", name: "Brazzers TV Europe", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/660@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1598&session=1" },
+  { id: "661", name: "DESIRE", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/661@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1595&session=1" },
+  { id: "661", name: "DESIRE", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/661@1x.webp", url: "https://stream-32.mazana.tv/V2_emn.m3u8s?codec_id=1597&session=1" },
+  { id: "662", name: "Prima Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/662@1x.webp", url: "https://stream-13.mazana.tv/V2_emn.m3u8s?codec_id=1615&session=1" },
+  { id: "662", name: "Prima Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/662@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1611&session=1" },
+  { id: "662", name: "Prima Sport", icon: "https://soap-001.mazana.tv/epg/img/icons/channels/662@1x.webp", url: "https://stream-6.mazana.tv/V2_emn.m3u8s?codec_id=1612&session=1" },
+];
+
+    // State Variables
+    let uniqueChannelsMap = new Map();
+    let currentSelectedCategory = 'ALL';
+    let searchQuery = '';
+    let selectedDateStr = getFormattedDate(new Date());
+    let activeChannel = null;
+    let activeStreamUrl = '';
+    let isReplayPlaying = false;
+    let currentDayEPG = {}; // cid -> list of program items
+    let pendingAdultCallback = null;
+
+    // Shaka Player & UI Overlay Instances
+    let shakaPlayer = null;
+    let shakaUi = null;
+
+    // Adult Keyword Matcher
+    const adultKeywords = ['leo tv', 'extasy', 'eroxxx', 'brazzers', 'desire', 'hustler', 'dorcel', 'playboy', 'dusk', 'xmo', '18+', 'latenight'];
+
+    function isAdultChannel(chan) {
+      if (!chan) return false;
+      const name = (chan.name || '').toLowerCase();
+      if (adultKeywords.some(k => name.includes(k))) return true;
+      if (typeof window.asC === 'function') {
+        const c = window.asC(chan.name);
+        if (c === 'Pro dospělé') return true;
+      }
+      return false;
+    }
+
+    function checkAdultConfirmation(callback) {
+      if (localStorage.getItem('mazana_18_confirmed') === 'true') {
+        callback();
+      } else {
+        pendingAdultCallback = callback;
+        document.getElementById('adultModal').classList.add('active');
+      }
+    }
+
+    // Setup adult modal actions
+    document.getElementById('btnConfirmAdult').addEventListener('click', () => {
+      localStorage.setItem('mazana_18_confirmed', 'true');
+      document.getElementById('adultModal').classList.remove('active');
+      if (pendingAdultCallback) {
+        pendingAdultCallback();
+        pendingAdultCallback = null;
+      }
+    });
+
+    document.getElementById('btnCancelAdult').addEventListener('click', () => {
+      document.getElementById('adultModal').classList.remove('active');
+      pendingAdultCallback = null;
+    });
+
+    // Format Date YYYY-MM-DD
+    function getFormattedDate(d) {
+      const p = (n) => n.toString().padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
+
+    // Normalize Channel Name for Merging HD / SD Qualities into One Channel
+    function normalizeChannelName(n) {
+      if (!n) return '';
+      let clean = n.replace(/\b(HD|SD|FHD|4K|1080p|720p)\b/gi, '').replace(/\s+/g, ' ').trim();
+      return clean.toLowerCase();
+    }
+
+    // Initialize Channels Map with SD/HD Merging
+    function initChannels() {
+      const normMap = new Map();
+
+      rawChannels.forEach(item => {
+        const rawName = item.name.trim();
+        const normKey = normalizeChannelName(rawName);
+        const isHD = /\b(HD|FHD|1080p|4K)\b/i.test(rawName);
+        const isSD = /\bSD\b/i.test(rawName);
+        const qualityLabel = isHD ? 'HD' : (isSD ? 'SD' : '');
+
+        if (!normMap.has(normKey)) {
+          normMap.set(normKey, {
+            id: item.id,
+            ids: [item.id],
+            name: rawName,
+            icon: item.icon,
+            urls: []
+          });
+        }
+
+        const entry = normMap.get(normKey);
+
+        if (!entry.ids.includes(item.id)) {
+          entry.ids.push(item.id);
+        }
+
+        // Prefer HD Name and Icon for merged showcase
+        if (isHD && !/\bHD\b/i.test(entry.name)) {
+          entry.name = rawName;
+          if (item.icon) entry.icon = item.icon;
+        }
+
+        // Append unique URLs with Quality label
+        if (!entry.urls.some(u => u.url === item.url)) {
+          entry.urls.push({
+            url: item.url,
+            quality: qualityLabel
+          });
+        }
+      });
+
+      uniqueChannelsMap.clear();
+      normMap.forEach((val) => {
+        // Ensure HD sources are always placed first, unlabelled next, SD last
+        val.urls.sort((a, b) => {
+          const qRank = (q) => (q === 'HD' ? 0 : (q === '' ? 1 : 2));
+          return qRank(a.quality) - qRank(b.quality);
+        });
+        uniqueChannelsMap.set(val.id, val);
+      });
+    }
+
+    // Helper to get EPG programs for a merged channel (checking all merged channel IDs)
+    function getProgsForChannel(chan) {
+      if (!chan) return [];
+      if (chan.ids && chan.ids.length > 0) {
+        for (const cid of chan.ids) {
+          if (currentDayEPG[cid] && currentDayEPG[cid].length > 0) {
+            return currentDayEPG[cid];
+          }
+        }
+      }
+      return currentDayEPG[chan.id] || [];
+    }
+
+    // Resolve Category for Channel: 1st using yasuoyone.org (window.asC), 2nd keyword matching, 3rd "Ostatní"
+    const mainCategories = ['Základní', 'Filmy a seriály', 'Sport', 'Zpravodajské', 'Dokumentární', 'Dětské', 'Hudební', 'Lifestyle', 'Pro dospělé'];
+
+    function getChannelCategory(name) {
+      if (!name) return 'Ostatní';
+
+      // 1. Adult check first
+      if (isAdultChannel({ name })) return 'Pro dospělé';
+
+      // 2. Check yasuoyone.org category function (window.asC) FIRST
+      if (typeof window.asC === 'function') {
+        let cat = window.asC(name);
+        if (cat) {
+          // Normalize category names to UI tabs
+          if (cat === 'Filmy' || cat === 'Filmy a Seriály') cat = 'Filmy a seriály';
+          if (cat === 'Sportovní') cat = 'Sport';
+          if (cat === 'Zpravodajství') cat = 'Zpravodajské';
+          if (cat === 'Hudba') cat = 'Hudební';
+          if (cat === 'Volný čas' || cat === 'Lifestyle') cat = 'Lifestyle';
+          if (cat === 'Dokumenty') cat = 'Dokumentární';
+
+          if (mainCategories.includes(cat)) {
+            return cat;
+          }
+        }
+      }
+
+      // 3. Fallback keyword categorization if yasuoyone.org didn't categorize
+      const s = name.toLowerCase();
+      if (s.includes('film') || s.includes('cinema') || s.includes('hbo') || s.includes('amc') || s.includes('cinemax') || s.includes('barrandov krimi') || s.includes('prima max') || s.includes('kino') || s.includes('axn') || s.includes('epic drama') || s.includes('canal+ action') || s.includes('paramount')) return 'Filmy a seriály';
+      if (s.includes('sport') || s.includes('eurosport') || s.includes('arena') || s.includes('fightbox')) return 'Sport';
+      if (s.includes('24') || s.includes('news') || s.includes('ta3') || s.includes('ct 24') || s.includes('čt 24')) return 'Zpravodajské';
+      if (s.includes('docu') || s.includes('nat geo') || s.includes('national geographic') || s.includes('zoom') || s.includes('spektrum') || s.includes('travel') || s.includes('discovery') || s.includes('viasat')) return 'Dokumentární';
+      if (s.includes('disney') || s.includes('nick') || s.includes('jimjam') || s.includes('minimax') || s.includes('baby') || s.includes('kika') || s.includes('tralala') || s.includes('rik') || s.includes('déčko') || s.includes('decko')) return 'Dětské';
+      if (s.includes('music') || s.includes('óčko') || s.includes('ocko') || s.includes('radio') || s.includes('šlágr') || s.includes('slagr') || s.includes('clubland') || s.includes('deluxe') || s.includes('čro') || s.includes('now ') || s.includes('mtv')) return 'Hudební';
+      if (s.includes('food') || s.includes('hgtv') || s.includes('paprika') || s.includes('fashion') || s.includes('relax') || s.includes('mnau') || s.includes('mnam')) return 'Lifestyle';
+      if (s.includes('čt1') || s.includes('čt2') || s.includes('nova') || s.includes('prima') || s.includes('barrandov') || s.includes('markíza') || s.includes('joj')) return 'Základní';
+
+      // 4. Default fallback category for unclassified channels
+      return 'Ostatní';
+    }
+
+    // Fetch Day EPG from soap-001.mazana.tv using correct channel_id mapping
+    async function fetchEPGForDay(dateStr) {
+      const url = `https://soap-001.mazana.tv/epg/bychannel/day/${dateStr}/110.-.json.gz`;
+
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP status ${resp.status}`);
+        const data = await resp.json();
+
+        currentDayEPG = {};
+        Object.values(data).forEach(chanObj => {
+          if (chanObj && chanObj.epg) {
+            const channelId = String(chanObj.channel_id || chanObj.ch_id);
+            const progs = Object.values(chanObj.epg).sort((a, b) => new Date(a.epg_time_start.replace(' ', 'T')) - new Date(b.epg_time_start.replace(' ', 'T')));
+            currentDayEPG[channelId] = progs;
+          }
+        });
+        renderChannelsList();
+        updateActiveShowcase();
+      } catch (err) {
+        console.error('Failed to load EPG:', err);
+        renderChannelsList();
+      }
+    }
+
+    // Initialize Shaka Player Instance and Custom UI Overlay
+    function initShakaPlayer() {
+      const video = document.getElementById('videoPlayer');
+      const container = document.getElementById('videoContainer');
+
+      shaka.polyfill.installAll();
+      if (!shaka.Player.isBrowserSupported()) {
+        console.error('Browser does not support Shaka Player');
+        return;
+      }
+
+      shakaPlayer = new shaka.Player(video);
+      shakaPlayer.configure({
+        manifest: {
+          hls: {
+            ignoreTextStreamFailures: true
+          }
+        }
+      });
+
+      shakaUi = new shaka.ui.Overlay(shakaPlayer, container, video);
+
+      shakaUi.configure({
+        controlPanelElements: [
+          'play_pause',
+          'time_and_duration',
+          'mute',
+          'volume',
+          'spacer',
+          'quality',
+          'fullscreen'
+        ],
+        doubleClickForFullscreen: true,
+        fadeDelay: 8
+      });
+
+      shakaPlayer.addEventListener('error', (event) => {
+        console.warn('Shaka Player Error:', event.detail);
+      });
+    }
+
+    // Play Stream URL using Shaka Player 4.15.11
+    function playStream(url, isReplay = false, programTitle = '') {
+      if (activeStreamUrl === url && shakaPlayer && !isReplayPlaying && !isReplay) {
+        return; // Avoid reloading the exact same active stream
+      }
+
+      activeStreamUrl = url;
+      isReplayPlaying = isReplay;
+
+      const statusBadge = document.getElementById('playerStatusBadge');
+      if (isReplay) {
+        statusBadge.innerHTML = `<span class="badge-replay"><i class="fa-solid fa-rotate-left"></i> ZÁZNAM${programTitle ? ': ' + programTitle : ''}</span>`;
+      } else {
+        statusBadge.innerHTML = `<span class="badge-live"><i class="fa-solid fa-circle"></i> ŽIVĚ</span>`;
+      }
+
+      const video = document.getElementById('videoPlayer');
+
+      if (!shakaPlayer) {
+        initShakaPlayer();
+      }
+
+      // Load stream into Shaka Player
+      shakaPlayer.load(url).then(() => {
+        video.play().catch(e => console.log('Autoplay prevented', e));
+      }).catch(e => {
+        console.warn('Shaka Player load failed:', e);
+      });
+    }
+
+    // Select Channel to Play
+    function selectChannel(chan, streamIndex = 0) {
+      if (isAdultChannel(chan)) {
+        checkAdultConfirmation(() => doSelectChannel(chan, streamIndex));
+      } else {
+        doSelectChannel(chan, streamIndex);
+      }
+    }
+
+    function highlightActiveChannelCard(cid) {
+      document.querySelectorAll('.chan-card').forEach(card => {
+        if (card.getAttribute('data-cid') === String(cid)) {
+          card.classList.add('active');
+        } else {
+          card.classList.remove('active');
+        }
+      });
+    }
+
+    function doSelectChannel(chan, streamIndex = 0) {
+      if (activeChannel && activeChannel.id === chan.id && streamIndex === 0 && !isReplayPlaying) {
+        return; // Already selected and playing
+      }
+
+      activeChannel = chan;
+      const urlObj = chan.urls[streamIndex] || chan.urls[0];
+      const url = typeof urlObj === 'object' ? urlObj.url : urlObj;
+
+      // Update Source Select Options with Quality Labels
+      const sourceSelect = document.getElementById('sourceSelect');
+      sourceSelect.innerHTML = '';
+      chan.urls.forEach((uObj, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        const targetUrl = typeof uObj === 'object' ? uObj.url : uObj;
+        const quality = typeof uObj === 'object' && uObj.quality ? ` [${uObj.quality}]` : '';
+        try {
+          opt.textContent = `Zdroj ${idx + 1}${quality} (${new URL(targetUrl).hostname})`;
+        } catch(e) {
+          opt.textContent = `Zdroj ${idx + 1}${quality}`;
+        }
+        if (idx === streamIndex) opt.selected = true;
+        sourceSelect.appendChild(opt);
+      });
+
+      sourceSelect.onchange = (e) => {
+        const selectedIdx = parseInt(e.target.value);
+        doSelectChannel(chan, selectedIdx);
+      };
+
+      highlightActiveChannelCard(chan.id);
+      updateActiveShowcase();
+      playStream(url, false);
+    }
+
+    // Play Replay for a specific EPG Program Index
+    function playReplayByIdx(cid, progIdx) {
+      const chan = uniqueChannelsMap.get(cid);
+      const progs = getProgsForChannel(chan);
+      const prog = progs[progIdx];
+
+      if (!chan || !prog) return;
+
+      if (isAdultChannel(chan)) {
+        checkAdultConfirmation(() => doPlayReplay(chan, prog));
+      } else {
+        doPlayReplay(chan, prog);
+      }
+    }
+
+    function doPlayReplay(chan, prog) {
+      activeChannel = chan;
+      const baseUrlObj = chan.urls[0];
+      const baseUrl = typeof baseUrlObj === 'object' ? baseUrlObj.url : baseUrlObj;
+
+      // Calculate Unix timestamps from start and end times
+      const startMs = new Date(prog.epg_time_start.replace(' ', 'T')).getTime();
+      const startSec = Math.floor(startMs / 1000);
+
+      let endSec = 0;
+      if (prog.epg_time_end) {
+        const endMs = new Date(prog.epg_time_end.replace(' ', 'T')).getTime();
+        endSec = Math.floor(endMs / 1000);
+      }
+
+      // Fallback: If endSec missing or not greater than startSec, set duration to +2h
+      if (!endSec || endSec <= startSec) {
+        endSec = startSec + 7200;
+      }
+
+      // Append both from= and to= parameters to stream URL
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const replayUrl = `${baseUrl}${separator}from=${startSec}&to=${endSec}`;
+
+      highlightActiveChannelCard(chan.id);
+      updateActiveShowcase(prog);
+      playStream(replayUrl, true, prog.epg_program_name);
+    }
+
+    // Update Player Showcase Details
+    function updateActiveShowcase(forcedProg = null) {
+      if (!activeChannel) return;
+
+      document.getElementById('activeChanLogo').src = activeChannel.icon;
+      document.getElementById('activeChanName').innerHTML = `${activeChannel.name} <span class="channel-id-tag">#${activeChannel.id}</span>`;
+
+      const progs = getProgsForChannel(activeChannel);
+      const now = new Date();
+
+      let currentProg = forcedProg;
+      if (!currentProg) {
+        currentProg = progs.find(p => {
+          const st = new Date(p.epg_time_start.replace(' ', 'T'));
+          const et = new Date(p.epg_time_end.replace(' ', 'T'));
+          return now >= st && now <= et;
+        }) || progs[0];
+      }
+
+      if (currentProg) {
+        document.getElementById('activeProgTitle').textContent = currentProg.epg_program_name || 'Bez názvu';
+        const stStr = currentProg.epg_time_start.split(' ')[1]?.slice(0, 5) || '';
+        const etStr = currentProg.epg_time_end.split(' ')[1]?.slice(0, 5) || '';
+        document.getElementById('activeProgTime').innerHTML = `<i class="fa-regular fa-clock"></i> ${stStr} - ${etStr}`;
+        document.getElementById('activeProgDesc').textContent = currentProg.epg_program_info || 'Popis pořadu není k dispozici.';
+        if (currentProg.epg_program_imageuri) {
+          document.getElementById('activeProgImg').src = currentProg.epg_program_imageuri;
+        } else {
+          document.getElementById('activeProgImg').src = activeChannel.icon;
+        }
+
+        // Calculate progress
+        const st = new Date(currentProg.epg_time_start.replace(' ', 'T')).getTime();
+        const et = new Date(currentProg.epg_time_end.replace(' ', 'T')).getTime();
+        if (now >= st && now <= et) {
+          const pct = Math.min(100, Math.max(0, ((now.getTime() - st) / (et - st)) * 100));
+          document.getElementById('activeProgProgress').style.width = `${pct}%`;
+        } else {
+          document.getElementById('activeProgProgress').style.width = '0%';
+        }
+      } else {
+        document.getElementById('activeProgTitle').textContent = 'Program neuveden';
+        document.getElementById('activeProgTime').innerHTML = `<i class="fa-regular fa-clock"></i> --:-- - --:--`;
+        document.getElementById('activeProgDesc').textContent = 'Žádná data EPG nebyla nalezena.';
+        document.getElementById('activeProgProgress').style.width = '0%';
+      }
+    }
+
+    // Oneplay Channel Ordering
+    const oneplayOrder = [
+      "Nova HD",
+      "ČT1 HD",
+      "ČT2 HD",
+      "Prima HD",
+      "Nova CINEMA HD",
+      "Nova Fun HD",
+      "Nova Krimi HD",
+      "Nova Action HD",
+      "Nova Lady HD",
+      "TN Live",
+      "ČT 24 HD",
+      "CNN Prima News",
+      "Televize Seznam HD",
+      "Nat Geo Wild HD",
+      "Prima MAX HD",
+      "Prima Cool HD",
+      "Prima Show HD",
+      "Prima LOVE HD",
+      "Prima Krimi HD",
+      "Prima Star",
+      "BBC World News",
+      "Bloomberg",
+      "Barrandov",
+      "Warner TV",
+      "Oneplay Sport 1",
+      "Oneplay Sport 2",
+      "Oneplay Sport 3",
+      "Oneplay Sport 4",
+      "Nova Sport 1 HD",
+      "Nova Sport 2 HD",
+      "Nova Sport 3 HD",
+      "Nova Sport 4 HD",
+      "Nova Sport 5 HD",
+      "Nova Sport 6 HD",
+      "Premier Sport 1",
+      "Premier Sport 2",
+      "Premier Sport 3",
+      "ČT Sport HD",
+      "Eurosport HD",
+      "Eurosport 2 HD",
+      "CANAL+ Sport",
+      "CANAL+ Sport 2",
+      "CANAL+ Sport 3",
+      "CANAL+ Sport 4",
+      "CANAL+ Sport 5",
+      "CANAL+ Sport 6",
+      "CANAL+ Sport 7",
+      "CANAL+ Sport 8",
+      "Golf Channel HD",
+      "Arena Sport 1",
+      "Arena Sport 2",
+      "Sport1",
+      "Sport2",
+      "FILMBOX+ one",
+      "FILMBOX+ hits",
+      "FILMBOX+ emotion",
+      "FILMBOX+ love&crime",
+      "FILMBOX+ comedy",
+      "BBC First",
+      "Kino Barrandov",
+      "Barrandov Krimi",
+      "Markíza International",
+      "JOJ FAMILY",
+      "JOJ CINEMA",
+      "CS film",
+      "Viasat Epic Drama",
+      "Film Europe HD",
+      "Film Europe+ HD",
+      "AXN",
+      "AMC",
+      "Film+",
+      "True Crime",
+      "National Geographic HD",
+      "Nat Geo Wild HD",
+      "BBC Earth HD",
+      "Prima Zoom HD",
+      "Discovery Channel",
+      "ID",
+      "Animal Planet HD",
+      "Viasat Explore HD",
+      "Viasat History HD",
+      "Viasat Nature HD",
+      "CS History",
+      "History",
+      "Crime + Investigation",
+      "Disney Channel",
+      "Nickelodeon",
+      "Nickelodeon JUNIOR",
+      "NickToons",
+      "Cartoon Network HD",
+      "Cartoonito",
+      "ČT :D / ČT art HD",
+      "RiK TV",
+      "Duck TV",
+      "Lala TV",
+      "Moonbug",
+      "Prima Sport",
+      "TLC",
+      "Story4",
+      "Fishing & Hunting",
+      "Strike TV",
+      "FightBox HD",
+      "Auto motor sport HD",
+      "Ginx",
+      "Gametoon",
+      "Spektrum Home",
+      "HGTV HD",
+      "TV Paprika",
+      "Food Network",
+      "TV Noe",
+      "Retro Music",
+      "Šláger Originál",
+      "Óčko",
+      "Óčko STAR",
+      "Óčko Expres",
+      "MTV Europe",
+      "Rebel",
+      "Relax",
+      "Mezzo",
+      "Mezzo live HD",
+      "CNN",
+      "TA3",
+      "DVTV",
+      "Jednotka",
+      "Dvojka",
+      "ČT1 SM",
+      "ČT1 JM",
+      "ČT1 SVC",
+      "ČT1 JZC",
+      "ČT1 AD",
+      "ČT2 AD",
+      "ČT 24 AD",
+      "ČT Sport AD",
+      "ČT D AD",
+      "NOVA AD",
+      "Nova CINEMA AD",
+      "Nova Krimi AD",
+      "Nova Action AD",
+      "Nova Lady AD",
+      "Prima AD",
+      "Barrandov TV AD",
+      "Praha TV",
+      "Polar TV",
+      "TV Brno 1",
+      "ZAK TV",
+      "TV Morava",
+      "RTM+"
+    ];
+
+    const oneplayRankMap = new Map();
+
+    function normalizeForMatching(str) {
+      if (!str) return '';
+      return str.toLowerCase()
+        .replace(/\b(hd|sd|fhd|4k|1080p|720p)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    const nameAliases = {
+      'ct 1': 'čt1',
+      'ct 2': 'čt2',
+      'ct 24': 'čt 24',
+      'ct sport': 'čt sport',
+      'ct :d / ct art': 'čt :d / čt art',
+      'nat geo wild': 'national geographic wild',
+      'national geographic wild': 'nat geo wild',
+      'id': 'investigation discovery',
+      'investigation discovery': 'id',
+      'sport 1': 'sport1',
+      'sport 2': 'sport2',
+      'eurosport 1': 'eurosport',
+      'tv barrandov': 'barrandov',
+      'barrandov': 'tv barrandov',
+      'auto moto sport': 'auto motor sport',
+      'nickelodeon junior': 'nickelodeon junior',
+      'tralala tv': 'lala tv',
+      'lala tv': 'tralala tv',
+      'tv rik': 'rik tv',
+      'rik tv': 'tv rik',
+      'ta3': 'ta3',
+      'dvtv extra': 'dvtv',
+      'šlágr originál': 'šláger originál',
+      'slagr original': 'šláger originál'
+    };
+
+    oneplayOrder.forEach((item, index) => {
+      const norm = normalizeForMatching(item);
+      if (!oneplayRankMap.has(norm)) {
+        oneplayRankMap.set(norm, index);
+      }
+    });
+
+    function getOneplayRank(channelName) {
+      if (!channelName) return 999999;
+      const norm = normalizeForMatching(channelName);
+      
+      if (oneplayRankMap.has(norm)) {
+        return oneplayRankMap.get(norm);
+      }
+
+      const alias = nameAliases[norm];
+      if (alias && oneplayRankMap.has(alias)) {
+        return oneplayRankMap.get(alias);
+      }
+
+      return 999999;
+    }
+
+    // Render Channels Sidebar List
+    function renderChannelsList() {
+      const container = document.getElementById('channelsListContainer');
+      container.innerHTML = '';
+
+      const now = new Date();
+      let channels = Array.from(uniqueChannelsMap.values());
+
+      // Sort channels according to Oneplay order, placing unmatched channels at the end
+      channels.sort((a, b) => {
+        const rankA = getOneplayRank(a.name);
+        const rankB = getOneplayRank(b.name);
+        if (rankA !== rankB) {
+          return rankA - rankB;
+        }
+        const cleanA = normalizeForMatching(a.name);
+        const cleanB = normalizeForMatching(b.name);
+        return cleanA.localeCompare(cleanB, 'cs', { sensitivity: 'base', numeric: true });
+      });
+
+      // Filter by Category
+      if (currentSelectedCategory !== 'ALL') {
+        channels = channels.filter(ch => getChannelCategory(ch.name) === currentSelectedCategory);
+      }
+
+      // Filter by Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        channels = channels.filter(ch => {
+          if (ch.name.toLowerCase().includes(q) || ch.id.includes(q)) return true;
+          const progs = getProgsForChannel(ch);
+          return progs.some(p => p.epg_program_name && p.epg_program_name.toLowerCase().includes(q));
+        });
+      }
+
+      document.getElementById('chanCountBadge').textContent = `${channels.length} kanálů`;
+
+      channels.forEach(chan => {
+        const isSelected = activeChannel && activeChannel.id === chan.id;
+        const progs = getProgsForChannel(chan);
+
+        const currentProg = progs.find(p => {
+          const st = new Date(p.epg_time_start.replace(' ', 'T'));
+          const et = new Date(p.epg_time_end.replace(' ', 'T'));
+          return now >= st && now <= et;
+        });
+
+        const card = document.createElement('div');
+        card.className = `chan-card ${isSelected ? 'active' : ''}`;
+        card.setAttribute('data-cid', chan.id);
+
+        card.innerHTML = `
+          <div class="chan-row-top">
+            <div class="chan-meta-left">
+              <img src="${chan.icon}" alt="${chan.name}" class="chan-icon" onerror="this.src='https://soap-001.mazana.tv/epg/img/icons/channels/11@1x.webp'">
+              <div class="chan-name-box">
+                <div class="chan-name">${chan.name}</div>
+                <div class="chan-number">ID: #${chan.id}</div>
+              </div>
+            </div>
+
+            <div class="chan-btn-group">
+              <button class="btn-epg-toggle" title="Zobrazit program EPG" onclick="event.stopPropagation(); toggleEPGDrawer('${chan.id}')">
+                <i class="fa-solid fa-calendar-days"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="chan-live-title">
+            <i class="fa-solid fa-play" style="font-size: 0.65rem; color: var(--primary); margin-right: 4px;"></i>
+            ${currentProg ? currentProg.epg_program_name : 'Program neuveden'}
+          </div>
+
+          <div class="epg-drawer" id="drawer_${chan.id}">
+            <!-- EPG Items -->
+          </div>
+        `;
+
+        card.onclick = () => selectChannel(chan, 0);
+
+        // Render EPG Drawer Items
+        const drawer = card.querySelector(`#drawer_${chan.id}`);
+        if (progs.length > 0) {
+          progs.forEach((p, idx) => {
+            const st = new Date(p.epg_time_start.replace(' ', 'T'));
+            const et = new Date(p.epg_time_end.replace(' ', 'T'));
+
+            const isLive = now >= st && now <= et;
+            const isPast = now > et;
+
+            const stStr = p.epg_time_start.split(' ')[1]?.slice(0, 5) || '';
+            const etStr = p.epg_time_end.split(' ')[1]?.slice(0, 5) || '';
+
+            const itemEl = document.createElement('div');
+            itemEl.className = `epg-item ${isLive ? 'is-live' : isPast ? 'is-past' : ''}`;
+
+            itemEl.innerHTML = `
+              <div class="epg-time">${stStr} - ${etStr}</div>
+              <div class="epg-title" title="${p.epg_program_name}">${p.epg_program_name}</div>
+              ${isPast ? `
+                <button class="btn-replay" onclick="event.stopPropagation(); playReplayByIdx('${chan.id}', ${idx})">
+                  <i class="fa-solid fa-rotate-left"></i> Záznam
+                </button>
+              ` : ''}
+            `;
+
+            drawer.appendChild(itemEl);
+          });
+        } else {
+          drawer.innerHTML = `<div style="padding: 8px; font-size: 0.75rem; color: var(--text-muted);">Žádné pořady nebyly nalezeny</div>`;
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    function toggleEPGDrawer(cid) {
+      const drawer = document.getElementById(`drawer_${cid}`);
+      if (drawer) {
+        drawer.classList.toggle('open');
+      }
+    }
+
+    // Category Selector Handling
+    document.querySelectorAll('.cat-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const cat = el.getAttribute('data-cat');
+        if (cat === 'Pro dospělé') {
+          checkAdultConfirmation(() => setCategory(el, cat));
+        } else {
+          setCategory(el, cat);
+        }
+      });
+    });
+
+    function setCategory(el, cat) {
+      document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      currentSelectedCategory = cat;
+      renderChannelsList();
+    }
+
+    // Search Input Handling
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      searchQuery = e.target.value;
+      renderChannelsList();
+    });
+
+    // Date Navigation Buttons
+    const datePicker = document.getElementById('datePicker');
+    datePicker.value = selectedDateStr;
+
+    document.getElementById('btnYesterday').addEventListener('click', () => {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      setDate(d, 'btnYesterday');
+    });
+
+    document.getElementById('btnToday').addEventListener('click', () => {
+      const d = new Date();
+      setDate(d, 'btnToday');
+    });
+
+    document.getElementById('btnTomorrow').addEventListener('click', () => {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      setDate(d, 'btnTomorrow');
+    });
+
+    datePicker.addEventListener('change', (e) => {
+      if (e.target.value) {
+        const parts = e.target.value.split('-');
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        setDate(d, null);
+      }
+    });
+
+    function setDate(d, btnId) {
+      document.querySelectorAll('.date-btn').forEach(b => b.classList.remove('active'));
+      if (btnId) {
+        document.getElementById(btnId)?.classList.add('active');
+      }
+
+      selectedDateStr = getFormattedDate(d);
+      datePicker.value = selectedDateStr;
+      fetchEPGForDay(selectedDateStr);
+    }
+
+    // Controls Action Listeners
+    document.getElementById('btnReturnLive').addEventListener('click', () => {
+      if (activeChannel) {
+        doSelectChannel(activeChannel, 0);
+      }
+    });
+
+    document.getElementById('btnSeekBack').addEventListener('click', () => {
+      const video = document.getElementById('videoPlayer');
+      video.currentTime = Math.max(0, video.currentTime - 10);
+    });
+
+    document.getElementById('btnSeekFwd').addEventListener('click', () => {
+      const video = document.getElementById('videoPlayer');
+      video.currentTime += 10;
+    });
+
+    // App Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      initChannels();
+      initShakaPlayer();
+
+      // Start with Nova (Nova HD) by default on startup
+      const sortedChans = Array.from(uniqueChannelsMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'cs', { sensitivity: 'base', numeric: true }));
+      const novaChan = sortedChans.find(c => c.name.toLowerCase() === 'nova hd' || c.name.toLowerCase() === 'nova')
+                    || sortedChans.find(c => c.name.toLowerCase().startsWith('nova'))
+                    || sortedChans[0];
+
+      if (novaChan) {
+        selectChannel(novaChan, 0);
+      }
+      fetchEPGForDay(selectedDateStr);
+    });
+  </script>
+</body>
+</html>

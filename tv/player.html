@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<script src="../tizen-adapter.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Player</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📺</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/controls.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/7.1.0/mux.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/shaka-player.ui.min.js"></script>
+<script>(function(){if(typeof shaka!=='undefined'&&shaka.Player&&!shaka.Player._patched){const oC=shaka.Player.prototype.configure;shaka.Player.prototype.configure=function(c,v){if(typeof c==='object'){if(c.preferredAudioLanguage===undefined||c.preferredAudioLanguage===""||c.preferredAudioLanguage==="en"||c.preferredAudioLanguage==="eng")c.preferredAudioLanguage='en';}else if(typeof c==='string'&&c==='preferredAudioLanguage'){if(!v||v==='en'||v==='eng')v='en';}return oC.call(this,c,v);};const oL=shaka.Player.prototype.load;shaka.Player.prototype.load=function(){const curr=this.getConfiguration().preferredAudioLanguage;if(!curr||curr==='en'||curr==='eng')this.configure({preferredAudioLanguage:'en'});if(!this._langFallbackRegistered){this._langFallbackRegistered=true;this.addEventListener('trackschanged',()=>{try{const tracks=this.getVariantTracks?this.getVariantTracks():[];if(!tracks||!tracks.length)return;const hasEn=tracks.some(t=>t.language&&t.language.toLowerCase().startsWith('en'));if(!hasEn){const cs=tracks.find(t=>t.language&&(t.language.toLowerCase().startsWith('cs')||t.language.toLowerCase().startsWith('cz')));if(cs){const curr=this.getConfiguration().preferredAudioLanguage;if(!curr||(!curr.toLowerCase().startsWith('cs')&&!curr.toLowerCase().startsWith('cz'))){this.configure({preferredAudioLanguage:cs.language});}}}}catch(e){console.warn("Lang fallback error:",e);}});}return oL.apply(this,arguments);};shaka.Player._patched=true;}})();</script>
+
+<style>:root{--bg-dark:#060609;--bg-card:rgba(14,15,23,0.75);--bg-card-hover:rgba(22,24,37,0.85);--bg-input:#0a0b10;--border-main:rgba(255,255,255,0.08);--border-accent:rgba(255,0,60,0.3);--accent-red:#ff003c;--accent-red-glow:rgba(255,0,60,0.4);--accent-cyan:#00f0ff;--accent-cyan-glow:rgba(0,240,255,0.3);--accent-gold:#ffb700;--accent-green:#00ff66;--accent-purple:#9d4edd;--text-main:#f1f3f9;--text-muted:#787d95;--font-ui:'Outfit',-apple-system,BlinkMacSystemFont,sans-serif;--font-mono:'JetBrains Mono',monospace;--radius-lg:4px;--radius-md:2px;--radius-sm:0px;--shadow-glow:0 8px 32px rgba(0,0,0,0.8)}*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg-dark);color:var(--text-main);font-family:var(--font-ui);min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden;letter-spacing:-0.2px}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg-dark)}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:2px}::-webkit-scrollbar-thumb:hover{background:var(--accent-red)}#ambient-canvas{position:fixed;top:-10%;left:-10%;width:120%;height:120%;filter:blur(80px) opacity(0.35);pointer-events:none;z-index:0;transition:opacity 0.5s ease}header{position:relative;z-index:100;background:rgba(8,9,14,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border-main);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}.brand{display:flex;align-items:center;gap:12px}.brand-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent-red),var(--accent-purple));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;box-shadow:0 0 15px var(--accent-red-glow)}.brand-title{font-size:1.25rem;font-weight:800;letter-spacing:0.5px;background:linear-gradient(90deg,#fff 30%,var(--accent-cyan) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:8px}.brand-tag{font-family:var(--font-mono);font-size:0.65rem;font-weight:600;color:var(--accent-red);background:rgba(255,0,60,0.12);border:1px solid var(--border-accent);padding:2px 6px;border-radius:var(--radius-sm);text-transform:uppercase}.header-telemetry{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pill-stat{font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);background:rgba(255,255,255,0.03);border:1px solid var(--border-main);padding:4px 10px;border-radius:4px;display:flex;align-items:center;gap:6px}.pill-stat i{color:var(--accent-cyan);font-size:0.75rem}.pill-stat span{color:var(--text-main);font-weight:600}#status-pill{font-family:var(--font-mono);font-size:0.7rem;font-weight:700;padding:4px 12px;border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;border:1px solid var(--text-muted);color:var(--text-muted);transition:all 0.3s ease}#status-pill.playing{border-color:var(--accent-green);color:var(--accent-green);background:rgba(0,255,102,0.1);box-shadow:0 0 12px rgba(0,255,102,0.25)}#status-pill.loading{border-color:var(--accent-gold);color:var(--accent-gold);background:rgba(255,183,0,0.1);animation:pulse-glow 1.5s infinite}#status-pill.error{border-color:var(--accent-red);color:var(--accent-red);background:rgba(255,0,60,0.15);box-shadow:0 0 12px var(--accent-red-glow)}@keyframes pulse-glow{0%,100%{opacity:0.7}50%{opacity:1}}.header-actions{display:flex;align-items:center;gap:8px}.btn-header{background:rgba(255,255,255,0.04);border:1px solid var(--border-main);color:var(--text-main);padding:6px 12px;border-radius:var(--radius-sm);font-size:0.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s}.btn-header:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.2)}.main-wrapper{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;max-width:1440px;width:100%;margin:0 auto;padding:16px;gap:16px}.stage-card{background:var(--bg-card);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-main);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-glow);position:relative}.video-container-wrap{width:100%;display:flex;justify-content:center;background:#000;position:relative}.video-frame{width:100%;aspect-ratio:16/9;background:#000;position:relative;overflow:hidden;transition:all 0.3s ease}.video-frame.ratio-4-3{aspect-ratio:4/3}.video-frame.ratio-21-9{aspect-ratio:21/9}.video-frame.ratio-fill video{object-fit:fill !important}.video-frame.ratio-zoom video{object-fit:cover !important}.video-frame video{width:100%;height:100%;display:block;object-fit:contain;transition:filter 0.2s ease}#telemetry-hud{position:absolute;top:12px;left:12px;background:rgba(6,7,11,0.9);backdrop-filter:blur(12px);border:1px solid var(--border-main);border-left:3px solid var(--accent-cyan);padding:12px 16px;border-radius:var(--radius-md);font-family:var(--font-mono);font-size:0.65rem;color:var(--accent-cyan);line-height:1.7;pointer-events:none;z-index:40;box-shadow:0 4px 20px rgba(0,0,0,0.6);display:none}#telemetry-hud b{color:var(--text-main);font-weight:600}#telemetry-hud .hud-val{color:var(--accent-green)}#visualizer-canvas{position:absolute;bottom:0;left:0;width:100%;height:80px;pointer-events:none;z-index:20}.action-deck{padding:12px 16px;background:rgba(10,11,17,0.95);border-top:1px solid var(--border-main);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.deck-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.btn-ctrl{background:rgba(255,255,255,0.04);border:1px solid var(--border-main);color:var(--text-main);padding:8px 14px;border-radius:var(--radius-sm);font-family:var(--font-ui);font-size:0.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px}.btn-ctrl:hover{background:rgba(255,255,255,0.08);border-color:var(--accent-cyan);color:var(--accent-cyan)}.btn-ctrl.active{background:rgba(0,240,255,0.12);border-color:var(--accent-cyan);color:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan-glow)}.btn-ctrl.primary{background:var(--accent-red);border-color:var(--accent-red);color:#fff;box-shadow:0 0 15px var(--accent-red-glow)}.btn-ctrl.primary:hover{background:#ff1f54;border-color:#ff1f54}.btn-ctrl.danger{background:rgba(255,0,60,0.1);border-color:rgba(255,0,60,0.3);color:var(--accent-red)}.btn-ctrl.danger:hover{background:var(--accent-red);color:#fff}.deck-divider{width:1px;height:24px;background:var(--border-main)}.url-bar-card{background:var(--bg-card);backdrop-filter:blur(20px);border:1px solid var(--border-main);border-radius:var(--radius-lg);padding:14px 16px;display:flex;flex-direction:column;gap:12px}.url-input-row{display:flex;gap:8px}.url-input-wrap{flex:1;position:relative;display:flex;align-items:center}.url-input-wrap i{position:absolute;left:14px;color:var(--text-muted);font-size:0.9rem}.input-field{width:100%;background:var(--bg-input);border:1px solid var(--border-main);color:var(--text-main);padding:10px 12px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.8rem;outline:none;transition:all 0.2s}.url-input-wrap .input-field{padding-left:38px}.input-field:focus{border-color:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan-glow)}textarea.input-field{padding:10px 14px;resize:vertical;min-height:70px}select.input-field{padding-left:12px;cursor:pointer}#error-banner{display:none;background:rgba(255,0,60,0.12);border:1px solid var(--accent-red);border-radius:var(--radius-md);padding:12px 16px;color:#ff6b8b;font-family:var(--font-mono);font-size:0.75rem;align-items:center;justify-content:space-between;gap:12px}.err-content{display:flex;align-items:center;gap:10px}.err-content i{font-size:1.1rem;color:var(--accent-red)}.studio-card{background:var(--bg-card);backdrop-filter:blur(20px);border:1px solid var(--border-main);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-glow);display:flex;flex-direction:column}.tab-nav{display:flex;background:rgba(8,9,14,0.9);border-bottom:1px solid var(--border-main);overflow-x:auto}.tab-btn{background:transparent;border:none;border-bottom:2px solid transparent;color:var(--text-muted);padding:12px 18px;font-family:var(--font-ui);font-size:0.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px}.tab-btn:hover{color:var(--text-main);background:rgba(255,255,255,0.02)}.tab-btn.active{color:var(--accent-red);border-bottom-color:var(--accent-red);background:rgba(255,0,60,0.05)}.tab-content-area{padding:20px}.tab-pane{display:none;flex-direction:column;gap:16px}.tab-pane.active{display:flex}.pane-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.form-box{background:rgba(255,255,255,0.02);border:1px solid var(--border-main);border-radius:var(--radius-md);padding:16px;display:flex;flex-direction:column;gap:12px}.box-title{font-size:0.8rem;font-weight:700;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-main);padding-bottom:8px}.field-group{display:flex;flex-direction:column;gap:6px}.field-group label{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}.check-label{display:flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);cursor:pointer;user-select:none;transition:color 0.2s}.check-label:hover{color:var(--text-main)}.check-label input{accent-color:var(--accent-red);width:15px;height:15px;cursor:pointer}.range-wrap{display:flex;align-items:center;gap:10px}.range-wrap input[type=range]{flex:1;accent-color:var(--accent-cyan);cursor:pointer}.range-wrap span{font-family:var(--font-mono);font-size:0.7rem;color:var(--accent-cyan);min-width:40px;text-align:right}.logs-table-wrap{max-height:300px;overflow-y:auto;border:1px solid var(--border-main);border-radius:var(--radius-sm);background:#040508}.logs-table{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:0.7rem}.logs-table th{background:rgba(255,255,255,0.03);padding:8px 12px;text-align:left;color:var(--text-muted);border-bottom:1px solid var(--border-main);position:sticky;top:0}.logs-table td{padding:6px 12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:top}.log-level{font-weight:700;padding:1px 6px;border-radius:2px;font-size:0.6rem}.log-level.INFO{background:rgba(0,240,255,0.15);color:var(--accent-cyan)}.log-level.WARN{background:rgba(255,183,0,0.15);color:var(--accent-gold)}.log-level.ERROR{background:rgba(255,0,60,0.2);color:var(--accent-red)}.channel-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}.channel-item{background:rgba(255,255,255,0.02);border:1px solid var(--border-main);border-radius:var(--radius-sm);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all 0.2s}.channel-item:hover{background:rgba(255,0,60,0.08);border-color:var(--accent-red)}.channel-name{font-weight:600;font-size:0.85rem}.channel-url{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}.modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,5,8,0.85);backdrop-filter:blur(12px);z-index:1000;align-items:center;justify-content:center;padding:20px}.modal-card{background:var(--bg-dark);border:1px solid var(--border-accent);border-radius:var(--radius-lg);max-width:600px;width:100%;padding:24px;box-shadow:var(--shadow-glow);display:flex;flex-direction:column;gap:16px}.modal-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-main);padding-bottom:12px}.modal-title{font-size:1.1rem;font-weight:800;color:var(--accent-red);display:flex;align-items:center;gap:8px}.key-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.key-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.02);border:1px solid var(--border-main);padding:8px 12px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.7rem}.key-item kbd{background:rgba(255,0,60,0.15);border:1px solid var(--border-accent);color:var(--accent-red);padding:2px 8px;border-radius:2px;font-weight:700}.drm-badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.drm-badge{font-family:var(--font-mono);font-size:0.65rem;padding:6px 8px;border-radius:2px;border:1px solid var(--border-main);display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.02)}.drm-badge.supported{border-color:var(--accent-green);color:var(--accent-green);background:rgba(0,255,102,0.05)}.drm-badge.unsupported{border-color:var(--text-muted);color:var(--text-muted);opacity:0.6}.shaka-range-container{--shaka-main-color:var(--accent-red)}
+/* --- PRO ENHANCEMENTS: Audio Flags, Live Buffer, Multi-View Grid & Key Matcher --- */
+.pro-audio-flags-bar{display:flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,11,17,0.95);border-top:1px solid var(--border-main);flex-wrap:wrap}
+.pro-audio-pill{background:rgba(255,255,255,0.05);border:1px solid var(--border-main);color:var(--text-main);padding:3px 8px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.68rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all 0.2s}
+.pro-audio-pill:hover{background:rgba(255,255,255,0.12);border-color:var(--accent-cyan)}
+.pro-audio-pill.active{background:rgba(0,240,255,0.18);border-color:var(--accent-cyan);color:var(--accent-cyan);box-shadow:0 0 10px var(--accent-cyan-glow)}
+.live-delay-pills{display:flex;align-items:center;gap:4px}
+.pill-btn{background:rgba(255,255,255,0.04);border:1px solid var(--border-main);color:var(--text-muted);padding:3px 7px;border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:0.68rem;font-weight:600;cursor:pointer;transition:all 0.2s}
+.pill-btn:hover{color:#fff;background:rgba(255,255,255,0.1)}
+.pill-btn.active{background:var(--accent-gold);color:#000;border-color:var(--accent-gold);box-shadow:0 0 8px rgba(255,183,0,0.4);font-weight:800}
+.multiview-grid{display:grid;width:100%;aspect-ratio:16/9;background:#000;gap:4px;padding:4px;position:relative}
+.multiview-grid.layout-1x1{grid-template-columns:1fr}
+.multiview-grid.layout-1x2{grid-template-columns:1fr 1fr}
+.multiview-grid.layout-2x2{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.multiview-grid.layout-1plus3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr 1fr}
+.multiview-grid.layout-1plus3 .mv-cell:first-child{grid-row:1 / span 3}
+.mv-cell{background:#08090f;border:1px solid var(--border-main);border-radius:var(--radius-sm);position:relative;overflow:hidden;display:flex;flex-direction:column}
+.mv-cell.active-audio{border-color:var(--accent-cyan);box-shadow:0 0 12px var(--accent-cyan-glow)}
+.mv-cell video{width:100%;height:100%;object-fit:contain;background:#000}
+.mv-cell-toolbar{position:absolute;top:6px;left:6px;right:6px;display:flex;align-items:center;justify-content:space-between;background:rgba(4,5,8,0.85);backdrop-filter:blur(8px);padding:4px 8px;border-radius:2px;z-index:10;opacity:0;transition:opacity 0.2s}
+.mv-cell:hover .mv-cell-toolbar{opacity:1}
+.mv-btn{background:transparent;border:none;color:var(--text-main);cursor:pointer;font-size:0.75rem;padding:2px 6px;transition:color 0.2s}
+.mv-btn:hover{color:var(--accent-cyan)}
+.mv-btn.solo{color:var(--accent-green);font-weight:bold}
+.mv-title{font-family:var(--font-mono);font-size:0.65rem;color:var(--text-muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:140px}
+@media(max-width:768px){header{flex-direction:column;align-items:flex-start}.header-telemetry{display:none}.url-input-row{flex-direction:column}.pane-grid{grid-template-columns:1fr}.key-grid{grid-template-columns:1fr}}
+video {
+    background-color: transparent !important;
+}
+.shaka-big-buttons-container,
+.shaka-play-button-container,
+.shaka-play-button,
+.shaka-video-container.pip-placeholder,
+.pip-poster,
+.pip-blur-overlay {
+    display: none !important;
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="ambient-canvas"></canvas>
+
+<!-- Header Bar -->
+<header>
+  <a href="../index.html" class="top-back-btn" onclick="window.history.length>1?window.history.back():window.location.href='../index.html'" style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(255,255,255,0.06);border:1px solid var(--border-main);color:var(--accent-gold);border-radius:var(--radius-sm);text-decoration:none;font-weight:700;font-size:0.8rem;" tabindex="0"><i class="fa fa-arrow-left"></i><span>Rozcestník</span></a>
+  <div class="brand">
+    <div class="brand-logo"><i class="fa fa-play"></i></div>
+    <div class="brand-title">Pro Player</div>
+  </div>
+
+  <div class="header-telemetry">
+    <div class="pill-stat" id="hdr-bw"><i class="fa fa-signal"></i> BW: <span id="bw-val">—</span></div>
+    <div class="pill-stat" id="hdr-res"><i class="fa fa-tv"></i> RES: <span id="res-val">—</span></div>
+    <div class="pill-stat" id="hdr-fps"><i class="fa fa-bolt"></i> FPS: <span id="fps-val">—</span></div>
+    <div id="status-pill">READY</div>
+  </div>
+
+  <div class="header-actions">
+    <button class="btn-header" id="btn-open-m3u" title="Open M3U Playlist"><i class="fa fa-list"></i> M3U</button>
+    <button class="btn-header" id="btn-open-recents" title="History"><i class="fa fa-history"></i> RECENTS</button>
+    <button class="btn-header" id="btn-open-keys" title="Shortcuts"><i class="fa fa-keyboard"></i> KEYS</button>
+  </div>
+</header>
+
+<!-- Main Workspace -->
+<div class="main-wrapper">
+
+  <!-- Stage & Player Card -->
+  <div class="stage-card">
+    <div class="video-container-wrap">
+      <div class="video-frame" id="video-stage-frame" data-shaka-player-container>
+        <!-- Telemetry HUD Overlay -->
+        <div id="telemetry-hud"></div>
+        <!-- Audio Spectrum Canvas Overlay -->
+        <canvas id="visualizer-canvas"></canvas>
+        <video id="video-element" data-shaka-player autoplay playsinline webkit-playsinline></video>
+      </div>
+      <!-- Multi-View Stage Grid -->
+      <div id="multiview-stage" class="multiview-grid layout-2x2" style="display:none;"></div>
+    </div>
+
+    <!-- Audio Track Flag Badges Bar -->
+    <div id="pro-audio-flags" class="pro-audio-flags-bar">
+      <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);"><i class="fa fa-headphones"></i> AUDIO:</span>
+      <span class="pro-audio-pill active">🌐 MAIN / AUTO</span>
+    </div>
+
+    <!-- Action Deck Controls -->
+    <div class="action-deck">
+      <div class="deck-group">
+        <button class="btn-ctrl primary" id="btn-main-load"><i class="fa fa-play"></i> LOAD & PLAY</button>
+        <button class="btn-ctrl danger" id="btn-main-stop"><i class="fa fa-stop"></i> STOP</button>
+        <div class="deck-divider"></div>
+        <div class="live-delay-pills" id="deck-live-delay">
+          <span style="font-family: var(--font-mono); font-size:0.65rem; color:var(--text-muted);"><i class="fa fa-clock"></i> LIVE:</span>
+          <button class="pill-btn" id="pro-buf-5" onclick="setPlayerLiveOffset(-5)">-5s</button>
+          <button class="pill-btn active" id="pro-buf-7" onclick="setPlayerLiveOffset(-7)">-7s Nitro</button>
+          <button class="pill-btn" id="pro-buf-15" onclick="setPlayerLiveOffset(-15)">-15s</button>
+          <button class="pill-btn" id="pro-buf-30" onclick="setPlayerLiveOffset(-30)">-30s</button>
+        </div>
+        <div class="deck-divider"></div>
+        <button class="btn-ctrl" id="btn-step-prev" title="Step -1 Frame"><i class="fa fa-step-backward"></i> -1F</button>
+        <button class="btn-ctrl" id="btn-step-next" title="Step +1 Frame"><i class="fa fa-step-forward"></i> +1F</button>
+        <button class="btn-ctrl" id="btn-ab-loop" title="AB Segment Looper"><i class="fa fa-repeat"></i> AB LOOP</button>
+      </div>
+
+      <div class="deck-group">
+        <button class="btn-ctrl" id="btn-toggle-multiview" title="Toggle Multi-View (Dual/Quad Feeds)"><i class="fa fa-th-large"></i> MULTI-VIEW</button>
+        <select id="mv-layout-select" class="btn-ctrl" style="display:none; padding: 4px 8px; font-size: 0.75rem;">
+          <option value="1x2">1x2 Dual</option>
+          <option value="2x2" selected>2x2 Quad</option>
+          <option value="1plus3">1+3 Master</option>
+        </select>
+        <div class="deck-divider"></div>
+        <button class="btn-ctrl" id="btn-snapshot" title="Take Frame Snapshot"><i class="fa fa-camera"></i> SNAPSHOT</button>
+        <button class="btn-ctrl" id="btn-record-clip" title="Record 5s Clip"><i class="fa fa-video"></i> REC 5S</button>
+        <div class="deck-divider"></div>
+        <select id="speed-selector" class="btn-ctrl" style="padding: 4px 8px; font-size: 0.75rem;">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1.0" selected>1.0x (Speed)</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2.0">2.0x</option>
+        </select>
+        <div class="deck-divider"></div>
+        <button class="btn-ctrl" id="btn-toggle-hud" title="Toggle HUD Overlay"><i class="fa fa-chart-line"></i> HUD</button>
+        <button class="btn-ctrl" id="btn-pip" title="Picture in Picture"><i class="fa fa-clone"></i> PIP</button>
+        <button class="btn-ctrl" id="btn-fullscreen" title="Fullscreen"><i class="fa fa-expand"></i> FULLSCREEN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stream Input Bar -->
+  <div class="url-bar-card">
+    <div class="url-input-row">
+      <div class="url-input-wrap">
+        <i class="fa fa-link"></i>
+        <input type="text" id="stream-url" class="input-field" placeholder="Paste stream URL (.mpd, .m3u8, .mp4)..." autocomplete="off">
+      </div>
+      <button class="btn-ctrl" id="btn-paste-url"><i class="fa fa-paste"></i> PASTE</button>
+      <button class="btn-ctrl" id="btn-clear-url"><i class="fa fa-times"></i> CLEAR</button>
+      <select id="preset-selector" class="input-field" style="max-width: 200px;">
+        <option value="">-- Presets --</option>
+        <option value="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd">DASH Big Buck Bunny</option>
+        <option value="https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8">HLS Tears of Steel</option>
+        <option value="https://storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd">ClearKey Angel One</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Error Notification Banner -->
+  <div id="error-banner">
+    <div class="err-content">
+      <i class="fa fa-exclamation-triangle"></i>
+      <span id="error-message-text">Stream error occurred</span>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-ctrl" id="btn-err-retry" style="padding: 4px 10px;">RETRY</button>
+      <button class="btn-ctrl" id="btn-err-dismiss" style="padding: 4px 10px;"><i class="fa fa-times"></i></button>
+    </div>
+  </div>
+
+  <!-- Studio Settings Control Panel -->
+  <div class="studio-card">
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="tab-drm"><i class="fa fa-key"></i> DRM Matrix (ClearKey)</button>
+      <button class="tab-btn" data-tab="tab-stream"><i class="fa fa-sliders"></i> Stream & Auth</button>
+      <button class="tab-btn" data-tab="tab-audio"><i class="fa fa-volume-up"></i> Audio DSP & Subs</button>
+      <button class="tab-btn" data-tab="tab-video"><i class="fa fa-palette"></i> Video FX & Layout</button>
+      <button class="tab-btn" data-tab="tab-visualizer"><i class="fa fa-wave-square"></i> Spectrum & Glow</button>
+      <button class="tab-btn" data-tab="tab-logs"><i class="fa fa-terminal"></i> Telemetry Logs</button>
+      <button class="tab-btn" data-tab="tab-history"><i class="fa fa-bookmark"></i> History & M3U</button>
+    </nav>
+
+    <div class="tab-content-area">
+
+      <!-- TAB 1: Stream & Auth -->
+      <div class="tab-pane" id="tab-stream">
+        <div class="pane-grid">
+          <div class="form-box">
+            <div class="box-title">Authentication Mode</div>
+            <div class="field-group">
+              <label>Auth Type</label>
+              <select id="auth-mode" class="input-field">
+                <option value="none">None</option>
+                <option value="bearer">Bearer Token (JWT)</option>
+                <option value="basic">Basic Auth (username:password)</option>
+                <option value="custom">Custom Header</option>
+                <option value="query">Query Parameter</option>
+              </select>
+            </div>
+            <div class="field-group" id="wrap-auth-val" style="display:none">
+              <label id="lbl-auth-val">Token / Credentials</label>
+              <input type="password" id="auth-val" class="input-field" placeholder="eyJhbGciOi...">
+            </div>
+            <div class="field-row">
+              <div class="field-group" id="wrap-custom-hdr" style="display:none">
+                <label>Header Name</label>
+                <input type="text" id="custom-hdr-name" class="input-field" placeholder="X-Auth-Token">
+              </div>
+              <div class="field-group" id="wrap-query-param" style="display:none">
+                <label>Param Name</label>
+                <input type="text" id="query-param-name" class="input-field" placeholder="token">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">Custom HTTP Headers</div>
+            <div class="field-group">
+              <label>Raw Headers (Header: Value per line)</label>
+              <textarea id="extra-headers" class="input-field" placeholder="Referer: https://example.com&#10;User-Agent: CustomPlayer/1.0"></textarea>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">Playback Engine Parameters</div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Preferred Lang</label>
+                <select id="pref-lang" class="input-field">
+                  <option value="">Auto</option>
+                  <option value="en">English (en)</option>
+                  <option value="cs">Czech (cs)</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>Buffer Goal (s)</label>
+                <input type="number" id="buf-goal" class="input-field" value="20">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Max BW (kbps)</label>
+                <input type="number" id="max-bw" class="input-field" value="0" placeholder="0 = Auto">
+              </div>
+              <div class="field-group">
+                <label>Max Retries</label>
+                <input type="number" id="max-retries" class="input-field" value="4">
+              </div>
+            </div>
+            <div class="check-grid" style="margin-top: 8px;">
+              <label class="check-label"><input type="checkbox" id="chk-low-latency" checked> Low Latency</label>
+              <label class="check-label"><input type="checkbox" id="chk-abr" checked> Auto ABR</label>
+              <label class="check-label"><input type="checkbox" id="chk-gaps" checked> Auto Jump Gaps</label>
+              <label class="check-label"><input type="checkbox" id="chk-start-muted"> Start Muted</label>
+              <label class="check-label"><input type="checkbox" id="chk-loop"> Loop Video</label>
+              <label class="check-label" title="Strip Referer header and only send Origin"><input type="checkbox" id="chk-no-referer"> No-Referer (Origin Only)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: DRM Matrix -->
+      <div class="tab-pane active" id="tab-drm">
+        <div class="pane-grid">
+          <div class="form-box" style="grid-column: 1 / -1;">
+            <div class="box-title">
+              ClearKey Key Pairs (KID:KEY or JSON)
+              <span id="clearkey-status-pill" style="font-size: 0.65rem; color: var(--accent-green);">0 keys parsed</span>
+            </div>
+            <div class="field-group">
+              <label>Paste ClearKeys (Format: KID:KEY or {"keys":[{"kid":"...","k":"..."}]})</label>
+              <textarea id="clearkey-input" class="input-field" style="min-height: 90px;" placeholder="ae7f16191e2adfaacd9b536ed58a298a:3319b3ca5cd6f0af2f3d4bd9a7630a8b"></textarea>
+              <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
+                <button class="btn-ctrl primary" id="btn-auto-match-keys" type="button" style="padding: 4px 12px; font-size: 0.75rem;"><i class="fa fa-magic"></i> Auto-Match Manifest KIDs</button>
+                <button class="btn-ctrl" id="btn-clean-matched-keys" type="button" style="padding: 4px 10px; font-size: 0.75rem;"><i class="fa fa-filter"></i> Keep Only Matched</button>
+                <span id="manifest-kid-status" style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted);"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-box" style="grid-column: 1 / -1;">
+            <div class="box-title">Browser DRM Compatibility Matrix</div>
+            <div class="drm-badge-grid" id="drm-support-matrix">
+              <div class="drm-badge" id="drm-badge-wv"><i class="fa fa-shield-alt"></i> Widevine: checking...</div>
+              <div class="drm-badge" id="drm-badge-pr"><i class="fa fa-shield-alt"></i> PlayReady: checking...</div>
+              <div class="drm-badge" id="drm-badge-fp"><i class="fa fa-shield-alt"></i> FairPlay: checking...</div>
+              <div class="drm-badge" id="drm-badge-ck"><i class="fa fa-shield-alt"></i> ClearKey: checking...</div>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">DRM System Presets</div>
+            <div class="field-group">
+              <label>System Provider</label>
+              <select id="drm-system" class="input-field">
+                <option value="none">None / Unencrypted</option>
+                <option value="clearkey" selected>ClearKey</option>
+                <option value="widevine">Widevine Modular</option>
+                <option value="playready">Microsoft PlayReady</option>
+                <option value="fairplay">Apple FairPlay (HLS)</option>
+                <option value="multi">Multi-DRM (Widevine + PlayReady + FairPlay)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>License Request Custom Header</label>
+              <input type="text" id="lic-hdr-custom" class="input-field" placeholder="X-Custom-Auth: token_value">
+            </div>
+            <div class="field-group">
+              <label>License Payload Wrap Mode</label>
+              <select id="lic-body-wrap" class="input-field">
+                <option value="raw">Raw Binary Challenge (Standard)</option>
+                <option value="base64">Base64 Encoded Challenge</option>
+                <option value="json">JSON Wrapped {"challenge":"..."}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">License Servers</div>
+            <div class="field-group">
+              <label>Widevine License Server URL</label>
+              <input type="text" id="lic-url-wv" class="input-field" placeholder="https://cwip-shaka-proxy.appspot.com/header_auth...">
+            </div>
+            <div class="field-group">
+              <label>PlayReady License Server URL</label>
+              <input type="text" id="lic-url-pr" class="input-field" placeholder="https://playready.directtaps.net/pr/svc/rightsmanager.asmx">
+            </div>
+            <div class="field-group">
+              <label>FairPlay License Server URL</label>
+              <input type="text" id="lic-url-fp" class="input-field" placeholder="https://license.apple-fairplay.com/process">
+            </div>
+            <div class="field-group">
+              <label>FairPlay Server Certificate URL (.der / .cer)</label>
+              <input type="text" id="lic-url-fp-cert" class="input-field" placeholder="https://license.apple-fairplay.com/fairplay.der">
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Audio DSP & Subs -->
+      <div class="tab-pane" id="tab-audio">
+        <div class="pane-grid">
+          <div class="form-box">
+            <div class="box-title">Audio Tracks</div>
+            <div class="field-group">
+              <label>Select Track</label>
+              <select id="audio-track-select" class="input-field">
+                <option value="">No audio tracks loaded</option>
+              </select>
+            </div>
+            <div class="field-group" style="margin-top: 8px;">
+              <label>Audio Gain Boost (100% - 300%)</label>
+              <div class="range-wrap">
+                <input type="range" id="audio-gain-slider" min="1" max="3" step="0.1" value="1">
+                <span id="audio-gain-val">100%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">5-Band Audio Equalizer</div>
+            <div class="field-group">
+              <label>EQ Presets</label>
+              <select id="eq-preset-select" class="input-field">
+                <option value="flat">Flat (Default)</option>
+                <option value="bass">Bass Boost</option>
+                <option value="vocal">Vocal / Dialogue Enhance</option>
+                <option value="treble">Treble Boost</option>
+              </select>
+            </div>
+            <div class="field-row" style="margin-top: 6px;">
+              <div class="field-group">
+                <label>60Hz (Bass)</label>
+                <input type="range" class="eq-slider" data-band="0" min="-12" max="12" value="0">
+              </div>
+              <div class="field-group">
+                <label>250Hz</label>
+                <input type="range" class="eq-slider" data-band="1" min="-12" max="12" value="0">
+              </div>
+              <div class="field-group">
+                <label>1kHz (Mid)</label>
+                <input type="range" class="eq-slider" data-band="2" min="-12" max="12" value="0">
+              </div>
+              <div class="field-group">
+                <label>4kHz</label>
+                <input type="range" class="eq-slider" data-band="3" min="-12" max="12" value="0">
+              </div>
+              <div class="field-group">
+                <label>12kHz (Treble)</label>
+                <input type="range" class="eq-slider" data-band="4" min="-12" max="12" value="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">Subtitles & Captions</div>
+            <div class="field-group">
+              <label>Active Subtitle Track</label>
+              <select id="text-track-select" class="input-field">
+                <option value="off">Off</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label>Font Size</label>
+                <select id="sub-size" class="input-field">
+                  <option value="1rem">Normal</option>
+                  <option value="1.3rem">Large</option>
+                  <option value="1.6rem">Huge</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label>Text Color</label>
+                <input type="color" id="sub-color" class="input-field" value="#ffffff" style="height: 36px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Video FX & Layout -->
+      <div class="tab-pane" id="tab-video">
+        <div class="pane-grid">
+          <div class="form-box">
+            <div class="box-title">Aspect Ratio Overrides</div>
+            <div class="field-group">
+              <label>Select Mode</label>
+              <select id="aspect-ratio-select" class="input-field">
+                <option value="auto">Auto (16:9 Standard)</option>
+                <option value="ratio-4-3">4:3 TV Classic</option>
+                <option value="ratio-21-9">21:9 Ultrawide Cinema</option>
+                <option value="ratio-fill">Stretch to Fill Container</option>
+                <option value="ratio-zoom">Zoom / Cover</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">Color Grading Presets</div>
+            <div class="field-group">
+              <label>Select Preset</label>
+              <select id="video-fx-preset" class="input-field">
+                <option value="normal">Normal (Default)</option>
+                <option value="cyberpunk">Cyberpunk Neon</option>
+                <option value="cinema">Cinema Dark</option>
+                <option value="matrix">Matrix Cyber Green</option>
+                <option value="sepia">Retro Sepia</option>
+                <option value="night">Night Vision</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-box" style="grid-column: 1 / -1;">
+            <div class="box-title">
+              Manual CSS Video Adjustments
+              <button class="btn-ctrl" id="btn-reset-vfx" style="padding: 2px 8px; font-size: 0.65rem;">RESET FX</button>
+            </div>
+            <div class="pane-grid">
+              <div class="field-group">
+                <label>Brightness</label>
+                <div class="range-wrap">
+                  <input type="range" id="vfx-bright" min="50" max="180" value="100">
+                  <span id="vfx-bright-val">100%</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label>Contrast</label>
+                <div class="range-wrap">
+                  <input type="range" id="vfx-contrast" min="50" max="200" value="100">
+                  <span id="vfx-contrast-val">100%</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label>Saturation</label>
+                <div class="range-wrap">
+                  <input type="range" id="vfx-saturate" min="0" max="250" value="100">
+                  <span id="vfx-saturate-val">100%</span>
+                </div>
+              </div>
+              <div class="field-group">
+                <label>Hue Shift</label>
+                <div class="range-wrap">
+                  <input type="range" id="vfx-hue" min="0" max="360" value="0">
+                  <span id="vfx-hue-val">0°</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: Spectrum & Glow -->
+      <div class="tab-pane" id="tab-visualizer">
+        <div class="pane-grid">
+          <div class="form-box">
+            <div class="box-title">Canvas Audio Visualizer</div>
+            <div class="field-group">
+              <label>Visualizer Mode</label>
+              <select id="viz-mode" class="input-field">
+                <option value="off">Disabled</option>
+                <option value="bars" selected>Frequency Bars</option>
+                <option value="wave">Oscilloscope Waveform</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Theme Color</label>
+              <select id="viz-color" class="input-field">
+                <option value="cyan">Neon Cyan</option>
+                <option value="red">Cyber Red</option>
+                <option value="green">Electric Green</option>
+                <option value="gold">Gold Flame</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">Ambient Canvas Glow</div>
+            <div class="check-grid" style="margin-top: 8px;">
+              <label class="check-label"><input type="checkbox" id="chk-ambient-glow" checked> Enable Reactive Ambient Glow</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: Telemetry Logs -->
+      <div class="tab-pane" id="tab-logs">
+        <div class="form-box">
+          <div class="box-title">
+            Stream Event & Error Diagnostics Console
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-ctrl" id="btn-copy-logs" style="padding: 2px 8px; font-size: 0.65rem;"><i class="fa fa-copy"></i> COPY LOGS</button>
+              <button class="btn-ctrl danger" id="btn-clear-logs" style="padding: 2px 8px; font-size: 0.65rem;"><i class="fa fa-trash"></i> CLEAR</button>
+            </div>
+          </div>
+          <div class="logs-table-wrap">
+            <table class="logs-table">
+              <thead>
+                <tr>
+                  <th style="width: 90px;">Time</th>
+                  <th style="width: 80px;">Level</th>
+                  <th>Message / Payload</th>
+                </tr>
+              </thead>
+              <tbody id="logs-table-body">
+                <!-- Log rows dynamically injected -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 7: History & M3U Drawer -->
+      <div class="tab-pane" id="tab-history">
+        <div class="pane-grid">
+          <div class="form-box">
+            <div class="box-title">
+              Stream History & Favorites
+              <button class="btn-ctrl danger" id="btn-clear-history" style="padding: 2px 8px; font-size: 0.65rem;">CLEAR HISTORY</button>
+            </div>
+            <div class="channel-list" id="recents-list">
+              <!-- Recents list -->
+            </div>
+          </div>
+
+          <div class="form-box">
+            <div class="box-title">
+              M3U / M3U8 Playlist Parser
+              <input type="file" id="m3u-file-input" accept=".m3u,.m3u8,.txt" style="display:none">
+              <button class="btn-ctrl" id="btn-trigger-m3u-file" style="padding: 2px 8px; font-size: 0.65rem;"><i class="fa fa-upload"></i> UPLOAD M3U</button>
+            </div>
+            <div class="field-row" style="margin-bottom: 6px;">
+              <input type="text" id="m3u-url-input" class="input-field" placeholder="https://example.com/playlist.m3u">
+              <button class="btn-ctrl" id="btn-fetch-m3u-url" style="padding: 4px 10px; font-size: 0.75rem; white-space: nowrap;">FETCH URL</button>
+            </div>
+            <div class="field-group">
+              <input type="text" id="m3u-search" class="input-field" placeholder="Search playlist channels...">
+            </div>
+            <div class="channel-list" id="m3u-channel-list">
+              <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); padding: 12px; text-align: center;">Upload or fetch an M3U playlist to load channels.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Shortcuts Help Modal -->
+<div class="modal-overlay" id="keys-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa fa-keyboard"></i> Keyboard Shortcuts</div>
+      <button class="btn-ctrl danger" id="btn-close-keys-modal" style="padding: 4px 10px;"><i class="fa fa-times"></i></button>
+    </div>
+    <div class="key-grid">
+      <div class="key-item"><span>Play / Pause</span> <kbd>SPACE</kbd></div>
+      <div class="key-item"><span>Fullscreen</span> <kbd>F</kbd></div>
+      <div class="key-item"><span>Picture-in-Picture</span> <kbd>P</kbd></div>
+      <div class="key-item"><span>Mute / Unmute</span> <kbd>M</kbd></div>
+      <div class="key-item"><span>Take Frame Snapshot</span> <kbd>S</kbd></div>
+      <div class="key-item"><span>Record 5s Clip</span> <kbd>R</kbd></div>
+      <div class="key-item"><span>Toggle HUD Overlay</span> <kbd>H</kbd></div>
+      <div class="key-item"><span>Seek -5s / +5s</span> <kbd>← / →</kbd></div>
+      <div class="key-item"><span>Volume +/- 10%</span> <kbd>↑ / ↓</kbd></div>
+      <div class="key-item"><span>Seek 10% - 90%</span> <kbd>1 - 9</kbd></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==========================================================================
+   ULTRA PLAYER PRO — Core Engine Architecture
+   ========================================================================== */
+
+let player = null;
+let ui = null;
+let audioCtx = null;
+let gainNode = null;
+let eqNodes = [];
+let analyserNode = null;
+let statsInterval = null;
+let visualizerAnimFrame = null;
+let ambientAnimFrame = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let abLoop = { a: null, b: null };
+let recentsHistory = JSON.parse(localStorage.getItem('ultra_recents') || '[]');
+
+const v = document.getElementById('video-element');
+const stageFrame = document.getElementById('video-stage-frame');
+const canvasViz = document.getElementById('visualizer-canvas');
+const canvasAmbient = document.getElementById('ambient-canvas');
+const ctxViz = canvasViz.getContext('2d');
+const ctxAmbient = canvasAmbient.getContext('2d');
+
+async function checkBrowserDRMSupport() {
+  const systems = [
+    { id: 'wv', name: 'Widevine', sys: 'com.widevine.alpha' },
+    { id: 'pr', name: 'PlayReady', sys: 'com.microsoft.playready' },
+    { id: 'fp', name: 'FairPlay', sys: 'com.apple.fps.1_0' },
+    { id: 'ck', name: 'ClearKey', sys: 'org.w3.clearkey' }
+  ];
+  for (const s of systems) {
+    const el = document.getElementById(`drm-badge-${s.id}`);
+    if (!el) continue;
+    try {
+      if (navigator.requestMediaKeySystemAccess) {
+        await navigator.requestMediaKeySystemAccess(s.sys, [{
+          initDataTypes: ['cenc', 'keyids'],
+          videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.42E01E"' }]
+        }]);
+        el.className = 'drm-badge supported';
+        el.innerHTML = `<i class="fa fa-check-circle"></i> ${s.name}: SUPPORTED`;
+      } else {
+        el.className = 'drm-badge unsupported';
+        el.innerHTML = `<i class="fa fa-times-circle"></i> ${s.name}: N/A`;
+      }
+    } catch (e) {
+      el.className = 'drm-badge unsupported';
+      el.innerHTML = `<i class="fa fa-times-circle"></i> ${s.name}: UNSUPPORTED`;
+    }
+  }
+}
+
+// --- Initialization ---
+async function bootPlayer() {
+  shaka.polyfill.installAll();
+  if (!shaka.Player.isBrowserSupported()) {
+    logEvent('ERROR', 'Browser not supported by Shaka Player');
+    showError({ message: 'Browser not supported by Shaka Player engine' });
+    return;
+  }
+
+  player = new shaka.Player();
+  await player.attach(v);
+  ui = new shaka.ui.Overlay(player, stageFrame, v);
+  ui.configure({
+    'fadeDelay': 8,
+    'controlPanelElements': ['play_pause', 'time_and_duration', 'volume', 'spacer', 'language', 'picture_in_picture', 'overflow_menu', 'fullscreen'],
+    'addBigPlayButton': true
+  });
+
+  player.addEventListener('error', e => handleShakaError(e.detail));
+  player.addEventListener('adaptation', updateHeaderTelemetry);
+  player.addEventListener('variantchanged', () => {
+    updateHeaderTelemetry();
+    populateAudioTracks();
+    renderProAudioFlags();
+  });
+  player.addEventListener('trackschanged', () => {
+    populateAudioTracks();
+    populateTextTracks();
+    renderProAudioFlags();
+  });
+  v.addEventListener('timeupdate', () => {
+    checkABLoop();
+    updateLiveTimeOffset();
+  });
+
+  statsInterval = setInterval(() => {
+    updateHeaderTelemetry();
+    updateStatsHUD();
+    updateLiveTimeOffset();
+  }, 1000);
+  
+  setupTabNavigation();
+  setupAuthModeToggle();
+  setupClearKeyValidation();
+  setupVFXHandlers();
+  setupEQHandlers();
+  setupKeyboardShortcuts();
+  renderRecentsList();
+  resizeCanvases();
+  window.addEventListener('resize', resizeCanvases);
+
+  checkUrlParams();
+
+  logEvent('INFO', 'Ultra Player Pro Studio initialized');
+}
+
+// --- Log Engine ---
+function logEvent(level, message) {
+  const tbody = document.getElementById('logs-table-body');
+  const tr = document.createElement('tr');
+  const now = new Date().toISOString().split('T')[1].slice(0, 8);
+  tr.innerHTML = `
+    <td>${now}</td>
+    <td><span class="log-level ${level}">${level}</span></td>
+    <td>${escapeHTML(String(message))}</td>
+  `;
+  tbody.prepend(tr);
+  if (tbody.children.length > 200) tbody.removeChild(tbody.lastChild);
+}
+
+function escapeHTML(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// --- Status & Telemetry ---
+function setStatus(text, type) {
+  const pill = document.getElementById('status-pill');
+  pill.textContent = text;
+  pill.className = type || '';
+  logEvent('INFO', `Playback status changed: ${text}`);
+}
+
+let lastDecodedFrames = 0;
+let lastFpsCheckTime = performance.now();
+let currentRealFPS = 0;
+
+function calculateFPS() {
+  const now = performance.now();
+  if (v && v.getVideoPlaybackQuality) {
+    const q = v.getVideoPlaybackQuality();
+    const total = q.totalVideoFrames || 0;
+    const dt = (now - lastFpsCheckTime) / 1000;
+    if (dt >= 0.5) {
+      if (lastDecodedFrames > 0 && total >= lastDecodedFrames) {
+        currentRealFPS = Math.round((total - lastDecodedFrames) / dt);
+      }
+      lastDecodedFrames = total;
+      lastFpsCheckTime = now;
+    }
+  }
+  if (!currentRealFPS && player) {
+    const tracks = player.getVariantTracks();
+    const active = tracks.find(t => t.active);
+    if (active && active.frameRate) {
+      currentRealFPS = Math.round(active.frameRate);
+    }
+  }
+  return currentRealFPS;
+}
+
+function updateHeaderTelemetry() {
+  if (!player) return;
+  const stats = player.getStats();
+  const bwMbps = (stats.estimatedBandwidth / 1e6).toFixed(2);
+  const tracks = player.getVariantTracks();
+  const active = tracks.find(t => t.active);
+  const res = active ? `${active.width}x${active.height}` : (v.videoWidth ? `${v.videoWidth}x${v.videoHeight}` : '—');
+  
+  const fps = calculateFPS();
+  const fpsText = fps > 0 ? `${fps} fps` : (active && active.frameRate ? `${Math.round(active.frameRate)} fps` : (v.videoWidth ? '60 fps' : '—'));
+
+  document.getElementById('bw-val').textContent = `${bwMbps} Mbps`;
+  document.getElementById('res-val').textContent = res;
+  document.getElementById('fps-val').textContent = fpsText;
+}
+
+function updateStatsHUD() {
+  const hud = document.getElementById('telemetry-hud');
+  if (!player || hud.style.display !== 'block') return;
+
+  const s = player.getStats();
+  const bwMbps = (s.estimatedBandwidth / 1e6).toFixed(2);
+  const tracks = player.getVariantTracks();
+  const active = tracks.find(t => t.active);
+  const res = active ? `${active.width}x${active.height}` : '—';
+  
+  let bufferAhead = 0;
+  if (v.buffered.length > 0) {
+    for (let i = 0; i < v.buffered.length; i++) {
+      if (v.currentTime >= v.buffered.start(i) && v.currentTime <= v.buffered.end(i)) {
+        bufferAhead = v.buffered.end(i) - v.currentTime;
+      }
+    }
+  }
+
+  let html = `<b>BANDWIDTH:</b> <span class="hud-val">${bwMbps} Mbps</span><br>`;
+  html += `<b>RESOLUTION:</b> <span class="hud-val">${res}</span><br>`;
+  html += `<b>BUFFER AHEAD:</b> <span class="hud-val">${bufferAhead.toFixed(1)} s</span><br>`;
+  html += `<b>DROPPED FRAMES:</b> <span class="hud-val">${s.droppedFrames || 0}</span><br>`;
+  html += `<b>AUDIO CODEC:</b> <span class="hud-val">${active ? active.audioCodec || 'AAC' : '—'}</span><br>`;
+  if (player.isLive()) {
+    const fullness = player.bufferFullness ? player.bufferFullness().toFixed(1) : '—';
+    html += `<b>LIVE LATENCY:</b> <span class="hud-val">${fullness} s</span><br>`;
+  }
+  hud.innerHTML = html;
+}
+
+let timeObserver = null;
+let currentLiveTimeStr = '';
+
+function updateLiveTimeOffset() {
+  if (!player) return;
+
+  const stage = stageFrame || document;
+  const timeLocEl = stage.querySelector('.shaka-time-location');
+  const curTimeEl = stage.querySelector('.shaka-current-time');
+  const liveBtn = stage.querySelector('.shaka-live-button');
+
+  const isLiveStream = (player && player.isLive && player.isLive()) || v.duration === Infinity || (v.duration && isNaN(v.duration));
+
+  if (!isLiveStream) {
+    if (timeObserver) {
+      timeObserver.disconnect();
+      timeObserver = null;
+    }
+    return;
+  }
+
+  const seekRange = (player && player.seekRange) ? player.seekRange() : null;
+  const end = (seekRange && seekRange.end) ? seekRange.end : (v.seekable && v.seekable.length ? v.seekable.end(v.seekable.length - 1) : v.currentTime);
+  const delaySec = Math.max(0, Math.floor(end - v.currentTime));
+
+  if (delaySec <= 1) {
+    currentLiveTimeStr = 'LIVE';
+  } else {
+    const mins = Math.floor(delaySec / 60);
+    const secs = delaySec % 60;
+    const formatted = mins > 0 ? `-${mins}:${secs < 10 ? '0' : ''}${secs}` : `-${secs}s`;
+    currentLiveTimeStr = `LIVE ${formatted}`;
+  }
+
+  const applyText = () => {
+    if (liveBtn && liveBtn.textContent !== currentLiveTimeStr) liveBtn.textContent = currentLiveTimeStr;
+    if (curTimeEl && curTimeEl.textContent !== currentLiveTimeStr) curTimeEl.textContent = currentLiveTimeStr;
+    if (timeLocEl && !liveBtn && !curTimeEl && timeLocEl.textContent !== currentLiveTimeStr) timeLocEl.textContent = currentLiveTimeStr;
+  };
+
+  applyText();
+
+  const target = curTimeEl || liveBtn || timeLocEl;
+  if (target && !timeObserver) {
+    timeObserver = new MutationObserver(() => {
+      if (player && (player.isLive() || v.duration === Infinity)) {
+        applyText();
+      }
+    });
+    timeObserver.observe(target, { childList: true, characterData: true, subtree: true });
+  }
+}
+
+// --- Request Filters & Headers ---
+function parseExtraHeaders() {
+  const raw = document.getElementById('extra-headers').value.trim();
+  const out = {};
+  if (!raw) return out;
+  raw.split('\n').forEach(line => {
+    const idx = line.indexOf(':');
+    if (idx > 0) {
+      const k = line.slice(0, idx).trim();
+      const val = line.slice(idx + 1).trim();
+      if (k && val) out[k] = val;
+    }
+  });
+  return out;
+}
+
+function parseClearKeys() {
+  const raw = document.getElementById('clearkey-input').value.trim();
+  const out = {};
+  const pill = document.getElementById('clearkey-status-pill');
+  if (!raw) {
+    if (pill) pill.textContent = '0 keys parsed';
+    return out;
+  }
+  try {
+    if (raw.startsWith('{') || raw.startsWith('[')) {
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : (parsed.keys || []);
+      list.forEach(item => {
+        if (item.kid && item.k) {
+          const k = item.kid.replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+          const val = item.k.replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+          out[k || item.kid] = val || item.k;
+        }
+      });
+      if (Object.keys(out).length > 0) {
+        if (pill) pill.textContent = `${Object.keys(out).length} keys parsed`;
+        return out;
+      }
+    }
+  } catch (e) {}
+
+  raw.split(/[\s,\n;]+/).forEach(pair => {
+    const s = pair.trim().replace(/^["']|["']$/g, '').split(':');
+    if (s.length === 2) {
+      const k = s[0].replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+      const val = s[1].replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+      if (k.length >= 32 && val.length >= 32) {
+        out[k] = val;
+      } else if (s[0].trim() && s[1].trim()) {
+        out[s[0].trim()] = s[1].trim();
+      }
+    }
+  });
+  if (pill) pill.textContent = `${Object.keys(out).length} keys parsed`;
+  return out;
+}
+
+function updateReferrerPolicy(policy) {
+  let meta = document.getElementById('meta-referrer-policy');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.id = 'meta-referrer-policy';
+    meta.name = 'referrer';
+    document.head.appendChild(meta);
+  }
+  meta.content = policy;
+}
+
+function buildRequestFilter() {
+  const mode = document.getElementById('auth-mode').value;
+  const val = document.getElementById('auth-val').value.trim();
+  const customName = document.getElementById('custom-hdr-name').value.trim() || 'X-Auth-Token';
+  const queryName = document.getElementById('query-param-name').value.trim() || 'token';
+  const noReferer = document.getElementById('chk-no-referer') && document.getElementById('chk-no-referer').checked;
+  const extra = parseExtraHeaders();
+
+  if (noReferer) {
+    updateReferrerPolicy('no-referrer');
+  } else {
+    updateReferrerPolicy('strict-origin-when-cross-origin');
+  }
+
+  return (type, req) => {
+    Object.entries(extra).forEach(([k, v]) => { req.headers[k] = v; });
+    if (noReferer) {
+      delete req.headers['Referer'];
+      delete req.headers['referer'];
+      delete req.headers['Referrer'];
+      delete req.headers['referrer'];
+    }
+    if (mode === 'bearer' && val) req.headers['Authorization'] = 'Bearer ' + val.replace(/^bearer\s+/i, '');
+    else if (mode === 'basic' && val) req.headers['Authorization'] = 'Basic ' + btoa(val);
+    else if (mode === 'custom' && val) req.headers[customName] = val;
+    else if (mode === 'query' && val) {
+      const url = new URL(req.uris[0]);
+      url.searchParams.set(queryName, val);
+      req.uris[0] = url.toString();
+    }
+
+    if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
+      const licHdr = document.getElementById('lic-hdr-custom').value.trim();
+      if (licHdr) {
+        const idx = licHdr.indexOf(':');
+        if (idx > 0) req.headers[licHdr.slice(0, idx).trim()] = licHdr.slice(idx + 1).trim();
+      }
+      const wrapMode = document.getElementById('lic-body-wrap').value;
+      if (wrapMode === 'base64' && req.body) {
+        const b64 = shaka.util.Uint8ArrayUtils.toBase64(new Uint8Array(req.body));
+        req.body = new TextEncoder().encode(b64);
+      } else if (wrapMode === 'json' && req.body) {
+        const b64 = shaka.util.Uint8ArrayUtils.toBase64(new Uint8Array(req.body));
+        req.body = new TextEncoder().encode(JSON.stringify({ challenge: b64 }));
+        req.headers['Content-Type'] = 'application/json';
+      }
+    }
+  };
+}
+
+// --- Main Play Execution ---
+async function playStream() {
+  let url = document.getElementById('stream-url').value.trim();
+  if (!url) {
+    showError({ message: 'Please enter or select a valid stream URL' });
+    return;
+  }
+
+  // Auto-detect KID:KEY pasted alongside URL (e.g. url#kid:key or url kid:key)
+  const keyPairMatch = url.match(/[#\s]+([a-fA-F0-9]{32}:[a-fA-F0-9]{32})/);
+  if (keyPairMatch) {
+    const extractedKey = keyPairMatch[1];
+    url = url.replace(keyPairMatch[0], '').trim();
+    document.getElementById('stream-url').value = url;
+    const currentClearKeyInput = document.getElementById('clearkey-input').value.trim();
+    if (!currentClearKeyInput || !currentClearKeyInput.includes(extractedKey)) {
+      document.getElementById('clearkey-input').value = extractedKey;
+      parseClearKeys();
+      logEvent('INFO', `Auto-detected ClearKey from URL input: ${extractedKey}`);
+    }
+  }
+
+  hideError();
+  setStatus('LOADING', 'loading');
+  logEvent('INFO', `Loading stream: ${url}`);
+
+  try {
+    await player.unload();
+
+    const ne = player.getNetworkingEngine();
+    ne.clearAllRequestFilters();
+    ne.registerRequestFilter(buildRequestFilter());
+
+    const drmSys = document.getElementById('drm-system').value;
+    const wvUrl = document.getElementById('lic-url-wv').value.trim();
+    const prUrl = document.getElementById('lic-url-pr').value.trim();
+    const bufGoal = parseFloat(document.getElementById('buf-goal').value) || 20;
+    const maxBw = parseInt(document.getElementById('max-bw').value) || 0;
+    const maxRetries = parseInt(document.getElementById('max-retries').value) || 4;
+
+    const cfg = {
+      preferredAudioLanguage: document.getElementById('pref-lang').value,
+      streaming: {
+        lowLatencyMode: document.getElementById('chk-low-latency').checked,
+        bufferingGoal: bufGoal,
+        retryParameters: { maxAttempts: maxRetries }
+      },
+      abr: { enabled: document.getElementById('chk-abr').checked },
+      drm: { servers: {}, retryParameters: { maxAttempts: maxRetries } }
+    };
+
+    if (maxBw > 0) cfg.abr.defaultBandwidthEstimate = maxBw * 1000;
+
+    const clearKeys = parseClearKeys();
+    if (Object.keys(clearKeys).length > 0 || drmSys === 'clearkey') {
+      if (Object.keys(clearKeys).length > 0) {
+        cfg.drm.clearKeys = clearKeys;
+      }
+      cfg.manifest = cfg.manifest || {};
+      cfg.manifest.ignoreDrmInfo = true;
+      cfg.manifest.dash = cfg.manifest.dash || {};
+      cfg.manifest.dash.ignoreDrmInfo = true;
+    }
+    if (wvUrl && (drmSys === 'widevine' || drmSys === 'multi' || drmSys === 'dual')) cfg.drm.servers['com.widevine.alpha'] = wvUrl;
+    if (prUrl && (drmSys === 'playready' || drmSys === 'multi' || drmSys === 'dual')) cfg.drm.servers['com.microsoft.playready'] = prUrl;
+
+    const fpUrl = document.getElementById('lic-url-fp').value.trim();
+    const fpCertUrl = document.getElementById('lic-url-fp-cert').value.trim();
+    if (fpUrl && (drmSys === 'fairplay' || drmSys === 'multi')) {
+      cfg.drm.servers['com.apple.fps.1_0'] = fpUrl;
+      if (fpCertUrl) {
+        cfg.drm.advanced = cfg.drm.advanced || {};
+        cfg.drm.advanced['com.apple.fps.1_0'] = { serverCertificateUri: fpCertUrl };
+      }
+    }
+
+    player.configure(cfg);
+
+    v.muted = document.getElementById('chk-start-muted').checked;
+    v.loop = document.getElementById('chk-loop').checked;
+
+    await player.load(url);
+    setStatus('PLAYING', 'playing');
+    saveRecentStream(url, drmSys);
+    startVisualizers();
+  } catch (e) {
+    setStatus('ERROR', 'error');
+    handleShakaError(e);
+  }
+}
+
+// --- Web Audio DSP & Equalizer ---
+function initAudioDSP() {
+  if (audioCtx) return;
+  const drmSys = document.getElementById('drm-system') ? document.getElementById('drm-system').value : 'none';
+  const clearKeys = parseClearKeys();
+  if (drmSys !== 'none' || Object.keys(clearKeys).length > 0) {
+    logEvent('INFO', 'Web Audio DSP bypassed to ensure DRM EME compatibility');
+    return;
+  }
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioContext();
+    const source = audioCtx.createMediaElementSource(v);
+
+    gainNode = audioCtx.createGain();
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 64;
+
+    // 5 Band EQ Nodes
+    const freqs = [60, 250, 1000, 4000, 12000];
+    eqNodes = freqs.map(f => {
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = f === 60 ? 'lowshelf' : (f === 12000 ? 'highshelf' : 'peaking');
+      filter.frequency.value = f;
+      filter.gain.value = 0;
+      return filter;
+    });
+
+    // Chain: Source -> EQ1..EQ5 -> Gain -> Analyser -> Destination
+    let node = source;
+    eqNodes.forEach(eq => {
+      node.connect(eq);
+      node = eq;
+    });
+    node.connect(gainNode);
+    gainNode.connect(analyserNode);
+    analyserNode.connect(audioCtx.destination);
+
+    logEvent('INFO', 'Web Audio DSP Engine initialized');
+  } catch (e) {
+    logEvent('WARN', 'Web Audio DSP failed to attach: ' + e.message);
+  }
+}
+
+function setupEQHandlers() {
+  document.querySelectorAll('.eq-slider').forEach(slider => {
+    slider.addEventListener('input', (e) => {
+      initAudioDSP();
+      const idx = parseInt(e.target.dataset.band);
+      if (eqNodes[idx]) eqNodes[idx].gain.value = parseFloat(e.target.value);
+    });
+  });
+
+  document.getElementById('eq-preset-select').addEventListener('change', (e) => {
+    const val = e.target.value;
+    const presets = {
+      flat: [0, 0, 0, 0, 0],
+      bass: [8, 4, 0, 0, 0],
+      vocal: [-2, 2, 6, 4, 0],
+      treble: [0, 0, 2, 6, 8]
+    };
+    const gains = presets[val] || presets.flat;
+    gains.forEach((g, i) => {
+      if (eqNodes[i]) eqNodes[i].gain.value = g;
+      const slider = document.querySelector(`.eq-slider[data-band="${i}"]`);
+      if (slider) slider.value = g;
+    });
+  });
+
+  document.getElementById('audio-gain-slider').addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    if (gainNode) gainNode.gain.value = val;
+    document.getElementById('audio-gain-val').textContent = `${Math.round(val * 100)}%`;
+  });
+}
+
+// --- Visualizers & Ambient Lighting ---
+function resizeCanvases() {
+  canvasViz.width = stageFrame.clientWidth;
+  canvasViz.height = 80;
+  canvasAmbient.width = 160;
+  canvasAmbient.height = 90;
+}
+
+function startVisualizers() {
+  if (visualizerAnimFrame) cancelAnimationFrame(visualizerAnimFrame);
+  if (ambientAnimFrame) cancelAnimationFrame(ambientAnimFrame);
+
+  function drawViz() {
+    visualizerAnimFrame = requestAnimationFrame(drawViz);
+    const mode = document.getElementById('viz-mode').value;
+    if (mode === 'off' || !analyserNode) {
+      ctxViz.clearRect(0, 0, canvasViz.width, canvasViz.height);
+      return;
+    }
+
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const theme = document.getElementById('viz-color').value;
+
+    const colors = {
+      cyan: '#00f0ff',
+      red: '#ff003c',
+      green: '#00ff66',
+      gold: '#ffb700'
+    };
+    const activeColor = colors[theme] || '#00f0ff';
+
+    ctxViz.clearRect(0, 0, canvasViz.width, canvasViz.height);
+
+    if (mode === 'bars') {
+      analyserNode.getByteFrequencyData(dataArray);
+      const barWidth = (canvasViz.width / bufferLength) * 2.5;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvasViz.height;
+        ctxViz.fillStyle = activeColor;
+        ctxViz.fillRect(x, canvasViz.height - barHeight, barWidth, barHeight);
+        x += barWidth + 2;
+      }
+    } else if (mode === 'wave') {
+      analyserNode.getByteTimeDomainData(dataArray);
+      ctxViz.lineWidth = 2;
+      ctxViz.strokeStyle = activeColor;
+      ctxViz.beginPath();
+
+      const sliceWidth = canvasViz.width * 1.0 / bufferLength;
+      let x = 0;
+
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = v * canvasViz.height / 2;
+        if (i === 0) ctxViz.moveTo(x, y);
+        else ctxViz.lineTo(x, y);
+        x += sliceWidth;
+      }
+      ctxViz.stroke();
+    }
+  }
+
+  function drawAmbient() {
+    ambientAnimFrame = requestAnimationFrame(drawAmbient);
+    if (!document.getElementById('chk-ambient-glow').checked || v.paused || v.ended) return;
+    try {
+      ctxAmbient.drawImage(v, 0, 0, canvasAmbient.width, canvasAmbient.height);
+    } catch (e) {}
+  }
+
+  drawViz();
+  drawAmbient();
+}
+
+// --- Video FX & Presets ---
+function setupVFXHandlers() {
+  const inputs = ['vfx-bright', 'vfx-contrast', 'vfx-saturate', 'vfx-hue'];
+  inputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', applyCSSVideoFilters);
+  });
+
+  document.getElementById('aspect-ratio-select').addEventListener('change', (e) => {
+    stageFrame.className = 'video-frame ' + e.target.value;
+  });
+
+  document.getElementById('video-fx-preset').addEventListener('change', (e) => {
+    const presets = {
+      normal: { bright: 100, contrast: 100, saturate: 100, hue: 0 },
+      cyberpunk: { bright: 110, contrast: 140, saturate: 180, hue: 320 },
+      cinema: { bright: 90, contrast: 130, saturate: 85, hue: 0 },
+      matrix: { bright: 100, contrast: 150, saturate: 200, hue: 90 },
+      sepia: { bright: 95, contrast: 105, saturate: 40, hue: 30 },
+      night: { bright: 140, contrast: 180, saturate: 0, hue: 120 }
+    };
+    const p = presets[e.target.value] || presets.normal;
+    document.getElementById('vfx-bright').value = p.bright;
+    document.getElementById('vfx-contrast').value = p.contrast;
+    document.getElementById('vfx-saturate').value = p.saturate;
+    document.getElementById('vfx-hue').value = p.hue;
+    applyCSSVideoFilters();
+  });
+
+  document.getElementById('btn-reset-vfx').addEventListener('click', () => {
+    document.getElementById('video-fx-preset').value = 'normal';
+    document.getElementById('vfx-bright').value = 100;
+    document.getElementById('vfx-contrast').value = 100;
+    document.getElementById('vfx-saturate').value = 100;
+    document.getElementById('vfx-hue').value = 0;
+    applyCSSVideoFilters();
+  });
+}
+
+function applyCSSVideoFilters() {
+  const bright = document.getElementById('vfx-bright').value;
+  const contrast = document.getElementById('vfx-contrast').value;
+  const saturate = document.getElementById('vfx-saturate').value;
+  const hue = document.getElementById('vfx-hue').value;
+
+  document.getElementById('vfx-bright-val').textContent = `${bright}%`;
+  document.getElementById('vfx-contrast-val').textContent = `${contrast}%`;
+  document.getElementById('vfx-saturate-val').textContent = `${saturate}%`;
+  document.getElementById('vfx-hue-val').textContent = `${hue}°`;
+
+  v.style.filter = `brightness(${bright}%) contrast(${contrast}%) saturate(${saturate}%) hue-rotate(${hue}deg)`;
+}
+
+// --- Tracks Switching ---
+function populateAudioTracks() {
+  const select = document.getElementById('audio-track-select');
+  select.innerHTML = '';
+  if (!player) return;
+
+  const tracks = player.getVariantTracks();
+  const languages = [...new Set(tracks.map(t => t.language))];
+
+  tracks.forEach((t, i) => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = `[${t.language.toUpperCase()}] ${t.width}x${t.height} (${(t.bandwidth / 1000).toFixed(0)} kbps)`;
+    if (t.active) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  select.onchange = () => {
+    const track = tracks.find(t => t.id === parseInt(select.value));
+    if (track) player.selectVariantTrack(track, true);
+  };
+}
+
+function populateTextTracks() {
+  const select = document.getElementById('text-track-select');
+  select.innerHTML = '<option value="off">Off</option>';
+  if (!player) return;
+
+  const tracks = player.getTextTracks();
+  tracks.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = `${t.label || t.language.toUpperCase()}`;
+    select.appendChild(opt);
+  });
+
+  select.onchange = () => {
+    if (select.value === 'off') {
+      player.setTextTrackVisibility(false);
+    } else {
+      const track = tracks.find(t => t.id === parseInt(select.value));
+      if (track) {
+        player.selectTextTrack(track);
+        player.setTextTrackVisibility(true);
+      }
+    }
+  };
+}
+
+// --- Audio Flags Language Switcher ---
+function getProLangFlag(lang) {
+  if (!lang) return '🌐 MAIN';
+  const l = lang.toLowerCase();
+  if (l.startsWith('en')) return '🇬🇧 ENG';
+  if (l.startsWith('de')) return '🇩🇪 DEU';
+  if (l.startsWith('cs') || l.startsWith('cz')) return '🇨🇿 CZE';
+  if (l.startsWith('es')) return '🇪🇸 ESP';
+  if (l.startsWith('fr')) return '🇫🇷 FRA';
+  if (l.startsWith('it')) return '🇮🇹 ITA';
+  if (l.startsWith('pt')) return '🇵🇹 POR';
+  if (l.startsWith('nl')) return '🇳🇱 NLD';
+  if (l.startsWith('ru')) return '🇷🇺 RUS';
+  if (l.startsWith('pl')) return '🇵🇱 POL';
+  return `🌐 ${lang.toUpperCase().slice(0, 3)}`;
+}
+
+function renderProAudioFlags() {
+  const container = document.getElementById('pro-audio-flags');
+  if (!player || !container) return;
+
+  const tracks = player.getVariantTracks() || [];
+  const audioTracks = [];
+  const seen = new Set();
+
+  tracks.forEach(t => {
+    const key = `${t.language}_${t.audioId || t.roles?.join('_') || ''}`;
+    if (!seen.has(key) && t.language) {
+      seen.add(key);
+      audioTracks.push(t);
+    }
+  });
+
+  if (audioTracks.length <= 1) {
+    const singleLang = audioTracks[0] ? getProLangFlag(audioTracks[0].language) : '🇬🇧 MAIN / AUTO';
+    container.innerHTML = `<span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);"><i class="fa fa-headphones"></i> AUDIO:</span><span class="pro-audio-pill active">${singleLang}</span>`;
+    return;
+  }
+
+  container.innerHTML = `<span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);"><i class="fa fa-headphones"></i> AUDIO:</span>` +
+    audioTracks.map(t => {
+      const label = getProLangFlag(t.language);
+      const isActive = t.active ? 'active' : '';
+      return `<button class="pro-audio-pill ${isActive}" onclick="switchProAudioTrack('${t.language}')">${label}</button>`;
+    }).join('');
+}
+
+function switchProAudioTrack(lang) {
+  if (!player) return;
+  player.selectAudioLanguage(lang);
+  logEvent('INFO', `Switched audio track language to: ${lang}`);
+  setTimeout(renderProAudioFlags, 200);
+}
+
+// --- Live Delay Buffer Tuner ---
+let playerLiveOffset = -7;
+
+async function setPlayerLiveOffset(offset) {
+  playerLiveOffset = offset;
+  document.querySelectorAll('#deck-live-delay .pill-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById(`pro-buf-${Math.abs(offset)}`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  logEvent('INFO', `Target live latency buffer set to ${offset}s`);
+  if (player && (player.isLive() || v.duration === Infinity)) {
+    const cfg = player.getConfiguration();
+    cfg.streaming = cfg.streaming || {};
+    cfg.streaming.safeSeekOffset = Math.abs(offset);
+    cfg.streaming.bufferingGoal = Math.max(10, Math.abs(offset) + 5);
+    player.configure(cfg);
+    
+    const seekRange = player.seekRange();
+    if (seekRange && seekRange.end) {
+      v.currentTime = Math.max(seekRange.start, seekRange.end + offset);
+    }
+  }
+}
+
+// --- Auto Key-Matcher Engine ---
+async function autoMatchManifestKeys() {
+  const url = document.getElementById('stream-url').value.trim();
+  const statusEl = document.getElementById('manifest-kid-status');
+  if (!url || !url.includes('.mpd')) {
+    if (statusEl) statusEl.innerHTML = '<span style="color: var(--accent-red);">Enter a valid .mpd URL first</span>';
+    return;
+  }
+  
+  if (statusEl) statusEl.innerHTML = '<span style="color: var(--accent-gold);"><i class="fa fa-spinner fa-spin"></i> Scanning MPD manifest...</span>';
+  logEvent('INFO', `Scanning manifest KIDs for auto-matching: ${url}`);
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+
+    const kidsInManifest = [...text.matchAll(/cenc:default_KID="([^"]+)"/gi)]
+      .map(m => m[1].replace(/[^0-9a-fA-F]/g, '').toLowerCase());
+    const uniqueKids = [...new Set(kidsInManifest)];
+
+    if (uniqueKids.length === 0) {
+      if (statusEl) statusEl.innerHTML = '<span style="color: var(--accent-cyan);">Stream has no explicit cenc:default_KID in MPD</span>';
+      return;
+    }
+
+    const rawKeys = document.getElementById('clearkey-input').value;
+    const matched = [];
+    const missing = [];
+
+    uniqueKids.forEach(kid => {
+      const reg = new RegExp(`${kid}[\\s:=,\'"]+([0-9a-fA-F]{32})`, 'i');
+      const m = rawKeys.match(reg);
+      if (m && m[1]) {
+        matched.push({ kid, key: m[1].toLowerCase() });
+      } else {
+        missing.push(kid);
+      }
+    });
+
+    if (matched.length > 0 && missing.length === 0) {
+      if (statusEl) statusEl.innerHTML = `<span style="color: var(--accent-green);"><i class="fa fa-check-circle"></i> Matched ${matched.length}/${uniqueKids.length} KIDs (Audio & Video 100% OK)</span>`;
+      logEvent('INFO', `All ${matched.length} KIDs matched perfectly!`);
+    } else if (matched.length > 0 && missing.length > 0) {
+      if (statusEl) statusEl.innerHTML = `<span style="color: var(--accent-gold);"><i class="fa fa-exclamation-triangle"></i> Partial: ${matched.length}/${uniqueKids.length} KIDs. Missing: ${missing.join(', ')}</span>`;
+      logEvent('WARN', `Partial KID match: missing ${missing.length} keys`);
+    } else {
+      if (statusEl) statusEl.innerHTML = `<span style="color: var(--accent-red);"><i class="fa fa-times-circle"></i> 0/${uniqueKids.length} KIDs matched. Need: ${uniqueKids.join(', ')}</span>`;
+      logEvent('WARN', `No matching keys found for manifest KIDs: ${uniqueKids.join(', ')}`);
+    }
+
+    window._lastMatchedKeys = matched;
+  } catch (err) {
+    if (statusEl) statusEl.innerHTML = `<span style="color: var(--accent-red);">Scan error: ${err.message}</span>`;
+    logEvent('ERROR', `Auto-match error: ${err.message}`);
+  }
+}
+
+function cleanMatchedKeys() {
+  if (window._lastMatchedKeys && window._lastMatchedKeys.length > 0) {
+    const lines = window._lastMatchedKeys.map(k => `${k.kid}:${k.key}`).join('\n');
+    document.getElementById('clearkey-input').value = lines;
+    parseClearKeys();
+    logEvent('INFO', `Filtered ClearKey box to only ${window._lastMatchedKeys.length} verified matched keys`);
+  } else {
+    autoMatchManifestKeys().then(() => {
+      if (window._lastMatchedKeys && window._lastMatchedKeys.length > 0) cleanMatchedKeys();
+    });
+  }
+}
+
+// --- Multi-View Grid System ---
+const MultiView = {
+  active: false,
+  layout: '2x2',
+  players: [],
+  streams: [
+    { url: '', name: 'Main Feed' },
+    { url: '', name: 'Feed #2' },
+    { url: '', name: 'Feed #3' },
+    { url: '', name: 'Feed #4' }
+  ],
+
+  toggle() {
+    this.active = !this.active;
+    const stageFrame = document.getElementById('video-stage-frame');
+    const mvStage = document.getElementById('multiview-stage');
+    const layoutSel = document.getElementById('mv-layout-select');
+    const btn = document.getElementById('btn-toggle-multiview');
+
+    if (this.active) {
+      stageFrame.style.display = 'none';
+      mvStage.style.display = 'grid';
+      layoutSel.style.display = 'inline-block';
+      btn.classList.add('active');
+      this.initGrid();
+      logEvent('INFO', 'Activated Multi-View Grid Mode');
+    } else {
+      stageFrame.style.display = 'block';
+      mvStage.style.display = 'none';
+      layoutSel.style.display = 'none';
+      btn.classList.remove('active');
+      this.destroyGrid();
+      logEvent('INFO', 'Deactivated Multi-View Grid Mode (Master Stage Active)');
+    }
+  },
+
+  setLayout(layout) {
+    this.layout = layout;
+    const mvStage = document.getElementById('multiview-stage');
+    mvStage.className = `multiview-grid layout-${layout}`;
+    this.initGrid();
+  },
+
+  initGrid() {
+    const mvStage = document.getElementById('multiview-stage');
+    this.destroyGrid();
+    mvStage.innerHTML = '';
+    const count = this.layout === '1x2' ? 2 : 4;
+    
+    const mainUrl = document.getElementById('stream-url').value.trim();
+    if (mainUrl && !this.streams[0].url) this.streams[0].url = mainUrl;
+
+    for (let i = 0; i < count; i++) {
+      const cell = document.createElement('div');
+      cell.className = `mv-cell ${i === 0 ? 'active-audio' : ''}`;
+      cell.id = `mv-cell-${i}`;
+      cell.innerHTML = `
+        <div class="mv-cell-toolbar">
+          <span class="mv-title">${escapeHTML(this.streams[i]?.name || 'Feed #' + (i + 1))}</span>
+          <div>
+            <button class="mv-btn ${i === 0 ? 'solo' : ''}" title="Solo Audio" onclick="MultiView.setAudioSolo(${i})"><i class="fa fa-volume-up"></i></button>
+            <button class="mv-btn" title="Fullscreen" onclick="MultiView.fullscreenCell(${i})"><i class="fa fa-expand"></i></button>
+          </div>
+        </div>
+        <video id="mv-video-${i}" autoplay playsinline ${i > 0 ? 'muted' : ''}></video>
+      `;
+      mvStage.appendChild(cell);
+
+      const cellVideo = cell.querySelector('video');
+      const cellPlayer = new shaka.Player();
+      cellPlayer.attach(cellVideo).catch(() => {});
+      this.players.push(cellPlayer);
+
+      const clearKeys = parseClearKeys();
+      if (Object.keys(clearKeys).length > 0) {
+        cellPlayer.configure({ drm: { clearKeys } });
+      }
+
+      const streamUrl = this.streams[i]?.url || mainUrl;
+      if (streamUrl) {
+        cellPlayer.load(streamUrl).catch(() => {});
+      }
+    }
+  },
+
+  setAudioSolo(idx) {
+    for (let i = 0; i < this.players.length; i++) {
+      const vEl = document.getElementById(`mv-video-${i}`);
+      const cellEl = document.getElementById(`mv-cell-${i}`);
+      const soloBtn = cellEl?.querySelector('.mv-btn');
+      if (vEl) {
+        vEl.muted = (i !== idx);
+        if (cellEl) cellEl.classList.toggle('active-audio', i === idx);
+        if (soloBtn) soloBtn.classList.toggle('solo', i === idx);
+      }
+    }
+    logEvent('INFO', `Multi-View audio routed to Feed #${idx + 1}`);
+  },
+
+  fullscreenCell(idx) {
+    const cell = document.getElementById(`mv-cell-${idx}`);
+    if (cell) {
+      if (!document.fullscreenElement) cell.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  },
+
+  destroyGrid() {
+    this.players.forEach(p => {
+      try { p.destroy(); } catch (e) {}
+    });
+    this.players = [];
+  }
+};
+
+// --- URL Parameter Stream Loader ---
+function checkUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const stream = params.get('stream') || params.get('url') || params.get('mpd');
+  const keys = params.get('keys') || params.get('key');
+  const name = params.get('name') || params.get('title');
+  const drm = params.get('drm');
+
+  if (stream) {
+    document.getElementById('stream-url').value = stream;
+    if (name) {
+      document.title = `${name} — Ultra Pro Player`;
+      const brandTitle = document.querySelector('.brand-title');
+      if (brandTitle) brandTitle.innerHTML = `${escapeHTML(name)} <span class="brand-tag">PRO</span>`;
+    }
+    if (keys) {
+      document.getElementById('clearkey-input').value = keys;
+      document.getElementById('drm-system').value = 'clearkey';
+      parseClearKeys();
+    }
+    if (drm) {
+      document.getElementById('drm-system').value = drm;
+    }
+    logEvent('INFO', `Auto-loaded stream from URL params: ${name || stream}`);
+    setTimeout(() => { playStream(); }, 150);
+  }
+}
+
+// --- AB Looper & Tools ---
+function checkABLoop() {
+  if (abLoop.a !== null && abLoop.b !== null) {
+    if (v.currentTime >= abLoop.b) v.currentTime = abLoop.a;
+  }
+}
+
+const btnAbLoop = document.getElementById('btn-ab-loop');
+if (btnAbLoop) {
+  btnAbLoop.addEventListener('click', () => {
+    if (abLoop.a === null) {
+      abLoop.a = v.currentTime;
+      logEvent('INFO', `AB Loop Start set: ${abLoop.a.toFixed(1)}s`);
+      btnAbLoop.classList.add('active');
+    } else if (abLoop.b === null) {
+      abLoop.b = v.currentTime;
+      logEvent('INFO', `AB Loop End set: ${abLoop.b.toFixed(1)}s`);
+    } else {
+      abLoop.a = null;
+      abLoop.b = null;
+      btnAbLoop.classList.remove('active');
+      logEvent('INFO', 'AB Loop cleared');
+    }
+  });
+}
+
+// Snapshot Frame
+document.getElementById('btn-snapshot').addEventListener('click', () => {
+  if (!v.videoWidth) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = v.videoWidth;
+  canvas.height = v.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.filter = v.style.filter;
+  ctx.drawImage(v, 0, 0);
+
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `snapshot_${Date.now()}.png`;
+  a.click();
+  logEvent('INFO', 'Captured PNG Frame Snapshot');
+});
+
+// Record 5s Clip
+document.getElementById('btn-record-clip').addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') return;
+  try {
+    const stream = v.captureStream ? v.captureStream() : v.mozCaptureStream();
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `clip_${Date.now()}.webm`;
+      a.click();
+      logEvent('INFO', 'Exported 5s WebM Video Clip');
+    };
+    mediaRecorder.start();
+    logEvent('INFO', 'Started 5s Clip Recording...');
+    setTimeout(() => { if (mediaRecorder.state === 'recording') mediaRecorder.stop(); }, 5000);
+  } catch (e) {
+    logEvent('ERROR', 'MediaRecorder error: ' + e.message);
+  }
+});
+
+// --- History & Recents ---
+function saveRecentStream(url, drm) {
+  if (!url) return;
+  const clearKeyInput = document.getElementById('clearkey-input').value.trim();
+  recentsHistory = recentsHistory.filter(r => r.url !== url);
+  recentsHistory.unshift({ 
+    url, 
+    drm: drm || 'clearkey', 
+    clearKeyInput, 
+    time: new Date().toLocaleTimeString() 
+  });
+  if (recentsHistory.length > 25) recentsHistory.pop();
+  localStorage.setItem('ultra_recents', JSON.stringify(recentsHistory));
+  renderRecentsList();
+}
+
+function renderRecentsList() {
+  const container = document.getElementById('recents-list');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!recentsHistory || !recentsHistory.length) {
+    container.innerHTML = '<div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); padding: 12px; text-align: center;">No stream history recorded yet. Load a stream to save it here.</div>';
+    return;
+  }
+  recentsHistory.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'channel-item';
+    div.style.cursor = 'pointer';
+    div.innerHTML = `
+      <div style="flex: 1; overflow: hidden;">
+        <div class="channel-name" style="font-weight: 600; color: #fff;">${escapeHTML(item.url.split('/').pop().split('?')[0] || item.url)}</div>
+        <div class="channel-url" style="font-size: 0.68rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHTML(item.url)}</div>
+      </div>
+      <span class="brand-tag" style="font-size: 0.65rem; padding: 2px 6px; border-radius: 2px; text-transform: uppercase;">${escapeHTML(item.drm || 'AUTO')}</span>
+    `;
+    div.onclick = () => {
+      document.getElementById('stream-url').value = item.url;
+      if (item.drm) document.getElementById('drm-system').value = item.drm;
+      if (item.clearKeyInput) {
+        document.getElementById('clearkey-input').value = item.clearKeyInput;
+        parseClearKeys();
+      }
+      playStream();
+    };
+    container.appendChild(div);
+  });
+}
+
+document.getElementById('btn-clear-history').addEventListener('click', () => {
+  recentsHistory = [];
+  localStorage.removeItem('ultra_recents');
+  renderRecentsList();
+});
+
+// --- M3U Playlist Parser ---
+document.getElementById('btn-trigger-m3u-file').addEventListener('click', () => {
+  document.getElementById('m3u-file-input').click();
+});
+
+document.getElementById('m3u-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => parseM3UContent(evt.target.result);
+  reader.readAsText(file);
+});
+
+function parseM3UContent(content) {
+  const lines = content.split('\n');
+  const channels = [];
+  let currentName = 'Channel';
+
+  lines.forEach(line => {
+    line = line.trim();
+    if (line.startsWith('#EXTINF:')) {
+      const idx = line.indexOf(',');
+      if (idx > 0) currentName = line.slice(idx + 1).trim();
+    } else if (line && !line.startsWith('#')) {
+      channels.push({ name: currentName, url: line });
+      currentName = 'Channel';
+    }
+  });
+
+  renderM3UChannels(channels);
+  logEvent('INFO', `Parsed ${channels.length} channels from M3U playlist`);
+}
+
+function renderM3UChannels(channels) {
+  const container = document.getElementById('m3u-channel-list');
+  container.innerHTML = '';
+  channels.forEach(ch => {
+    const div = document.createElement('div');
+    div.className = 'channel-item';
+    div.innerHTML = `
+      <div>
+        <div class="channel-name">${escapeHTML(ch.name)}</div>
+        <div class="channel-url">${escapeHTML(ch.url)}</div>
+      </div>
+      <i class="fa fa-play-circle" style="color: var(--accent-cyan);"></i>
+    `;
+    div.onclick = () => {
+      document.getElementById('stream-url').value = ch.url;
+      playStream();
+    };
+    container.appendChild(div);
+  });
+}
+
+// --- UI Navigation & Tab Handlers ---
+function setupTabNavigation() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+function setupAuthModeToggle() {
+  const m = document.getElementById('auth-mode');
+  m.addEventListener('change', () => {
+    const val = m.value;
+    document.getElementById('wrap-auth-val').style.display = val === 'none' ? 'none' : 'block';
+    document.getElementById('wrap-custom-hdr').style.display = val === 'custom' ? 'block' : 'none';
+    document.getElementById('wrap-query-param').style.display = val === 'query' ? 'block' : 'none';
+  });
+}
+
+function setupClearKeyValidation() {
+  const input = document.getElementById('clearkey-input');
+  input.addEventListener('input', () => {
+    const keys = parseClearKeys();
+    const count = Object.keys(keys).length;
+    document.getElementById('clearkey-status-pill').textContent = `${count} keys parsed`;
+  });
+
+  const noRef = document.getElementById('chk-no-referer');
+  if (noRef) {
+    noRef.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        updateReferrerPolicy('no-referrer');
+        logEvent('INFO', 'Referrer policy set to No-Referer (Origin header only, Referer stripped)');
+      } else {
+        updateReferrerPolicy('strict-origin-when-cross-origin');
+        logEvent('INFO', 'Referrer policy restored to default');
+      }
+    });
+  }
+}
+
+// --- Keyboard Hotkeys ---
+function setupKeyboardShortcuts() {
+  window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+    if (e.code === 'Space') { e.preventDefault(); v.paused ? v.play() : v.pause(); }
+    else if (e.code === 'KeyF') { e.preventDefault(); toggleFullscreen(); }
+    else if (e.code === 'KeyP') { e.preventDefault(); togglePiP(); }
+    else if (e.code === 'KeyM') { e.preventDefault(); v.muted = !v.muted; }
+    else if (e.code === 'KeyS') { e.preventDefault(); document.getElementById('btn-snapshot').click(); }
+    else if (e.code === 'KeyR') { e.preventDefault(); document.getElementById('btn-record-clip').click(); }
+    else if (e.code === 'KeyH') { e.preventDefault(); toggleHUD(); }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); v.currentTime -= 5; }
+    else if (e.code === 'ArrowRight') { e.preventDefault(); v.currentTime += 5; }
+    else if (e.code === 'ArrowUp') { e.preventDefault(); v.volume = Math.min(1, v.volume + 0.1); }
+    else if (e.code === 'ArrowDown') { e.preventDefault(); v.volume = Math.max(0, v.volume - 0.1); }
+    else if (e.code.startsWith('Digit') && e.code !== 'Digit0') {
+      const pct = parseInt(e.code.replace('Digit', '')) * 0.1;
+      if (v.duration) v.currentTime = v.duration * pct;
+    }
+  });
+}
+
+// --- Aux Controls ---
+function toggleFullscreen() {
+  if (!document.fullscreenElement) stageFrame.requestFullscreen();
+  else document.exitFullscreen();
+}
+
+async function togglePiP() {
+  try {
+    if (document.pictureInPictureElement) await document.exitPictureInPicture();
+    else await v.requestPictureInPicture();
+  } catch (e) {
+    showError({ message: 'PiP Error: ' + e.message });
+  }
+}
+
+function toggleHUD() {
+  const hud = document.getElementById('telemetry-hud');
+  hud.style.display = hud.style.display === 'block' ? 'none' : 'block';
+  document.getElementById('btn-toggle-hud').classList.toggle('active', hud.style.display === 'block');
+}
+
+function showError(e) {
+  const banner = document.getElementById('error-banner');
+  document.getElementById('error-message-text').textContent = e.message || 'Stream loading error';
+  banner.style.display = 'flex';
+}
+
+function hideError() {
+  document.getElementById('error-banner').style.display = 'none';
+}
+
+function handleShakaError(e) {
+  let msg = 'Shaka Engine Error';
+  if (e && e.category !== undefined) {
+    const cat = Object.keys(shaka.util.Error.Category).find(k => shaka.util.Error.Category[k] === e.category) || e.category;
+    const code = Object.keys(shaka.util.Error.Code).find(k => shaka.util.Error.Code[k] === e.code) || e.code;
+    msg = `[${cat} #${e.code}] ${code || 'Error'}`;
+
+    if (e.code === 4012) {
+      msg += ' — Restrictions cannot be met. In multi-key streams, video tracks cannot decrypt without their video ClearKeys.';
+      try {
+        const currentUrl = document.getElementById('stream-url').value.trim();
+        const currentKeys = parseClearKeys();
+        if (currentUrl.includes('.mpd')) {
+          fetch(currentUrl).then(r => r.text()).then(txt => {
+            const defaultKids = [...txt.matchAll(/cenc:default_KID="([^"]+)"/gi)].map(m => m[1].replace(/-/g, '').toLowerCase());
+            const uniqueKids = [...new Set(defaultKids)];
+            const missing = uniqueKids.filter(k => !currentKeys[k]);
+            if (missing.length > 0) {
+              logEvent('WARN', `Multi-Key stream detected (${uniqueKids.length} keys required). Missing key(s) for KID(s): ${missing.join(', ')}`);
+            }
+          }).catch(() => {});
+        }
+      } catch (err) {}
+    }
+    else if (e.code === 6001) {
+      msg += ' — DRM / Codec not supported by browser. (Note: This stream uses HEVC/H.265 video. HEVC is NOT supported in Firefox and requires Hardware Acceleration enabled in Chrome/Edge, plus a secure origin like HTTPS or localhost)';
+    }
+    else if (e.code === 6002) {
+      msg += ' — Key System unsupported by browser. (Note: EME is blocked on file:// protocol; run via http://localhost or https://)';
+    }
+    else if (e.code === 6003) msg += ' — DRM MediaKeys failed to attach to video';
+    else if (e.code === 6004) msg += ' — Unplayable encrypted content. Verify ClearKeys or License Server URL';
+    else if (e.code === 6007) msg += ' — License Server returned HTTP error';
+    else if (e.code === 6008) msg += ' — ClearKey decryption failed. Check KID:KEY hex pairs';
+    else if (e.code === 6012) msg += ' — License response rejected by browser EME';
+  } else if (e && e.message) {
+    msg = e.message;
+  }
+
+  logEvent('ERROR', msg);
+  showError({ message: msg });
+}
+
+function on(id, ev, fn) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(ev, fn);
+}
+
+on('btn-main-load', 'click', playStream);
+on('btn-main-stop', 'click', async () => {
+  if (player) {
+    await player.unload();
+    setStatus('IDLE', '');
+    hideError();
+  }
+});
+
+on('btn-paste-url', 'click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    const input = document.getElementById('stream-url');
+    if (input) input.value = text.trim();
+  } catch (e) {}
+});
+
+on('btn-clear-url', 'click', () => {
+  const input = document.getElementById('stream-url');
+  if (input) input.value = '';
+});
+
+on('preset-selector', 'change', (e) => {
+  if (e.target.value) {
+    const input = document.getElementById('stream-url');
+    if (input) input.value = e.target.value;
+    playStream();
+  }
+});
+
+on('btn-step-prev', 'click', () => { if (v) v.currentTime -= 0.04; });
+on('btn-step-next', 'click', () => { if (v) v.currentTime += 0.04; });
+on('btn-toggle-hud', 'click', toggleHUD);
+on('btn-fullscreen', 'click', toggleFullscreen);
+on('btn-pip', 'click', togglePiP);
+on('clearkey-input', 'input', parseClearKeys);
+on('btn-err-retry', 'click', playStream);
+on('btn-err-dismiss', 'click', hideError);
+
+on('btn-auto-match-keys', 'click', autoMatchManifestKeys);
+on('btn-clean-matched-keys', 'click', cleanMatchedKeys);
+on('btn-toggle-multiview', 'click', () => MultiView.toggle());
+on('mv-layout-select', 'change', (e) => MultiView.setLayout(e.target.value));
+
+on('btn-open-keys', 'click', () => {
+  const m = document.getElementById('keys-modal');
+  if (m) m.style.display = 'flex';
+});
+on('btn-close-keys-modal', 'click', () => {
+  const m = document.getElementById('keys-modal');
+  if (m) m.style.display = 'none';
+});
+on('btn-open-m3u', 'click', () => {
+  const btn = document.querySelector('.tab-btn[data-tab="tab-history"]');
+  if (btn) btn.click();
+});
+on('btn-open-recents', 'click', () => {
+  const btn = document.querySelector('.tab-btn[data-tab="tab-history"]');
+  if (btn) btn.click();
+});
+on('btn-copy-logs', 'click', () => {
+  const text = Array.from(document.querySelectorAll('#logs-table-body tr')).map(r => r.innerText).join('\n');
+  navigator.clipboard.writeText(text);
+  logEvent('INFO', 'Copied telemetry logs to clipboard');
+});
+on('btn-clear-logs', 'click', () => {
+  const tbody = document.getElementById('logs-table-body');
+  if (tbody) tbody.innerHTML = '';
+});
+
+on('speed-selector', 'change', (e) => {
+  if (v) v.playbackRate = parseFloat(e.target.value);
+  logEvent('INFO', `Playback speed set to ${e.target.value}x`);
+});
+
+on('btn-fetch-m3u-url', 'click', async () => {
+  const input = document.getElementById('m3u-url-input');
+  const url = input ? input.value.trim() : '';
+  if (!url) return;
+  logEvent('INFO', `Fetching M3U playlist from URL: ${url}`);
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    parseM3UContent(text);
+  } catch (e) {
+    logEvent('ERROR', `M3U Fetch Error: ${e.message}`);
+    showError({ message: `M3U Fetch Error: ${e.message}` });
+  }
+});
+
+on('m3u-search', 'input', (e) => {
+  const q = e.target.value.toLowerCase().trim();
+  document.querySelectorAll('#m3u-channel-list .channel-item').forEach(item => {
+    const name = item.querySelector('.channel-name')?.textContent.toLowerCase() || '';
+    const url = item.querySelector('.channel-url')?.textContent.toLowerCase() || '';
+    item.style.display = (name.includes(q) || url.includes(q)) ? 'flex' : 'none';
+  });
+});
+
+window.addEventListener('DOMContentLoaded', bootPlayer);
+</script>
+</body>
+</html>

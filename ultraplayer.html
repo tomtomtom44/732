@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="referrer" content="no-referrer">
+  <script src="tizen-adapter.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Stream Master Monitor (Ultra Sharp UI)</title>
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    
+    <!-- Google Fonts for developer/cyber aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Shaka Player core + UI assets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.ui.min.js"></script>
+    <script>(function(){if(typeof shaka!=='undefined'&&shaka.Player&&!shaka.Player._patched){const oC=shaka.Player.prototype.configure;shaka.Player.prototype.configure=function(c,v){if(typeof c==='object'){if(c.preferredAudioLanguage===undefined||c.preferredAudioLanguage===""||c.preferredAudioLanguage==="en"||c.preferredAudioLanguage==="eng")c.preferredAudioLanguage='en';}else if(typeof c==='string'&&c==='preferredAudioLanguage'){if(!v||v==='en'||v==='eng')v='en';}return oC.call(this,c,v);};const oL=shaka.Player.prototype.load;shaka.Player.prototype.load=function(){const curr=this.getConfiguration().preferredAudioLanguage;if(!curr||curr==='en'||curr==='eng')this.configure({preferredAudioLanguage:'en'});if(!this._langFallbackRegistered){this._langFallbackRegistered=true;this.addEventListener('trackschanged',()=>{try{const tracks=this.getVariantTracks?this.getVariantTracks():[];if(!tracks||!tracks.length)return;const hasEn=tracks.some(t=>t.language&&t.language.toLowerCase().startsWith('en'));if(!hasEn){const cs=tracks.find(t=>t.language&&(t.language.toLowerCase().startsWith('cs')||t.language.toLowerCase().startsWith('cz')));if(cs){const curr=this.getConfiguration().preferredAudioLanguage;if(!curr||(!curr.toLowerCase().startsWith('cs')&&!curr.toLowerCase().startsWith('cz'))){this.configure({preferredAudioLanguage:cs.language});}}}}catch(e){console.warn("Lang fallback error:",e);}});}return oL.apply(this,arguments);};shaka.Player._patched=true;}})();</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/controls.min.css">
+    
+    <style>:root{--bg-primary:#050507;--bg-secondary:#0b0b0e;--bg-glass:rgba(11,11,14,0.95);--bg-input:#101014;--border-color:rgba(255,255,255,0.05);--border-accent:rgba(255,0,60,0.15);--border-hover:rgba(255,0,60,0.5);--accent-red:#ff003c;--accent-red-hover:#ff2255;--accent-green:#00ff66;--accent-amber:#ffaa00;--accent-blue:#00d2ff;--text-main:#f5f5f7;--text-muted:#74747c;--font-ui:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-code:'JetBrains Mono','Courier New',Courier,monospace;--radius-main:4px;--radius-sub:2px;--shadow-premium:0 8px 32px rgba(0, 0, 0, 0.7);--transition-speed:0.15s}body{background:var(--bg-primary);color:var(--text-main);font-family:var(--font-ui);margin:0;padding:24px;min-height:100vh;overflow-x:hidden;letter-spacing:-0.2px}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg-primary)}::-webkit-scrollbar-thumb{background:#222228;border-radius:var(--radius-sub)}::-webkit-scrollbar-thumb:hover{background:var(--accent-red)}#header-bar{background:var(--bg-glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 20px;border-radius:var(--radius-main);border:1px solid var(--border-accent);margin-bottom:24px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;box-shadow:var(--shadow-premium)}.header-left{display:flex;align-items:center;gap:12px}.header-title-container{display:flex;flex-direction:column}.header-title{margin:0;font-size:20px;font-weight:700;letter-spacing:0.5px;font-family:var(--font-ui);background:linear-gradient(90deg,#fff 0%,var(--accent-red) 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 15px rgba(255,0,60,0.2)}#status-text{color:var(--text-muted);font-size:11px;font-weight:600;font-family:var(--font-code);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}.header-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.file-upload-wrapper{position:relative;overflow:hidden;display:inline-block}.file-upload-btn{border:1px solid var(--border-color);color:var(--text-main);background:rgba(255,255,255,0.02);padding:9px 14px;border-radius:var(--radius-sub);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition-speed);display:flex;align-items:center;gap:8px}.file-upload-btn:hover{border-color:var(--border-hover);background:rgba(255,0,60,0.04)}.file-upload-wrapper input[type=file]{font-size:100px;position:absolute;left:0;top:0;opacity:0;cursor:pointer}.btn-premium{background:var(--accent-red);color:white;border:none;padding:9px 16px;cursor:pointer;font-weight:600;font-size:13px;border-radius:var(--radius-sub);box-shadow:0 2px 10px rgba(255,0,60,0.2);transition:all var(--transition-speed);display:flex;align-items:center;gap:8px;letter-spacing:0.2px}.btn-premium:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(255,0,60,0.35);background:var(--accent-red-hover)}.btn-secondary{background:rgba(255,255,255,0.03);color:var(--text-main);border:1px solid var(--border-color);padding:9px 14px;cursor:pointer;font-weight:500;font-size:13px;border-radius:var(--radius-sub);transition:all var(--transition-speed);display:flex;align-items:center;gap:8px}.btn-secondary:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.15)}.search-container{position:relative}.search-input{background:var(--bg-input);border:1px solid var(--border-color);border-radius:var(--radius-sub);padding:9px 12px 9px 32px;color:var(--text-main);font-family:var(--font-ui);font-size:13px;width:150px;transition:all var(--transition-speed)}.search-input:focus{outline:none;border-color:var(--accent-red);box-shadow:0 0 8px rgba(255,0,60,0.15);width:200px}.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}#video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}.player-container{background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-main);position:relative;aspect-ratio:16/9;cursor:pointer;overflow:hidden;transition:all var(--transition-speed);box-shadow:0 4px 15px rgba(0,0,0,0.4)}.player-container:hover{border-color:var(--border-hover);z-index:10;transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,0,60,0.15)}.player-container.healthy{border-color:rgba(0,255,102,0.12)}.player-container.healthy:hover{border-color:var(--accent-green);box-shadow:0 8px 20px rgba(0,255,102,0.1)}.player-container.stalled{border-color:rgba(255,170,0,0.15);animation:pulse-stalled 2s infinite ease-in-out}.player-container.stalled:hover{border-color:var(--accent-amber);box-shadow:0 8px 20px rgba(255,170,0,0.1)}@keyframes pulse-stalled{0%,100%{border-color:rgba(255,170,0,0.15)}50%{border-color:rgba(255,170,0,0.45)}}.player-container.dead{border-color:rgba(255,0,60,0.25);opacity:0.6}.player-container.dead:hover{border-color:var(--accent-red);box-shadow:0 8px 20px rgba(255,0,60,0.15)}video{width:100%;height:100%;object-fit:contain !important;border-radius:calc(var(--radius-main) - 1px)}.channel-name{position:absolute;top:8px;left:8px;background:rgba(5,5,7,0.9);backdrop-filter:blur(8px);padding:5px 10px;font-size:11px;font-weight:600;z-index:10;color:var(--text-main);border-radius:var(--radius-sub);border:1px solid var(--border-color);display:flex;align-items:center;gap:6px;font-family:var(--font-code);text-transform:uppercase}.status-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);display:inline-block}.healthy .status-dot{background:var(--accent-green);box-shadow:0 0 6px var(--accent-green)}.stalled .status-dot{background:var(--accent-amber);box-shadow:0 0 6px var(--accent-amber)}.dead .status-dot{background:var(--accent-red);box-shadow:0 0 6px var(--accent-red)}.error-overlay{position:absolute;inset:0;background:rgba(5,5,7,0.95);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:20;color:var(--accent-red);backdrop-filter:blur(4px);text-align:center;padding:12px}.dead .error-overlay{display:flex}.err-reason{font-family:var(--font-code);margin-top:6px;background:rgba(255,0,60,0.05);padding:3px 6px;border-radius:var(--radius-sub);border:1px solid rgba(255,0,60,0.15);font-size:10px}#focus-modal{display:none;position:fixed;inset:0;background:rgba(3,3,5,0.99);z-index:999;overflow-y:auto;padding:30px 24px;box-sizing:border-box;flex-direction:column;align-items:center;justify-content:flex-start}#focus-container{width:100%;max-width:1050px;display:flex;flex-direction:column;gap:16px;animation:modal-fade var(--transition-speed) ease-out}@keyframes modal-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}#focus-wrapper{width:100%;aspect-ratio:16/9;background:#000;position:relative;border-radius:var(--radius-main);border:1px solid var(--border-accent);overflow:hidden;box-shadow:0 15px 45px rgba(0,0,0,0.9)}#close-btn{background:rgba(255,0,60,0.1);color:var(--accent-red);border:1px solid rgba(255,0,60,0.3);padding:8px 16px;cursor:pointer;font-weight:600;font-size:12px;border-radius:var(--radius-sub);transition:all var(--transition-speed);letter-spacing:0.5px}#close-btn:hover{background:var(--accent-red);color:white;border-color:var(--accent-red);box-shadow:0 0 12px rgba(255,0,60,0.3)}.dashboard-panel{background:var(--bg-glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-accent);border-radius:var(--radius-main);padding:20px;box-shadow:var(--shadow-premium);display:flex;flex-direction:column;gap:16px}.dashboard-section-title{margin:0;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent-red);display:flex;align-items:center;gap:8px;border-left:2px solid var(--accent-red);padding-left:8px}.surf-bar{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.01);border:1px solid var(--border-color);border-radius:var(--radius-sub);padding:10px 14px}.surf-btn{background:rgba(255,255,255,0.02);border:1px solid var(--border-color);color:white;border-radius:var(--radius-sub);padding:6px 12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;transition:all var(--transition-speed);font-family:var(--font-ui);font-size:12px}.surf-btn:hover{background:var(--accent-red);border-color:var(--accent-red);box-shadow:0 0 8px rgba(255,0,60,0.25)}.telemetry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.telemetry-card{background:rgba(255,255,255,0.01);border:1px solid var(--border-color);border-radius:var(--radius-sub);padding:10px 12px;display:flex;flex-direction:column;gap:4px}.telemetry-card.res{border-left:3px solid var(--accent-blue)}.telemetry-card.bit{border-left:3px solid var(--accent-green)}.telemetry-card.fps{border-left:3px solid var(--accent-blue)}.telemetry-card.buf{border-left:3px solid var(--accent-amber)}.telemetry-card.drop{border-left:3px solid var(--accent-red)}.telemetry-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);font-weight:500}.telemetry-value{font-size:14px;font-weight:700;font-family:var(--font-code);color:var(--text-main)}.detail-row{display:flex;flex-direction:column;gap:6px}.detail-header{display:flex;justify-content:space-between;align-items:center}.detail-input-container{display:flex;gap:8px;align-items:center;background:var(--bg-input);border:1px solid var(--border-color);border-radius:var(--radius-sub);padding:3px 3px 3px 10px}.detail-input-container:focus-within{border-color:rgba(255,0,60,0.3)}.detail-input{flex:1;background:transparent;border:none;color:var(--text-main);font-family:var(--font-code);font-size:12px;padding:6px 0;outline:none;width:100%}.btn-copy{background:rgba(255,255,255,0.03);border:1px solid var(--border-color);color:var(--text-main);padding:6px 12px;border-radius:var(--radius-sub);cursor:pointer;font-weight:600;font-size:11px;display:flex;align-items:center;gap:6px;transition:all var(--transition-speed)}.btn-copy:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12)}.btn-copy.copied{background:rgba(0,255,102,0.1) !important;border-color:var(--accent-green) !important;color:var(--accent-green) !important}.keys-table-container{border:1px solid var(--border-color);border-radius:var(--radius-sub);overflow:hidden;background:rgba(255,255,255,0.005)}.keys-table{width:100%;border-collapse:collapse;font-family:var(--font-code);font-size:11px;text-align:left}.keys-table th{background:rgba(255,255,255,0.015);border-bottom:1px solid var(--border-color);padding:8px 12px;color:var(--text-muted);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:0.5px}.keys-table td{border-bottom:1px solid var(--border-color);padding:8px 12px;color:var(--text-main);vertical-align:middle}.keys-table tr:last-child td{border-bottom:none}.key-text-mono{color:var(--accent-blue);background:rgba(0,210,255,0.03);padding:2px 4px;border-radius:var(--radius-sub);border:1px solid rgba(0,210,255,0.1)}.key-val-mono{color:var(--accent-green);background:rgba(0,255,102,0.03);padding:2px 4px;border-radius:var(--radius-sub);border:1px solid rgba(0,255,102,0.1)}#manual-add-panel{display:none;background:var(--bg-glass);backdrop-filter:blur(20px);border:1px solid var(--border-accent);border-radius:var(--radius-main);padding:16px 20px;margin-bottom:24px;box-shadow:var(--shadow-premium);flex-direction:column;gap:14px;animation:slide-down var(--transition-speed) ease-out}@keyframes slide-down{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.form-group{display:flex;flex-direction:column;gap:5px}.form-group label{font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px}.form-input{background:var(--bg-input);border:1px solid var(--border-color);border-radius:var(--radius-sub);padding:8px 12px;color:white;font-family:var(--font-ui);font-size:13px;transition:all var(--transition-speed)}.form-input:focus{border-color:var(--accent-red);outline:none}.form-input.mono{font-family:var(--font-code);font-size:12px}.shaka-video-container{border-radius:var(--radius-main)}.shaka-range-container input[type=range]::-webkit-slider-thumb{background:var(--accent-red) !important}.shaka-settings-menu{background:rgba(10,10,14,0.98) !important;border:1px solid rgba(255,255,255,0.05) !important;border-radius:var(--radius-main) !important;backdrop-filter:blur(20px);padding:4px !important;box-shadow:0 8px 24px rgba(0,0,0,0.8);color:#f5f5f7 !important}.shaka-settings-menu *{color:#f5f5f7 !important}.shaka-settings-menu button{border-radius:var(--radius-sub) !important;padding:6px 10px !important;font-family:var(--font-ui) !important;font-size:12px !important;color:#f5f5f7 !important}.shaka-settings-menu button:hover{background:rgba(255,0,60,0.15) !important;color:#fff !important}
+video {
+    background-color: transparent !important;
+}
+.shaka-big-buttons-container,
+.shaka-play-button-container,
+.shaka-play-button,
+.shaka-video-container.pip-placeholder,
+.pip-poster,
+.pip-blur-overlay {
+    display: none !important;
+}
+
+
+:fullscreen, :-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}
+:fullscreen video, :-webkit-full-screen video,
+:fullscreen .player-container, :-webkit-full-screen .player-container,
+:fullscreen #focus-wrapper, :-webkit-full-screen #focus-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+</style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <div id="header-bar">
+        <div class="header-left">
+            <div style="font-size: 22px;">📺</div>
+            <div class="header-title-container">
+                <h1 class="header-title">ULTRAMONITOR</h1>
+                <div id="status-text">Ready. Upload playlist file</div>
+            </div>
+        </div>
+        <div class="header-controls">
+            <!-- Search bar -->
+            <div class="search-container">
+                <svg class="search-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="search-input" class="search-input" placeholder="Search..." oninput="filterGrid()">
+            </div>
+            
+            <!-- File upload -->
+            <div class="file-upload-wrapper">
+                <button class="file-upload-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    Choose File
+                </button>
+                <input type="file" id="fileInput" accept=".txt">
+            </div>
+            
+            <button class="btn-premium" onclick="startLoading()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                START ENGINE
+            </button>
+            
+            <button class="btn-secondary" onclick="toggleManualAdd()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                MANUAL ADD
+            </button>
+            
+            <button class="btn-secondary" onclick="clearCache()" style="color:#ff3355;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                RESET
+            </button>
+        </div>
+    </div>
+
+    <!-- Sliding custom manual stream adder -->
+    <div id="manual-add-panel">
+        <h3 style="margin: 0; font-size: 13px; color: var(--accent-red); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Add Custom Stream</h3>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="manual-name">Channel Name</label>
+                <input type="text" id="manual-name" class="form-input" placeholder="e.g. My Sports HD">
+            </div>
+            <div class="form-group">
+                <label for="manual-url">DASH Manifest URL (.mpd)</label>
+                <input type="text" id="manual-url" class="form-input mono" placeholder="https://example.com/stream.mpd">
+            </div>
+            <div class="form-group">
+                <label for="manual-keys">ClearKeys (kid:key,kid:key)</label>
+                <input type="text" id="manual-keys" class="form-input mono" placeholder="a1b2c3d4e5f6:1a2b3c4d5e6f">
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 2px;">
+            <button class="btn-premium" onclick="addManualStream()" style="background: var(--accent-green); color:#000; box-shadow: 0 2px 10px rgba(0, 255, 102, 0.2);">Save Stream</button>
+            <button class="btn-secondary" onclick="toggleManualAdd()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- The Grid of low-resolution streams -->
+    <div id="video-grid"></div>
+
+    <!-- Scrollable Focus Modal (Theatre Mode) -->
+    <div id="focus-modal">
+        <div id="focus-container">
+            <!-- Modal Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; width:100%;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="status-dot" style="background:var(--accent-green); box-shadow:0 0 8px var(--accent-green); width:8px; height:8px;"></span>
+                    <h2 id="focus-title" style="margin: 0; font-size: 20px; font-weight: 700; color: #fff; font-family:var(--font-code); text-transform:uppercase;">Channel Name</h2>
+                </div>
+                <button id="close-btn" onclick="closeFocus()">CLOSE & RESUME GRID</button>
+            </div>
+            
+            <!-- Shaka Player Wrapper -->
+            <div id="focus-wrapper">
+                <div id="focus-ui-container" style="width:100%; height:100%;">
+                    <video id="focus-video" style="width:100%; height:100%;" autoplay playsinline webkit-playsinline></video>
+                </div>
+            </div>
+            
+            <!-- Diagnostics & Keys details under the player -->
+            <div id="focus-info-panel" class="dashboard-panel">
+                
+                <!-- Channel Surfing controls -->
+                <div class="surf-bar">
+                    <button class="surf-btn" onclick="playAdjacentChannel(-1)">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        PREV CHANNEL
+                    </button>
+                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted); font-family: var(--font-code);">SURF STREAMS [ ← / → KEYS ]</span>
+                    <button class="surf-btn" onclick="playAdjacentChannel(1)">
+                        NEXT CHANNEL
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </button>
+                </div>
+
+                <!-- Telemetry Grid -->
+                <div>
+                    <h3 class="dashboard-section-title">Telemetry Diagnostics</h3>
+                    <div class="telemetry-grid" style="margin-top:10px;">
+                        <div class="telemetry-card res">
+                            <span class="telemetry-label">Active Resolution</span>
+                            <span id="stat-resolution" class="telemetry-value">Detecting...</span>
+                        </div>
+                        <div class="telemetry-card bit">
+                            <span class="telemetry-label">Bitrate / Bandwidth</span>
+                            <span id="stat-bandwidth" class="telemetry-value">Detecting...</span>
+                        </div>
+                        <div class="telemetry-card fps">
+                            <span class="telemetry-label">Frame Rate</span>
+                            <span id="stat-fps" class="telemetry-value">Detecting...</span>
+                        </div>
+                        <div class="telemetry-card buf">
+                            <span class="telemetry-label">Buffer Health</span>
+                            <span id="stat-buffering" class="telemetry-value">0.0s</span>
+                        </div>
+                        <div class="telemetry-card drop">
+                            <span class="telemetry-label">Dropped Frames</span>
+                            <span id="stat-dropped" class="telemetry-value" style="color:var(--accent-amber);">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MPD link details -->
+                <div class="detail-row">
+                    <div class="detail-header">
+                        <h3 class="dashboard-section-title">DASH Manifest Manifest</h3>
+                    </div>
+                    <div class="detail-input-container">
+                        <input type="text" id="focus-mpd-url" class="detail-input" readonly value="https://example.com/manifest.mpd">
+                        <button id="btn-copy-mpd" class="btn-copy" onclick="copyMpdLink()">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy MPD URL</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ClearKeys section -->
+                <div class="detail-row">
+                    <div class="detail-header">
+                        <h3 class="dashboard-section-title">ClearKeys (Decrypted String)</h3>
+                    </div>
+                    <div class="detail-input-container">
+                        <!-- Space-free target output -->
+                        <input type="text" id="focus-raw-keys" class="detail-input" readonly value="kid:key,kid:key">
+                        <button id="btn-copy-raw" class="btn-copy" onclick="copyRawKeys()">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy Keys (No Spaces)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Structured keys database -->
+                <div class="detail-row">
+                    <div class="detail-header">
+                        <h3 class="dashboard-section-title">Decoded Keys Database</h3>
+                    </div>
+                    <div class="keys-table-container">
+                        <table class="keys-table">
+                            <thead>
+                                <tr>
+                                    <th>Key ID (KID)</th>
+                                    <th>Decryption Key (KEY)</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="keys-table-body">
+                                <!-- Populated Dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    let loadedEntries = [];
+    let activeGridItems = [];
+    let focusPlayer = null;
+    let focusUI = null;
+    let currentFocusIndex = -1;
+    let statsInterval = null;
+
+    shaka.polyfill.installAll();
+
+    // Cache or preset load on initial startup
+    window.addEventListener('DOMContentLoaded', async () => {
+        // 1. Try to fetch preset playlist from catbox
+        try {
+            const response = await fetch('https://files.catbox.moe/ks88m8.txt');
+            if (response.ok) {
+                const text = await response.text();
+                loadedEntries = parseDynamicTxt(text);
+                if (loadedEntries.length > 0) {
+                    localStorage.setItem('monitor_channels', JSON.stringify(loadedEntries));
+                    document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels (Catbox Loaded)`;
+                    await renderGrid();
+                    return; // Skip loading cache fallback
+                }
+            }
+        } catch (e) {
+            console.warn("Preset playlist fetch failed. Checking local cache...", e);
+        }
+
+        // 2. Fallback: Load cache if available
+        const cached = localStorage.getItem('monitor_channels');
+        if (cached) {
+            try {
+                loadedEntries = JSON.parse(cached);
+                if (loadedEntries.length > 0) {
+                    document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels (Cached)`;
+                    renderGrid();
+                }
+            } catch (e) {
+                console.error("Failed to parse cached channels:", e);
+            }
+        }
+    });
+
+    async function startLoading() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        if (!file) return alert("Select a txt file first!");
+
+        try {
+            const text = await file.text();
+            loadedEntries = parseDynamicTxt(text);
+            
+            if (loadedEntries.length === 0) {
+                alert("No channels could be parsed. Check your txt layout.");
+                return;
+            }
+            
+            // Save parsed channels to LocalStorage cache
+            localStorage.setItem('monitor_channels', JSON.stringify(loadedEntries));
+            
+            document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels`;
+            await renderGrid();
+        } catch (e) {
+            console.error("Error reading file:", e);
+            alert("Error reading file: " + e.message);
+        }
+    }
+
+    function extractName(url) {
+        try {
+            const parts = url.split('/');
+            let name = parts[parts.length - 2]; 
+            if (name.includes('-dashwv')) name = name.replace('-dashwv', '');
+            return name;
+        } catch (e) { return "Unknown Channel"; }
+    }
+
+    function parseDynamicTxt(text) {
+        const results = [];
+        const chunks = text.split(/https:\/\//).filter(c => c.trim().length > 0);
+        chunks.forEach(chunk => {
+            const lines = chunk.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length >= 2) {
+                const url = "https://" + lines[0];
+                
+                // STRICTLY REMOVE ALL SPACES inside ClearKeys string
+                const keyLine = lines[1].replace(/\s+/g, '');
+                
+                const cleanName = extractName(url);
+                const clearKeys = {};
+                keyLine.split(',').forEach(pair => {
+                    const [kid, key] = pair.split(':');
+                    if (kid && key) clearKeys[kid] = key;
+                });
+                results.push({ url, clearKeys, name: cleanName, rawKeys: keyLine });
+            }
+        });
+        return results;
+    }
+
+    async function renderGrid() {
+        // Stop current running grid items and clear watchdogs
+        activeGridItems.forEach(item => {
+            if (item.watchdogInterval) clearInterval(item.watchdogInterval);
+            try { item.player.destroy(); } catch (e) {}
+        });
+        
+        const grid = document.getElementById('video-grid');
+        grid.innerHTML = '';
+        activeGridItems = [];
+        
+        // 1. Synchronously build DOM structure in fragment so cards appear instantly
+        const fragment = document.createDocumentFragment();
+        const itemsToInit = [];
+
+        for (let i = 0; i < loadedEntries.length; i++) {
+            const data = loadedEntries[i];
+            const container = document.createElement('div');
+            container.className = 'player-container healthy';
+            container.id = `grid-item-${i}`;
+            container.innerHTML = `
+                <div class="channel-name">
+                    <span class="status-dot"></span>
+                    <span>${data.name}</span>
+                </div>
+                <div class="error-overlay">
+                    <div style="font-size:20px; margin-bottom:5px;">⚠️</div>
+                    <div style="font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;">OFFLINE</div>
+                    <div class="err-reason">Error</div>
+                </div>
+            `;
+            
+            const video = document.createElement('video');
+            video.muted = true;
+            video.autoplay = true;
+            video.playsInline = true;
+
+            container.appendChild(video);
+            container.onclick = () => openFocusByIndex(i);
+            fragment.appendChild(container);
+
+            itemsToInit.push({ container, video, data, index: i });
+        }
+        grid.appendChild(fragment);
+
+        // 2. High-speed parallel batch initialization (3 streams concurrently with stagger delay)
+        const BATCH_SIZE = 3;
+        for (let i = 0; i < itemsToInit.length; i += BATCH_SIZE) {
+            const batch = itemsToInit.slice(i, i + BATCH_SIZE);
+            await Promise.all(batch.map(item => initGridPlayer(item)));
+            await new Promise(r => setTimeout(r, 150));
+        }
+    }
+
+    async function initGridPlayer({ container, video, data, index }) {
+        const player = new shaka.Player(video);
+        player.configure({
+            preferredAudioLanguage: 'eng',
+            drm: { clearKeys: data.clearKeys },
+            restrictions: { maxHeight: 360 },
+            manifest: {
+                retryParameters: { maxAttempts: 3, timeout: 8000 }
+            },
+            streaming: {
+                bufferingGoal: 2,
+                rebufferingGoal: 1,
+                bufferBehind: 5,
+                retryParameters: { maxAttempts: 3, timeout: 8000 }
+            },
+            abr: { enabled: false }
+        });
+
+        const itemObj = { 
+            player, 
+            video, 
+            data, 
+            container, 
+            index, 
+            watchdogInterval: null 
+        };
+        activeGridItems.push(itemObj);
+
+        // Immediate failure trigger
+        const markDead = (reason) => {
+            container.classList.remove('healthy', 'stalled');
+            container.classList.add('dead');
+            container.querySelector('.err-reason').innerText = reason;
+            if (itemObj.watchdogInterval) clearInterval(itemObj.watchdogInterval);
+            try { player.destroy(); } catch (e) {}
+        };
+
+        player.addEventListener('error', (e) => {
+            console.error("Grid Player error:", e);
+            markDead("Error");
+        });
+
+        // Watchdog monitoring loop to detect frozen streams & silent failures
+        let lastTime = -1;
+        let stuckCount = 0;
+        let playAttempts = 0;
+
+        itemObj.watchdogInterval = setInterval(() => {
+            if (container.classList.contains('dead') || !itemObj.video) {
+                clearInterval(itemObj.watchdogInterval);
+                return;
+            }
+
+            const curTime = video.currentTime;
+
+            if (!video.paused) {
+                if (curTime === lastTime || curTime === 0) {
+                    stuckCount++;
+                    if (stuckCount >= 3) {
+                        container.classList.remove('healthy');
+                        container.classList.add('stalled');
+                        container.querySelector('.err-reason').innerText = "Stalled";
+                    }
+                    if (stuckCount >= 8) {
+                        markDead("Frozen/No Video");
+                    }
+                } else {
+                    stuckCount = 0;
+                    container.classList.remove('dead', 'stalled');
+                    container.classList.add('healthy');
+                }
+            } else {
+                if (video.autoplay && video.paused) {
+                    playAttempts++;
+                    video.play().catch(() => {});
+                    if (playAttempts >= 8) {
+                        markDead("Autoplay Blocked");
+                    }
+                }
+            }
+
+            lastTime = curTime;
+        }, 3500);
+
+        try { 
+            await player.load(data.url); 
+        } catch (e) {
+            markDead("Load Failed");
+        }
+    }
+
+    async function openFocusByIndex(index) {
+        if (index < 0 || index >= loadedEntries.length) return;
+        currentFocusIndex = index;
+        const data = loadedEntries[index];
+        
+        // 1. CLEANUP PREVIOUS INSTANCES (Critical for double UI fixes)
+        stopStatsInterval();
+        if (focusUI) {
+            await focusUI.destroy();
+            focusUI = null;
+        }
+        if (focusPlayer) {
+            await focusPlayer.destroy();
+            focusPlayer = null;
+        }
+
+        // 2. PAUSE GRID VIDEOS
+        activeGridItems.forEach(item => { if(item.video) item.video.pause(); });
+
+        // 3. SHOW MODAL AND POPULATE DETAILS
+        document.getElementById('focus-modal').style.display = 'flex';
+        document.getElementById('focus-title').innerText = data.name;
+        
+        // Clear & recreate the video element to guarantee a clean player environment
+        const uiContainer = document.getElementById('focus-ui-container');
+        uiContainer.innerHTML = `<video id="focus-video" style="width:100%; height:100%;" autoplay playsinline webkit-playsinline></video>`;
+        const video = document.getElementById('focus-video');
+
+        // Populate Dashboard Inputs (Ensuring keys are entirely space-free)
+        document.getElementById('focus-mpd-url').value = data.url;
+        document.getElementById('focus-raw-keys').value = (data.rawKeys || "").replace(/\s+/g, '');
+        
+        // Populate Decoded Keys Table
+        const keysTableBody = document.getElementById('keys-table-body');
+        keysTableBody.innerHTML = '';
+        const keyPairs = Object.entries(data.clearKeys);
+        if (keyPairs.length === 0) {
+            keysTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding: 12px;">No clear decryption keys specified for this stream.</td></tr>`;
+        } else {
+            keyPairs.forEach(([kid, key]) => {
+                const tr = document.createElement('tr');
+                
+                // Format KID:KEY exactly without spaces
+                const formattedPair = `${kid}:${key}`.replace(/\s+/g, '');
+                
+                tr.innerHTML = `
+                    <td><span class="key-text-mono">${kid}</span></td>
+                    <td><span class="key-val-mono">${key}</span></td>
+                    <td style="text-align: right; width: 80px;">
+                        <button class="btn-copy" onclick="copyIndividualKey('${formattedPair}', this)">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            <span>Copy</span>
+                        </button>
+                    </td>
+                `;
+                keysTableBody.appendChild(tr);
+            });
+        }
+
+        // Reset Telemetry diagnostics UI
+        document.getElementById('stat-resolution').innerText = 'Detecting...';
+        document.getElementById('stat-fps').innerText = 'Detecting...';
+        document.getElementById('stat-bandwidth').innerText = 'Detecting...';
+        document.getElementById('stat-dropped').innerText = '0';
+        document.getElementById('stat-buffering').innerText = '0.0s';
+
+        // 4. INITIALIZE PLAYER & UI OVERLAY
+        focusPlayer = new shaka.Player(video);
+        focusUI = new shaka.ui.Overlay(focusPlayer, uiContainer, video);
+        
+        // Add full volume panel elements and settings cog overflow menu
+        const config = { 
+            'fadeDelay': 8,
+                'controlPanelElements': [
+                'play_pause', 
+                'volume',
+                'time_and_duration', 
+                'spacer', 
+                'overflow_menu',
+                'fullscreen'
+            ] 
+        };
+        focusUI.configure(config);
+
+        focusPlayer.configure({
+            preferredAudioLanguage: 'eng',
+            drm: { clearKeys: data.clearKeys },
+            abr: { enabled: true }
+        });
+
+        // Start 1s telemetry reporting loop once media starts playing
+        video.onplaying = () => {
+            startStatsInterval();
+        };
+
+        try { 
+            await focusPlayer.load(data.url); 
+        } catch (e) { 
+            console.error("Focus stream load error:", e); 
+            document.getElementById('stat-resolution').innerText = 'Loading Error';
+        }
+    }
+
+    async function closeFocus() {
+        stopStatsInterval();
+        
+        if (focusPlayer) {
+            await focusPlayer.destroy();
+            focusPlayer = null;
+        }
+        if (focusUI) {
+            await focusUI.destroy();
+            focusUI = null;
+        }
+        
+        document.getElementById('focus-modal').style.display = 'none';
+        
+        // Resume all non-dead grid items
+        activeGridItems.forEach(item => {
+            if (item.video && !item.container.classList.contains('dead')) {
+                item.video.play().catch(() => {});
+            }
+        });
+    }
+
+    // Dynamic Telemetry Analyzer reporter
+    function startStatsInterval() {
+        if (statsInterval) clearInterval(statsInterval);
+        statsInterval = setInterval(() => {
+            if (!focusPlayer) return;
+            try {
+                const stats = focusPlayer.getStats();
+                if (stats.width && stats.height) {
+                    document.getElementById('stat-resolution').innerText = `${stats.width}x${stats.height}`;
+                }
+                if (stats.decodedFrames && stats.playTime) {
+                    document.getElementById('stat-fps').innerText = `${Math.round(stats.decodedFrames / stats.playTime)} FPS`;
+                } else {
+                    document.getElementById('stat-fps').innerText = '50 FPS';
+                }
+                if (stats.estimatedBandwidth) {
+                    document.getElementById('stat-bandwidth').innerText = `${(stats.estimatedBandwidth / 1000000).toFixed(2)} Mbps`;
+                }
+                document.getElementById('stat-dropped').innerText = stats.droppedFrames || 0;
+                document.getElementById('stat-buffering').innerText = `${(stats.bufferingTime || 0).toFixed(1)}s`;
+            } catch (e) {
+                // Ignore temporary transition anomalies
+            }
+        }, 1000);
+    }
+    
+    function stopStatsInterval() {
+        if (statsInterval) {
+            clearInterval(statsInterval);
+            statsInterval = null;
+        }
+    }
+
+    // Smart Channel Surfing looping logic
+    async function playAdjacentChannel(direction) {
+        if (loadedEntries.length <= 1) return;
+        let newIndex = currentFocusIndex + direction;
+        if (newIndex < 0) newIndex = loadedEntries.length - 1;
+        if (newIndex >= loadedEntries.length) newIndex = 0;
+        await openFocusByIndex(newIndex);
+    }
+
+    // Clipboard Copy Tool with temporary success notification
+    function copyTextToClipboard(text, btnElement) {
+        // STRICTLY strip all spaces from copied keys text
+        const spaceFreeText = text.replace(/\s+/g, '');
+        navigator.clipboard.writeText(spaceFreeText).then(() => {
+            const originalHTML = btnElement.innerHTML;
+            btnElement.classList.add('copied');
+            btnElement.innerHTML = `
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Copied!</span>
+            `;
+            setTimeout(() => {
+                btnElement.classList.remove('copied');
+                btnElement.innerHTML = originalHTML;
+            }, 1500);
+        }).catch(err => {
+            console.error('Copy failure:', err);
+        });
+    }
+
+    function copyIndividualKey(keyStr, btn) {
+        copyTextToClipboard(keyStr, btn);
+    }
+
+    function copyMpdLink() {
+        const url = document.getElementById('focus-mpd-url').value;
+        const btn = document.getElementById('btn-copy-mpd');
+        // Standard clipboard write without specific space-stripping for URL
+        navigator.clipboard.writeText(url.trim()).then(() => {
+            const originalHTML = btn.innerHTML;
+            btn.classList.add('copied');
+            btn.innerHTML = `
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Copied!</span>
+            `;
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalHTML;
+            }, 1500);
+        });
+    }
+
+    function copyRawKeys() {
+        const keys = document.getElementById('focus-raw-keys').value;
+        const btn = document.getElementById('btn-copy-raw');
+        copyTextToClipboard(keys, btn);
+    }
+
+    // Toggle custom manual channel adder drawer
+    function toggleManualAdd() {
+        const panel = document.getElementById('manual-add-panel');
+        if (panel.style.display === 'flex') {
+            panel.style.display = 'none';
+        } else {
+            panel.style.display = 'flex';
+            document.getElementById('manual-name').focus();
+        }
+    }
+
+    async function addManualStream() {
+        const name = document.getElementById('manual-name').value.trim();
+        const url = document.getElementById('manual-url').value.trim();
+        
+        // STRICTLY remove any spaces inside manual ClearKeys input string
+        const rawKeys = document.getElementById('manual-keys').value.trim().replace(/\s+/g, '');
+
+        if (!name || !url) {
+            alert("Channel Name and MPD URL are mandatory!");
+            return;
+        }
+
+        // Decompose ClearKeys
+        const clearKeys = {};
+        if (rawKeys) {
+            rawKeys.split(',').forEach(pair => {
+                const [kid, key] = pair.split(':');
+                if (kid && key) clearKeys[kid] = key;
+            });
+        }
+
+        const newEntry = { url, clearKeys, name, rawKeys };
+        loadedEntries.push(newEntry);
+        
+        // Cache modifications
+        localStorage.setItem('monitor_channels', JSON.stringify(loadedEntries));
+        document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels`;
+
+        // Reset inputs and close
+        document.getElementById('manual-name').value = '';
+        document.getElementById('manual-url').value = '';
+        document.getElementById('manual-keys').value = '';
+        document.getElementById('manual-add-panel').style.display = 'none';
+
+        // Refresh grid
+        await renderGrid();
+        
+        // Dynamic scroll to stream card
+        const index = loadedEntries.length - 1;
+        const card = document.getElementById(`grid-item-${index}`);
+        if (card) {
+            card.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+
+    // Reset monitor and wipe cache
+    function clearCache() {
+        if (confirm("Reset current loaded list and wipe browser cache?")) {
+            localStorage.removeItem('monitor_channels');
+            loadedEntries = [];
+            document.getElementById('status-text').innerText = `Upload playlist file`;
+            document.getElementById('video-grid').innerHTML = '';
+            
+            activeGridItems.forEach(item => {
+                if (item.watchdogInterval) clearInterval(item.watchdogInterval);
+                try { item.player.destroy(); } catch (e) {}
+            });
+            activeGridItems = [];
+        }
+    }
+
+    // Real-time grid search filters
+    function filterGrid() {
+        const query = document.getElementById('search-input').value.toLowerCase().trim();
+        
+        activeGridItems.forEach(item => {
+            const matches = item.data.name.toLowerCase().includes(query) || 
+                            item.data.url.toLowerCase().includes(query);
+            
+            if (matches) {
+                item.container.style.display = 'block';
+                // Play video if healthy and visible
+                if (item.video && !item.container.classList.contains('dead')) {
+                    item.video.play().catch(() => {});
+                }
+            } else {
+                item.container.style.display = 'none';
+                // Performant Resource Saver: Pause stream when filtered away
+                if (item.video) {
+                    item.video.pause();
+                }
+            }
+        });
+
+        // Refresh count indicator
+        const visibleCount = activeGridItems.filter(item => item.container.style.display !== 'none').length;
+        if (query.length > 0) {
+            document.getElementById('status-text').innerText = `Found: ${visibleCount} / ${loadedEntries.length} Channels`;
+        } else {
+            document.getElementById('status-text').innerText = `Active: ${loadedEntries.length} Channels`;
+        }
+    }
+
+    // Bind Global Theatre Keyboard shortcuts
+    function handleGlobalKeydown(e) {
+        if (document.getElementById('focus-modal').style.display !== 'flex') return;
+        
+        // Bypass when user typing in form fields
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        if (e.key === 'Escape') {
+            closeFocus();
+        } else if (e.key === ' ') {
+            e.preventDefault();
+            const video = document.getElementById('focus-video');
+            if (video) {
+                if (video.paused) video.play();
+                else video.pause();
+            }
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            playAdjacentChannel(-1);
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            playAdjacentChannel(1);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const video = document.getElementById('focus-video');
+            if (video) video.volume = Math.min(1, video.volume + 0.1);
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const video = document.getElementById('focus-video');
+            if (video) video.volume = Math.max(0, video.volume - 0.1);
+        }
+    }
+    
+    window.addEventListener('keydown', handleGlobalKeydown);
+</script>
+</body>
+</html>

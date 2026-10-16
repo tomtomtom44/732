@@ -1,0 +1,408 @@
+/**
+ * Tizen TV Adapter for Rozcestník (Samsung Smart TV / Tizen 6.0+)
+ * Handles Cloudflare Turnstile bypass, native environment flags,
+ * no-referrer fetch/XHR patching, Samsung remote Back button (10009),
+ * TV input device key registration, and spatial navigation.
+ */
+'use strict';
+
+(function initTizenAdapter() {
+  // ── 1. Bypass Cloudflare Turnstile Gate ──────────────────────────────
+  var BYPASS_TOKEN = 'native-app-bypass-' + Date.now();
+
+  try { sessionStorage.setItem('cf_clearance_token', BYPASS_TOKEN); } catch(e){}
+  try { sessionStorage.setItem('cf_turnstile_verified', 'true'); } catch(e){}
+  try { localStorage.setItem('cf_clearance_token', BYPASS_TOKEN); } catch(e){}
+  try { localStorage.setItem('cf_turnstile_verified', 'true'); } catch(e){}
+  window.__cf_clearance_token = BYPASS_TOKEN;
+
+  function markVerified() {
+    if (document.documentElement) {
+      document.documentElement.classList.add('cf-verified');
+    }
+    if (document.body) {
+      document.body.classList.remove('turnstile-locked');
+    }
+    var gate = document.getElementById('turnstile-gate');
+    if (gate) {
+      gate.style.setProperty('display', 'none', 'important');
+    }
+  }
+
+  markVerified();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', markVerified);
+  }
+
+  // Pre-resolve global turnstile promise
+  if (window.__turnstileResolve) {
+    try { window.__turnstileResolve(BYPASS_TOKEN); } catch(e){}
+  } else {
+    var _origResolve = null;
+    try {
+      Object.defineProperty(window, '__turnstileResolve', {
+        get: function() { return _origResolve; },
+        set: function(fn) {
+          _origResolve = fn;
+          if (typeof fn === 'function') {
+            try { fn(BYPASS_TOKEN); } catch(e){}
+          }
+        },
+        configurable: true
+      });
+    } catch(e){}
+  }
+
+  window.onTurnstileSuccess = function(token) {
+    try { sessionStorage.setItem('cf_turnstile_verified', 'true'); } catch(e){}
+    try { localStorage.setItem('cf_turnstile_verified', 'true'); } catch(e){}
+    markVerified();
+  };
+
+  // ── 2. Native App & TV Flags ─────────────────────────────────────────
+  window.__NATIVE_APP__ = true;
+  window.__NATIVE_PLATFORM__ = 'tizen';
+  window.__NATIVE_ANDROID__ = false;
+  window.isTvPlatform = true;
+
+  // ── 3. No-Referrer Policy Enforcement on Fetch & XHR ─────────────────
+  if (typeof window.fetch === 'function' && !window.fetch._nativeAppPatched) {
+    var _origFetch = window.fetch;
+    window.fetch = function(input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+      var isYasuoyone = typeof url === 'string' && (
+        url.includes('.yasuoyone.org') || url.includes('//yasuoyone.org')
+      );
+      init = Object.assign({}, init || {});
+      if (!isYasuoyone) {
+        init.referrerPolicy = 'no-referrer';
+        init.referrer = '';
+      } else {
+        init.referrerPolicy = 'origin';
+        init.referrer = 'https://yasuoyone.org/';
+      }
+      return _origFetch.call(this, input, init);
+    };
+    window.fetch._nativeAppPatched = true;
+  }
+
+  if (typeof XMLHttpRequest !== 'undefined' && !XMLHttpRequest.prototype._nativeAppPatched) {
+    var _origOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+      var isYasuoyone = typeof url === 'string' && (
+        url.includes('.yasuoyone.org') || url.includes('//yasuoyone.org')
+      );
+      if (!isYasuoyone) {
+        try { this.referrerPolicy = 'no-referrer'; } catch(e) {}
+      }
+      return _origOpen.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype._nativeAppPatched = true;
+  }
+
+  // ── 4. Tizen TV Input Device Key Registration ────────────────────────
+  function registerTizenKeys() {
+    if (typeof tizen !== 'undefined' && tizen.tvinputdevice && typeof tizen.tvinputdevice.registerKey === 'function') {
+      var tvKeys = [
+        'MediaPlay', 'MediaPause', 'MediaPlayPause', 'MediaStop',
+        'MediaFastForward', 'MediaRewind',
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+      ];
+      tvKeys.forEach(function(k) {
+        try {
+          tizen.tvinputdevice.registerKey(k);
+        } catch (e) {}
+      });
+    }
+  }
+  registerTizenKeys();
+  window.addEventListener('load', registerTizenKeys);
+
+  // ── 5. Inject High-Visibility Focus CSS for TV Remotes ────────────────
+  function injectFocusStyles() {
+    var styleId = 'tizen-tv-focus-style';
+    if (document.getElementById(styleId)) return;
+    var style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = [
+      ':focus, :focus-visible, .tv-focused {',
+      '  outline: none !important;',
+      '  border-color: #ffc629 !important;',
+      '  box-shadow: 0 0 25px rgba(255, 198, 41, 0.8), 0 0 0 3px #ffc629 !important;',
+      '  transform: scale(1.04) !important;',
+      '  transition: transform 0.15s ease, box-shadow 0.15s ease !important;',
+      '  z-index: 100 !important;',
+      '}',
+      '.channel-card:focus, .sports-card:focus, .channel-item:focus, .ppv-card:focus, .quick-card:focus, .lib-card:focus, .tool-card:focus {',
+      '  border-color: #ffc629 !important;',
+      '  box-shadow: 0 0 30px rgba(255, 198, 41, 0.85), 0 0 0 3px #ffc629 !important;',
+      '  transform: translateY(-4px) scale(1.03) !important;',
+      '}',
+      'body { user-select: none; -webkit-user-select: none; }'
+    ].join('\n');
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  if (document.head || document.documentElement) {
+    injectFocusStyles();
+  } else {
+    document.addEventListener('DOMContentLoaded', injectFocusStyles);
+  }
+
+  // ── 6. Universal Samsung TV Back / Return Key Handler (10009) ─────────
+  function handleSamsungBackKey(e) {
+    // Check TV Settings Modal
+    var sm = document.getElementById('tv-settings-modal');
+    if (sm && (sm.classList.contains('active') || sm.style.display === 'flex' || sm.style.display === 'block')) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (typeof window.closeTvSettings === 'function') {
+        window.closeTvSettings();
+      } else {
+        sm.classList.remove('active');
+        sm.style.display = 'none';
+      }
+      return true;
+    }
+
+    // Check Shaka / App Player
+    if (window.playerOpen && typeof window.clP === 'function') {
+      if (e && e.preventDefault) e.preventDefault();
+      window.clP();
+      return true;
+    }
+
+    // Check dedicated video overlay in tv/index.html
+    var playerOverlay = document.getElementById('playerOverlay');
+    if (playerOverlay && playerOverlay.classList.contains('active')) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (typeof window.closePlayer === 'function') {
+        window.closePlayer();
+      } else {
+        playerOverlay.classList.remove('active');
+      }
+      return true;
+    }
+
+    // Check player-view in epg.html
+    var playerView = document.getElementById('player-view');
+    if (playerView && !playerView.classList.contains('hidden')) {
+      if (e && e.preventDefault) e.preventDefault();
+      var exitBtn = document.getElementById('c-exit-btn');
+      if (exitBtn) exitBtn.click();
+      return true;
+    }
+
+    // Check player modal in sports.html
+    var playerModal = document.getElementById('player-modal');
+    if (playerModal && playerModal.classList.contains('active')) {
+      if (e && e.preventDefault) e.preventDefault();
+      var btnClosePlayer = document.getElementById('btn-close-player');
+      if (btnClosePlayer) {
+        btnClosePlayer.click();
+      } else {
+        playerModal.classList.remove('active');
+      }
+      return true;
+    }
+
+    // Check focus-modal (in 4net.html & ultraplayer.html)
+    var focusModal = document.getElementById('focus-modal');
+    if (focusModal && (focusModal.style.display === 'flex' || focusModal.style.display === 'block')) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (typeof window.closeFocus === 'function') {
+        window.closeFocus();
+      } else {
+        focusModal.style.display = 'none';
+      }
+      return true;
+    }
+
+    // Check active modals / popups
+    var activeModal = document.querySelector('.player-modal-backdrop.active, .info-modal-backdrop.active, .pp-overlay.active, #apk-overlay.active, #pp-overlay.active, .modal-overlay.active, .tv-settings-overlay.active');
+    if (activeModal) {
+      if (e && e.preventDefault) e.preventDefault();
+      activeModal.classList.remove('active');
+      if (activeModal.style) activeModal.style.display = 'none';
+      return true;
+    }
+
+    // Check subpage navigation (if in tv/*.html or alt/*.html)
+    var isSubPage = window.location.pathname.includes('/tv/') ||
+                    window.location.pathname.includes('/alt/') ||
+                    (window.location.href.includes('/tv/') || window.location.href.includes('/alt/'));
+
+    if (isSubPage) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (typeof window.goBackToRozcestnik === 'function') {
+        window.goBackToRozcestnik(e);
+      } else if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '../index.html';
+      }
+      return true;
+    }
+
+    // On main index.html: return to 'home' view if in another view
+    if (window.curV && window.curV !== 'home') {
+      if (e && e.preventDefault) e.preventDefault();
+      if (typeof window.swV === 'function') {
+        window.swV('home', true);
+        return true;
+      }
+    }
+
+    // If on main page home view: cleanly exit app on Samsung Tizen TV
+    if (typeof tizen !== 'undefined' && tizen.application) {
+      if (e && e.preventDefault) e.preventDefault();
+      try {
+        tizen.application.getCurrentApplication().exit();
+        return true;
+      } catch (err) {
+        console.warn('Could not exit Tizen application:', err);
+      }
+    }
+
+    return false;
+  }
+
+  // Intercept keydown for Samsung TV Back key (10009), Escape (27), Android Back (4), XF86Back
+  window.addEventListener('keydown', function(e) {
+    var code = e.keyCode || e.which;
+    if (code === 10009 || code === 27 || code === 4 || e.key === 'Escape' || e.key === 'XF86Back') {
+      if (handleSamsungBackKey(e)) {
+        e.stopPropagation();
+      }
+    }
+  }, true);
+
+  // Intercept Tizen hardware key event
+  window.addEventListener('tizenhwkey', function(e) {
+    if (e.keyName === 'back') {
+      handleSamsungBackKey(e);
+    }
+  });
+
+  // ── 7. Spatial D-Pad Navigation Engine Fallback ────────────────────────
+  // Provides smooth 2D arrow navigation on any page missing its own engine
+  function getFocusableElements() {
+    var modal = document.querySelector('.player-modal-backdrop.active, .info-modal-backdrop.active, .tv-settings-overlay.active, .pp-overlay.active, #apk-overlay.active, #playerOverlay.active');
+    var container = modal || document.body;
+    var selector = 'button:not([disabled]), [tabindex="0"], a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), .channel-card, .sports-card, .channel-item, .cat-pill, .nav-item, .ppv-card, .quick-card, .lib-card, .tool-card, .src-btn, .tv-opt-btn, .tv-tab-btn, .btn-ctrl, .top-back-btn';
+    var nodes = Array.from(container.querySelectorAll(selector));
+    return nodes.filter(function(el) {
+      if (el.disabled || el.tabIndex === -1) return false;
+      var style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+      var rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+  }
+
+  function runSpatialNavigation(direction) {
+    var focusables = getFocusableElements();
+    if (!focusables.length) return;
+
+    var cur = document.activeElement;
+    if (!cur || !focusables.includes(cur)) {
+      focusables[0].focus();
+      return;
+    }
+
+    var cRect = cur.getBoundingClientRect();
+    var cCenter = { x: cRect.left + cRect.width / 2, y: cRect.top + cRect.height / 2 };
+
+    var bestEl = null;
+    var bestDist = Infinity;
+
+    focusables.forEach(function(target) {
+      if (target === cur) return;
+      var tRect = target.getBoundingClientRect();
+      var tCenter = { x: tRect.left + tRect.width / 2, y: tRect.top + tRect.height / 2 };
+      var dx = tCenter.x - cCenter.x;
+      var dy = tCenter.y - cCenter.y;
+
+      var isValidDir = false;
+      var score = Infinity;
+
+      if (direction === 'ArrowRight' && dx > 8) {
+        isValidDir = true;
+        score = dx + Math.abs(dy) * 2.2;
+      } else if (direction === 'ArrowLeft' && dx < -8) {
+        isValidDir = true;
+        score = Math.abs(dx) + Math.abs(dy) * 2.2;
+      } else if (direction === 'ArrowDown' && dy > 8) {
+        isValidDir = true;
+        score = dy + Math.abs(dx) * 1.8;
+      } else if (direction === 'ArrowUp' && dy < -8) {
+        isValidDir = true;
+        score = Math.abs(dy) + Math.abs(dx) * 1.8;
+      }
+
+      if (isValidDir && score < bestDist) {
+        bestDist = score;
+        bestEl = target;
+      }
+    });
+
+    if (bestEl) {
+      bestEl.focus();
+      if (typeof bestEl.scrollIntoView === 'function') {
+        bestEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }
+
+  // For pages like sports.html or mazana.html that lack internal spatial nav:
+  window.addEventListener('keydown', function(e) {
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+
+    // Do not steer if typing in text input
+    var tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    if ((tag === 'input' && document.activeElement.type === 'text') || tag === 'textarea') return;
+
+    // Check if the page has its own spatial nav handler already
+    // (index.html defines window.handleSpatialNavigation)
+    if (typeof window.handleSpatialNavigation === 'function') return;
+
+    e.preventDefault();
+    runSpatialNavigation(e.key);
+  });
+
+  // Handle TV Enter / OK button on focusable elements
+  window.addEventListener('keydown', function(e) {
+    var code = e.keyCode || e.which;
+    if (code === 13 || code === 23 || code === 66 || code === 160 || e.key === 'Enter') {
+      var act = document.activeElement;
+      if (act && act !== document.body) {
+        var isClickable = act.tagName === 'BUTTON' || act.tagName === 'A' ||
+                          act.hasAttribute('onclick') || act.classList.contains('channel-card') ||
+                          act.classList.contains('sports-card') || act.classList.contains('channel-item') ||
+                          act.classList.contains('cat-pill') || act.classList.contains('ppv-card') ||
+                          act.classList.contains('quick-card') || act.classList.contains('lib-card');
+        if (isClickable && typeof act.click === 'function') {
+          // If element has inner button (like card with open button), trigger that
+          var innerBtn = act.querySelector('button');
+          if (innerBtn) {
+            e.preventDefault();
+            innerBtn.click();
+          }
+        }
+      }
+    }
+  });
+
+  // Initial focus on TV startup so user sees cursor immediately
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      if (!document.activeElement || document.activeElement === document.body) {
+        var focusables = getFocusableElements();
+        if (focusables.length) {
+          focusables[0].focus();
+        }
+      }
+    }, 400);
+  });
+
+  console.log('Tizen TV Adapter initialized successfully.');
+})();

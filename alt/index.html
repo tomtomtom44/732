@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta name="referrer" content="no-referrer">
+  <script src="../tizen-adapter.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SportStreams</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player/dist/controls.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script type="text/javascript">(function (c, l, a, r, i, t, y) { c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) }; t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i; y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y) })(window, document, "clarity", "script", "t67ujucpqv");</script>
+    <style>:root{--bg-dark:#0f1014;--bg-panel:#181a20;--primary:#3b82f6;--primary-hover:#2563eb;--text-main:#ffffff;--text-muted:#9ca3af;--border-color:rgba(255,255,255,0.1);--sidebar-width:130px;--header-height:70px}*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{font-family:'Outfit',sans-serif;background-color:var(--bg-dark);color:var(--text-main);height:100vh;overflow:hidden;display:flex}.sidebar{width:var(--sidebar-width);background-color:var(--bg-panel);border-right:1px solid var(--border-color);display:flex;flex-direction:column;height:100%;transition:width 0.3s cubic-bezier(0.4,0,0.2,1);z-index:50;align-items:center;padding-top:20px}.logo{margin-bottom:30px;color:var(--primary);font-size:2.2rem;cursor:pointer}.channel-list{flex:1;overflow-y:auto;width:100%;padding:0 10px 20px;display:flex;flex-direction:column;gap:25px;align-items:center}.channel-item{position:relative;width:90px;height:90px;border-radius:18px;cursor:pointer;transition:0.2s;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid transparent}.channel-item:hover{background:rgba(255,255,255,0.15);transform:scale(1.05)}.channel-item.active{background:rgba(59,130,246,0.2);border-color:var(--primary)}.channel-icon{width:65px;height:65px;object-fit:contain}.channel-item::after{content:attr(data-name);position:absolute;left:105px;background:#1e293b;color:white;padding:8px 12px;border-radius:8px;font-size:1rem;white-space:nowrap;opacity:0;pointer-events:none;transition:0.2s;z-index:100;box-shadow:0 4px 6px rgba(0,0,0,0.3);border:1px solid var(--border-color);visibility:hidden}.channel-item:hover::after{opacity:1;visibility:visible}.md-group-toggle{width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.05));display:flex;align-items:center;justify-content:center;cursor:pointer;margin:10px 0;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);border:1px solid var(--border-color);font-weight:800;color:#fff;font-size:1.2rem;box-shadow:0 4px 6px rgba(0,0,0,0.1)}.md-group-toggle:hover{background:var(--primary);border-color:var(--primary);transform:translateY(-2px);box-shadow:0 6px 12px rgba(59,130,246,0.3)}.md-group-toggle span{font-size:1.2rem}.md-channels-container{display:none;flex-direction:column;gap:20px;align-items:center;width:100%;background:rgba(0,0,0,0.2);padding:20px 0;border-radius:16px;margin-bottom:20px}.md-channels-container.visible{display:flex;animation:fadeIn 0.3s ease}.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;height:100vh}.player-area{width:100%;background:black;flex-shrink:0;z-index:40;box-shadow:0 4px 20px rgba(0,0,0,0.5)}.video-container{width:100%;aspect-ratio:16/9;max-height:60vh;margin:0 auto}.epg-panel{padding:30px;background:linear-gradient(to bottom,#111,var(--bg-dark));flex:1;overflow-y:auto;display:flex;flex-direction:column}.current-program-card{background:rgba(255,255,255,0.03);border:1px solid var(--border-color);border-radius:16px;padding:25px;position:relative;overflow:hidden;flex-shrink:0}.current-program-card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(circle at top right,rgba(59,130,246,0.15),transparent 40%);pointer-events:none}.program-title{font-size:2rem;font-weight:700;margin-bottom:10px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.5)}.channel-label{display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,0.4);padding:5px 12px;border-radius:20px;font-weight:600;color:var(--primary);border:1px solid rgba(59,130,246,0.3);margin-bottom:15px}.program-meta{display:flex;align-items:center;gap:20px;margin-bottom:20px;color:var(--text-muted);font-size:0.95rem}.progress-container{margin:25px 0}.progress-bar{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden}.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#60a5fa);width:0%;transition:width 0.5s linear;box-shadow:0 0 10px rgba(59,130,246,0.5)}.time-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:0.85rem;color:var(--text-muted)}.description{line-height:1.6;color:#cbd5e1;font-size:1.1rem;max-width:900px}iframe{border:none;width:100%;height:100%;display:block;pointer-events:auto}#iframe-container{z-index:1000;position:relative}@media (max-width:768px){.sidebar{position:fixed;left:0;bottom:0;width:100%;height:110px;flex-direction:row;background:rgba(15,23,42,0.98);backdrop-filter:blur(10px);padding:10px;border-right:none;border-top:1px solid var(--border-color);overflow-x:auto;justify-content:flex-start;align-items:center;z-index:200}.channel-list{flex-direction:row;padding:0 10px;overflow-x:auto;align-items:center;gap:20px}.channel-item{width:80px;height:80px;background:rgba(255,255,255,0.1)}.channel-icon{width:55px;height:55px}.channel-item::after{display:none}.logo{display:none}.main-content{height:auto;overflow-y:auto;padding-bottom:120px;display:block}.player-area{position:sticky;top:0;height:auto;background:black}.program-title{font-size:1.5rem}.epg-panel{padding:15px;overflow:visible;flex:none}.md-channels-container{flex-direction:row;width:auto;padding:0 10px;gap:15px}.md-group-toggle{transform:rotate(-90deg);margin:0 5px;width:50px;height:50px}}@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.2);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}.maintenance-overlay{position:fixed;inset:0;top:0;left:0;width:100vw;height:100vh;background:rgba(5,7,12,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}.maintenance-card{background:#111622;border:1px solid rgba(255,198,41,0.35);box-shadow:0 0 40px rgba(0,0,0,0.8),0 0 20px rgba(255,198,41,0.15);border-radius:20px;max-width:480px;width:100%;padding:32px 28px;text-align:center;color:#f1f5f9;font-family:inherit;animation:modalPopIn 0.3s cubic-bezier(0.34,1.56,0.64,1)}@keyframes modalPopIn{from{opacity:0;transform:scale(0.9) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}.maintenance-icon-wrap{width:64px;height:64px;background:rgba(255,198,41,0.12);border:1px solid rgba(255,198,41,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.8rem;color:#ffc629}.maintenance-title{font-size:1.4rem;font-weight:700;margin-bottom:14px;color:#fff;letter-spacing:-0.3px}.maintenance-text{font-size:0.95rem;line-height:1.6;color:#cbd5e1;margin-bottom:24px}.maintenance-text strong{color:#ffc629;font-weight:600}.maintenance-actions{display:flex;flex-direction:column;gap:10px}.btn-open-mazana{background:linear-gradient(135deg,#ffc629,#f59e0b);color:#000;font-weight:700;font-size:1rem;padding:14px 24px;border-radius:50px;border:none;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(255,198,41,0.3);transition:all 0.2s ease}.btn-open-mazana:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,198,41,0.45);background:linear-gradient(135deg,#ffd043,#fbbf24)}.btn-stay-here{background:rgba(255,255,255,0.06);color:#94a3b8;font-weight:500;font-size:0.85rem;padding:10px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:all 0.2s ease}.btn-stay-here:hover{background:rgba(255,255,255,0.12);color:#fff}</style>
+</head>
+
+<body>
+
+
+    <aside class="sidebar">
+        <div class="logo"><span class="material-icons-round">play_circle_filled</span></div>
+        <div class="channel-list" id="channel-list"></div>
+    </aside>
+
+    <main class="main-content">
+        <div class="player-area">
+            <div id="shaka-container" style="position: relative; width: 100%; height: 100%; z-index: 1;">
+                <div class="video-container" data-shaka-player-container style="width:100%; aspect-ratio:16/9; max-height:60vh; margin:0 auto;">
+                    <video autoplay muted playsinline data-shaka-player id="video" style="width:100%;height:100%"></video>
+                </div>
+            </div>
+            <div id="iframe-container" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:-1;">
+                <iframe id="embed-player" allowfullscreen allow="encrypted-media" style="width:100%; height:100%; border:none;"></iframe>
+            </div>
+        </div>
+
+        <div class="epg-panel">
+            <div class="current-program-card">
+                <div class="channel-label">
+                    <span class="material-icons-round" style="font-size:1.2rem">live_tv</span>
+                    <span id="channel-name-display">Vyberte kanál</span>
+                </div>
+                <h1 class="program-title" id="program-title">Načítání...</h1>
+                <div class="program-meta">
+                    <span id="program-genre">Sport</span>
+                    <span style="width: 4px; height: 4px; background: currentColor; border-radius: 50%;"></span>
+                    <span id="program-status">LIVE</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="program-progress"></div>
+                    </div>
+                    <div class="time-labels">
+                        <span id="start-time">--:--</span>
+                        <span id="end-time">--:--</span>
+                    </div>
+                </div>
+                <p class="description" id="program-desc">Vyberte ikonu kanálu v levém menu pro spuštění přehrávání.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/shaka-player/dist/shaka-player.ui.min.js"></script>
+    <script>(function(){if(typeof shaka!=='undefined'&&shaka.Player&&!shaka.Player._patched){const oC=shaka.Player.prototype.configure;shaka.Player.prototype.configure=function(c,v){if(typeof c==='object'){if(c.preferredAudioLanguage===undefined||c.preferredAudioLanguage===""||c.preferredAudioLanguage==="en"||c.preferredAudioLanguage==="eng")c.preferredAudioLanguage='en';}else if(typeof c==='string'&&c==='preferredAudioLanguage'){if(!v||v==='en'||v==='eng')v='en';}return oC.call(this,c,v);};const oL=shaka.Player.prototype.load;shaka.Player.prototype.load=function(){const curr=this.getConfiguration().preferredAudioLanguage;if(!curr||curr==='en'||curr==='eng')this.configure({preferredAudioLanguage:'en'});if(!this._langFallbackRegistered){this._langFallbackRegistered=true;this.addEventListener('trackschanged',()=>{try{const tracks=this.getVariantTracks?this.getVariantTracks():[];if(!tracks||!tracks.length)return;const hasEn=tracks.some(t=>t.language&&t.language.toLowerCase().startsWith('en'));if(!hasEn){const cs=tracks.find(t=>t.language&&(t.language.toLowerCase().startsWith('cs')||t.language.toLowerCase().startsWith('cz')));if(cs){const curr=this.getConfiguration().preferredAudioLanguage;if(!curr||(!curr.toLowerCase().startsWith('cs')&&!curr.toLowerCase().startsWith('cz'))){this.configure({preferredAudioLanguage:cs.language});}}}}catch(e){console.warn("Lang fallback error:",e);}});}return oL.apply(this,arguments);};shaka.Player._patched=true;}})();</script>
+    <script>
+        const channels = [
+            { id: "033", name: "Oneplay Sport 1", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/6a99e5ac-151b-4d5f-83f3-6c1032f7daab", url: "https://opg.yasuoyone.org/Oneplay%20Sport%201.m3u8" },
+            { id: "034", name: "Oneplay Sport 2", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/879dd8e2-31bb-4b89-90e5-b4313a8bd4bb", url: "https://opg.yasuoyone.org/Oneplay%20Sport%202.m3u8" },
+            { id: "035", name: "Oneplay Sport 3", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/ec12ed2f-278e-4496-9070-717c444f75d1", url: "https://opg.yasuoyone.org/Oneplay%20Sport%203.m3u8" },
+            { id: "036", name: "Oneplay Sport 4", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/1a2169d8-fea1-42ae-908a-99bec41d4789", url: "https://opg.yasuoyone.org/Oneplay%20Sport%204.m3u8" },
+            { id: "040", name: "Nova Sport 1 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/086258c1-9ab2-4c42-b45c-3d76b2b991c1", url: "https://opg.yasuoyone.org/Nova%20Sport%201.m3u8" },
+            { id: "041", name: "Nova Sport 2 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/60949c4a-274d-41bf-b967-3fe48f9405bd", url: "https://opg.yasuoyone.org/Nova%20Sport%202.m3u8" },
+            { id: "042", name: "Nova Sport 3 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/8f798a22-47b7-4dd2-a2f6-d54ac0d47e74", url: "https://opg.yasuoyone.org/Nova%20Sport%203.m3u8" },
+            { id: "043", name: "Nova Sport 4 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/377822b0-7811-4a92-8198-12a07c29e5be", url: "https://opg.yasuoyone.org/Nova%20Sport%204.m3u8" },
+            { id: "044", name: "Nova Sport 5 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/78093cf2-1d35-49fd-8c1a-35e940cbe328", url: "https://opg.yasuoyone.org/Nova%20Sport%205.m3u8" },
+            { id: "045", name: "Nova Sport 6 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/5ab2b01f-0fcf-42d6-aae0-4b691b225868", url: "https://opg.yasuoyone.org/Nova%20Sport%206.m3u8" },
+            { id: "129", name: "Prima Sport", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/0613a30c-9feb-40e2-a9fb-316dc1dbf459", url: "https://opg.yasuoyone.org/Prima%20Sport.m3u8" },
+            { id: "048", name: "Premier Sport 1", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/3ec20b92-b311-4a6c-bc6d-ccbc54145600", url: "https://opg.yasuoyone.org/Premier%20Sport%201.m3u8" },
+            { id: "049", name: "Premier Sport 2", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/33bfa0fb-830c-4f38-9d64-e3f48e09f9ab", url: "https://opg.yasuoyone.org/Premier%20Sport%202.m3u8" },
+            { id: "050", name: "Premier Sport 3", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/05a462d8-b796-45cb-a4da-6c67fa643ac9", url: "https://opg.yasuoyone.org/Premier%20Sport%203.m3u8" },
+            { id: "053", name: "ČT Sport HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/087dfbfe-d47f-4454-b862-a4cf603b9b36", url: "https://opg.yasuoyone.org/%C4%8CT%20Sport.m3u8" },
+            { id: "054", name: "Eurosport HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/da7cc1ef-9b02-451a-8114-989922588090", url: "https://opg.yasuoyone.org/Eurosport.m3u8" },
+            { id: "055", name: "Eurosport 2 HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/8526343d-8ff6-4d16-a333-5484397c3111", url: "https://opg.yasuoyone.org/Eurosport%202.m3u8" },
+            { name: "Sporty TV", icon: "http://telly.cz/wp-content/themes/telly/dist/images/channel/sporty-tv-120.png", url: "https://stream-24.mazana.tv/V2_emn.m3u8s?codec_id=1497&session=1" },
+            { name: "RTVS ŠPORT", icon: "https://static.rebit.sk/tv-brand/rtvs-sport.png", url: "https://stream-17.mazana.tv/V2_emn.m3u8s?codec_id=1365&session=1" },
+            { id: "056", name: "CANAL+ Sport", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/2ad30d55-d7cc-4348-991d-3c8417c1d617", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport.m3u8" },
+            { id: "057", name: "CANAL+ Sport 2", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/b89946c0-cace-41f7-9f46-bba9350d0cb5", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%202.m3u8" },
+            { id: "058", name: "CANAL+ Sport 3", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/7e27b9aa-a9d6-4167-9e61-483e522dbcec", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%203.m3u8" },
+            { id: "059", name: "CANAL+ Sport 4", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/0b6d7319-b3af-4929-b67a-de771789170f", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%204.m3u8" },
+            { id: "060", name: "CANAL+ Sport 5", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/eb7aca5c-0d4f-4e01-9601-cee503531970", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%205.m3u8" },
+            { id: "061", name: "CANAL+ Sport 6", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/72720330-28f9-47c7-bb1b-609f2c01b662", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%206.m3u8" },
+            { id: "062", name: "CANAL+ Sport 7", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/dd021cb4-7494-47ba-a0b9-6f26b987965a", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%207.m3u8" },
+            { id: "063", name: "CANAL+ Sport 8", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/d5ee0e92-f97c-4683-8d87-d12f9c9423ae", url: "https://opg.yasuoyone.org/CANAL%2B%20Sport%208.m3u8" },
+            { id: "064", name: "Golf Channel HD", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/e5d4e6f1-9b8e-4051-9170-1d23a606e42f", url: "https://opg.yasuoyone.org/Golf%20Channel.m3u8" },
+            { id: "065", name: "Arena Sport 1", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/aab81810-1fa4-4732-825c-1ba965289d23", url: "https://opg.yasuoyone.org/Arena%20Sport%201.m3u8" },
+            { id: "066", name: "Arena Sport 2", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/27abdac0-4679-48d2-bb8d-d23d8ce2a094", url: "https://opg.yasuoyone.org/Arena%20Sport%202.m3u8" },
+            { id: "067", name: "Sport1", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/2421eaba-301d-4ce9-b878-674eb4770e4d", url: "https://opg.yasuoyone.org/Sport1.m3u8" },
+            { id: "068", name: "Sport2", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/f196c6d1-2364-452a-8311-25a719fb076e", url: "https://opg.yasuoyone.org/Sport2.m3u8" },
+            { id: "551", name: "Oneplay Sport MD2", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/0254375b-40de-4b73-9157-7cdd533c3cf1", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD2.m3u8" },
+            { id: "552", name: "Oneplay Sport MD3", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/93f145b0-b611-46b6-af17-bf00beac5c15", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD3.m3u8" },
+            { id: "553", name: "Oneplay Sport MD4", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/c66e7861-a886-4a57-bdfd-eb3858e1f787", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD4.m3u8" },
+            { id: "554", name: "Oneplay Sport MD5", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/7c612350-d59e-47ce-8532-3a788f3d21a5", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD5.m3u8" },
+            { id: "555", name: "Oneplay Sport MD6", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/bde8bd16-014d-4837-877a-a0a9f17bc98e", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD6.m3u8" },
+            { id: "556", name: "Oneplay Sport MD7", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/978a75b2-e2e0-4f0c-93a2-b2ed027c769a", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD7.m3u8" },
+            { id: "557", name: "Oneplay Sport MD8", icon: "https://eboxcz-ott-images.ssl.cdn.cra.cz/rxn/92d3b1e5-b84e-43cd-b1d3-5136bda72081", url: "https://opg.yasuoyone.org/Oneplay%20Sport%20MD8.m3u8" },
+            { name: "JOJ ŠPORT", icon: "https://static.rebit.sk/tv-brand/joj-sport.png", url: "https://ts0-pl.artos.4net.tv/hls/master/live.m3u8?channel=2164&device=d3f8ad0f6a2f75710d8113664b825283&stream_profiles=h264hd11,h264hd12,h264hd13&shaping=0&eta=1&ets=1" },
+            { name: "JOJ ŠPORT 2", icon: "https://iptv.bbxnet.sk/stalker_portal/misc/logos/320/3100.png?26615", url: "https://ts0-pl.artos.4net.tv/hls/master/live.m3u8?channel=2423&device=d3f8ad0f6a2f75710d8113664b825283&stream_profiles=h264hd11,h264hd13&shaping=0&eta=1&ets=1" },
+        ];
+
+        const channelIdMapping = {
+            "Nova Sport 1 HD": "Nova Sport 1",
+            "Nova Sport 2 HD": "Nova Sport 2",
+            "Nova Sport 3 HD": "Nova Sport 3",
+            "Nova Sport 4 HD": "Nova Sport 4",
+            "Nova Sport 5 HD": "Nova Sport 5",
+            "Nova Sport 6 HD": "Nova Sport 6",
+            "ČT Sport HD": "ČT Sport",
+            "Eurosport HD": "Eurosport",
+            "Eurosport 2 HD": "Eurosport 2"
+        };
+        
+        const TR = {
+            cs: {
+                selectChannel: "Vyberte kanál",
+                loading: "Načítání...",
+                noProgram: "Informace o programu nejsou k dispozici.",
+                selectChannelToPlay: "Vyberte ikonu kanálu v levém menu pro spuštění přehrávání.",
+                showMdChannels: "Zobrazit MD Kanály",
+                notSupported: "Váš prohlížeč není podporován.",
+                streamError: "Chyba při načítání streamu:",
+                sport: "Sport",
+                live: "LIVE"
+            },
+            en: {
+                selectChannel: "Select Channel",
+                loading: "Loading...",
+                noProgram: "No program information available.",
+                selectChannelToPlay: "Select a channel icon from the left menu to start playback.",
+                showMdChannels: "Show MD Channels",
+                notSupported: "Your browser is not supported.",
+                streamError: "Error loading stream:",
+                sport: "Sport",
+                live: "LIVE"
+            }
+        };
+
+        let lang = localStorage.getItem('tv_lang');
+        if (!lang) {
+            const userLangs = navigator.languages || [navigator.language || ''];
+            const isCzOrSk = userLangs.some(l => {
+                const low = l.toLowerCase();
+                return low.startsWith('cs') || low.startsWith('sk');
+            });
+            lang = isCzOrSk ? 'cs' : 'en';
+        }
+
+        function t(key) {
+            return (TR[lang] && TR[lang][key]) || (TR['en'] && TR['en'][key]) || key;
+        }
+
+        function applyLocalization() {
+            document.documentElement.lang = lang;
+            const channelNameDisplay = document.getElementById("channel-name-display");
+            if (channelNameDisplay && (channelNameDisplay.innerText === "Vyberte kanál" || channelNameDisplay.innerText === "Select Channel")) {
+                channelNameDisplay.innerText = t("selectChannel");
+            }
+            const programTitle = document.getElementById("program-title");
+            if (programTitle && (programTitle.innerText === "Načítání..." || programTitle.innerText === "Loading...")) {
+                programTitle.innerText = t("loading");
+            }
+            const programGenre = document.getElementById("program-genre");
+            if (programGenre) programGenre.innerText = t("sport");
+            const programStatus = document.getElementById("program-status");
+            if (programStatus) programStatus.innerText = t("live");
+            const programDesc = document.getElementById("program-desc");
+            if (programDesc && (programDesc.innerText.includes("Vyberte ikonu kanálu") || programDesc.innerText.includes("Select a channel icon"))) {
+                programDesc.innerText = t("selectChannelToPlay");
+            }
+        }
+
+        let epgData = {};
+        let activeChannel = null;
+        let currentStreamUrl = "";
+
+        async function initApp() {
+            shaka.polyfill.installAll();
+            if (!shaka.Player.isBrowserSupported()) { alert(t("notSupported")); return }
+            applyLocalization();
+            const video = document.getElementById("video");
+            const ui = video.ui;
+            const controls = ui.getControls();
+            window.player = controls.getPlayer();
+            player.addEventListener("error", onErrorEvent);
+            player.configure({
+                manifest: { availabilityWindowOverride: 14400 },
+                streaming: { bufferingGoal: 10, rebufferingGoal: 2, liveSync: { enabled: false } }
+            });
+            player.getNetworkingEngine().registerRequestFilter((type, request) => {
+                try {
+                    if (currentStreamUrl) {
+                        const masterUrl = new URL(currentStreamUrl);
+                        request.uris.forEach((uri, idx) => {
+                            const reqUrl = new URL(uri);
+                            if (reqUrl.host === masterUrl.host) {
+                                masterUrl.searchParams.forEach((val, key) => {
+                                    if (!reqUrl.searchParams.has(key)) {
+                                        reqUrl.searchParams.set(key, val);
+                                    }
+                                });
+                                request.uris[idx] = reqUrl.toString();
+                            }
+                        });
+                    }
+                } catch (e) {}
+            });
+
+            // Explicitly configure Shaka UI controls to ensure fullscreen is enabled
+            ui.configure({
+                controlPanelElements: [
+                    'play_pause',
+                    'time_and_duration',
+                    'mute',
+                    'volume',
+                    'spacer',
+                    'fullscreen',
+                    'overflow_menu'
+                ],
+                addBigPlayButton: true,
+                addContextMenu: true
+            });
+
+            // Double-click/tap to toggle fullscreen with robust fallbacks (great for iOS/Safari/iFrames)
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                videoContainer.addEventListener('dblclick', () => {
+                    toggleFullscreen(videoContainer, video);
+                });
+                // Support mobile double tap
+                let lastTap = 0;
+                videoContainer.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    if (tapLength < 300 && tapLength > 0) {
+                        e.preventDefault();
+                        toggleFullscreen(videoContainer, video);
+                    }
+                    lastTap = currentTime;
+                });
+            }
+
+            renderChannels(channels);
+            fetchEPG();
+        }
+
+        // Fullscreen toggle logic with multiple fallbacks
+        function toggleFullscreen(container, videoElement) {
+            if (!document.fullscreenElement && 
+                !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && 
+                !document.msFullscreenElement) {
+                
+                // Enter fullscreen
+                if (container.requestFullscreen) {
+                    container.requestFullscreen().catch(err => {
+                        console.warn("Container requestFullscreen blocked, trying video native element fullscreen:", err);
+                        enterNativeFullscreen(videoElement);
+                    });
+                } else if (container.webkitRequestFullscreen) {
+                    container.webkitRequestFullscreen();
+                } else if (container.mozRequestFullScreen) {
+                    container.mozRequestFullScreen();
+                } else if (container.msRequestFullscreen) {
+                    container.msRequestFullscreen();
+                } else {
+                    enterNativeFullscreen(videoElement);
+                }
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        function enterNativeFullscreen(videoElement) {
+            if (videoElement.webkitEnterFullscreen) {
+                // iOS iPhone native video fullscreen fallback
+                videoElement.webkitEnterFullscreen();
+            } else if (videoElement.requestFullscreen) {
+                videoElement.requestFullscreen();
+            } else {
+                alert("Fullscreen is not supported on this device/browser.");
+            }
+        }
+
+        function createChannelElement(ch) {
+            const item = document.createElement("div");
+            item.className = `channel-item ${activeChannel === ch ? "active" : ""}`;
+            item.onclick = () => loadChannel(ch, item);
+            item.setAttribute("data-name", ch.name);
+            item.innerHTML = `<img src="${ch.icon}" class="channel-icon" alt="${ch.name}" onerror="this.src='https://via.placeholder.com/40'">`;
+            return item;
+        }
+
+        function renderChannels(list) {
+            const container = document.getElementById("channel-list");
+            container.innerHTML = "";
+            const mainChannels = list.filter(c => !c.isMD);
+            const mdChannels = list.filter(c => c.isMD);
+            mainChannels.forEach(ch => {
+                container.appendChild(createChannelElement(ch));
+                if (ch.name === "Oneplay Sport 4" && mdChannels.length > 0) {
+                    const toggle = document.createElement("div");
+                    toggle.className = "md-group-toggle";
+                    toggle.innerHTML = "MD";
+                    toggle.title = t("showMdChannels");
+                    const mdContainer = document.createElement("div");
+                    mdContainer.className = "md-channels-container";
+                    mdChannels.forEach(mdCh => mdContainer.appendChild(createChannelElement(mdCh)));
+                    toggle.onclick = () => {
+                        const isVisible = mdContainer.classList.contains("visible");
+                        mdContainer.classList.toggle("visible");
+                        if (!isVisible) { toggle.style.background = "var(--primary)"; toggle.style.borderColor = "var(--primary)"; }
+                        else { toggle.style.background = ""; toggle.style.borderColor = ""; }
+                    };
+                    container.appendChild(toggle);
+                    container.appendChild(mdContainer);
+                }
+            });
+        }
+
+        async function fetchEPG() {
+            try {
+                const response = await fetch("https://oepg.yasuoyone.org/epg.xml");
+                if (!response.ok) throw new Error("EPG Fetch Failed");
+                const json = await response.json();
+                parseJSONEPG(json);
+            } catch (e) { console.warn("EPG fetch failed", e); }
+        }
+
+        function parseJSONEPG(data) {
+            epgData = {};
+            if (data && data.schedule) {
+                data.schedule.forEach(channel => {
+                    const channelId = channel.channelId;
+                    const channelName = channel.channelName;
+                    if (!channelId) return;
+                    const items = [];
+                    if (channel.items) {
+                        channel.items.forEach(item => {
+                            const start = new Date(item.startAt);
+                            const stop = new Date(item.endAt);
+                            if (!isNaN(start.getTime()) && !isNaN(stop.getTime())) {
+                                items.push({ start: start, stop: stop, title: item.title || "Bez názvu", desc: item.description || "" });
+                            }
+                        });
+                    }
+                    epgData[channelId] = items;
+                    if (channelName) epgData[channelName] = items;
+                });
+            }
+            updateEpgDisplay();
+            if (!window.epgInterval) window.epgInterval = setInterval(updateEpgDisplay, 60000);
+        }
+
+        async function loadChannel(ch, el) {
+            activeChannel = ch;
+            document.querySelectorAll(".channel-item").forEach(i => i.classList.remove("active"));
+            if (el) el.classList.add("active");
+            document.getElementById("program-title").innerText = t("loading");
+            document.getElementById("channel-name-display").innerText = ch.name;
+            updateEpgDisplay();
+            const shakaContainer = document.getElementById("shaka-container");
+            const iframeContainer = document.getElementById("iframe-container");
+            const iframe = document.getElementById("embed-player");
+            if (ch.isEmbed) {
+                if (window.player) await window.player.unload();
+                if (shakaContainer) { shakaContainer.style.setProperty("display", "none", "important"); shakaContainer.style.visibility = "hidden"; shakaContainer.style.zIndex = "-1"; }
+                if (iframeContainer && iframe) { iframeContainer.style.display = "block"; iframeContainer.style.visibility = "visible"; iframeContainer.style.zIndex = "100"; iframe.style.display = "block"; iframe.src = ch.url; }
+            } else {
+                if (iframeContainer && iframe) { iframeContainer.style.display = "none"; iframeContainer.style.zIndex = "-1"; iframe.src = ""; }
+                if (shakaContainer) { shakaContainer.style.display = "block"; shakaContainer.style.visibility = "visible"; shakaContainer.style.zIndex = "1"; }
+                try {
+                    if (window.player) {
+                        let audioLang = "cs";
+                        if (ch.name === "Starzplay Sport 3") audioLang = "en";
+                        window.player.configure({ preferredAudioLanguage: audioLang, drm: { clearKeys: {} } });
+                        if (ch.drm) {
+                            const kid = atob(ch.drm.k);
+                            const key = atob(ch.drm.v);
+                            window.player.configure({ drm: { clearKeys: { [kid]: key } } });
+                        }
+                        let modifiedUrl = ch.url;
+                        try {
+                            if (!modifiedUrl.includes('cetin.cz') && !modifiedUrl.includes('mazana.tv') && !modifiedUrl.includes('aw-ucdn')) {
+                                try {
+                                    const f2 = await fetch(modifiedUrl);
+                                    if (f2.ok) {
+                                        const t2 = await f2.text();
+                                        const m = t2.match(/https?:\/\/[^/]*cetin\.cz\/[^\s"']+/);
+                                        modifiedUrl = m ? m[0] : f2.url;
+                                    }
+                                } catch (err2) {}
+                            }
+                            const s = new Date(Date.now() - 3 * 3600 * 1000);
+                            let uS = Math.floor(s.getTime() / 1000);
+                            if (modifiedUrl.includes('cetin.cz')) {
+                                let token = new URL(modifiedUrl).searchParams.get('cdntoken');
+                                if (!token) {
+                                    const tm = modifiedUrl.match(/\/tok_([^\/]+)\//);
+                                    if (tm) token = tm[1];
+                                }
+                                if (token) {
+                                    try {
+                                        const p = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+                                        if (p.min_begin && uS < parseInt(p.min_begin)) uS = parseInt(p.min_begin);
+                                    } catch (err) {}
+                                }
+                                modifiedUrl = modifiedUrl.replace(/([?&])(begin|end|from|to)=[^&]*/g, '$1').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+                                modifiedUrl += (modifiedUrl.includes('?') ? '&' : '?') + 'begin=' + uS;
+                            } else if (modifiedUrl.includes('mazana.tv')) {
+                                modifiedUrl = modifiedUrl.replace(/([?&])(begin|end|from|to)=[^&]*/g, '$1').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+                                modifiedUrl += (modifiedUrl.includes('?') ? '&' : '?') + 'from=' + uS;
+                            } else if (modifiedUrl.includes('aw-ucdn')) {
+                                const p2 = (n) => n.toString().padStart(2, '0');
+                                const qs = 'begin=' + s.getUTCFullYear() + p2(s.getUTCMonth() + 1) + p2(s.getUTCDate()) + 'T' + p2(s.getUTCHours()) + p2(s.getUTCMinutes()) + p2(s.getUTCSeconds()) + 'Z';
+                                modifiedUrl = modifiedUrl.replace(/([?&])(begin|end|from|to)=[^&]*/g, '$1').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+                                modifiedUrl += (modifiedUrl.includes('?') ? '&' : '?') + qs;
+                            } else {
+                                modifiedUrl = modifiedUrl.replace(/([?&])(begin|end|from|to)=[^&]*/g, '$1').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+                                modifiedUrl += (modifiedUrl.includes('?') ? '&' : '?') + 'begin=' + uS;
+                            }
+                        } catch (urlErr) {
+                            console.warn('URL modifying error:', urlErr);
+                        }
+                        currentStreamUrl = modifiedUrl;
+                        await window.player.load(modifiedUrl);
+                    }
+                } catch (e) { console.error(t("streamError"), e); }
+            }
+        }
+
+        function updateEpgDisplay() {
+            if (!activeChannel) return;
+            const now = new Date();
+            let currentProgram = null;
+            let matchKeys = [];
+            if (activeChannel.id) matchKeys.push(activeChannel.id);
+            const mappedName = channelIdMapping[activeChannel.name];
+            if (mappedName) matchKeys.push(mappedName);
+            matchKeys.push(activeChannel.name);
+            for (const key of matchKeys) {
+                if (epgData[key]) {
+                    currentProgram = epgData[key].find(p => p.start <= now && p.stop > now);
+                    if (currentProgram) break;
+                }
+            }
+            const titleEl = document.getElementById("program-title");
+            const descEl = document.getElementById("program-desc");
+            const startEl = document.getElementById("start-time");
+            const endEl = document.getElementById("end-time");
+            const progressEl = document.getElementById("program-progress");
+            if (currentProgram) {
+                titleEl.innerText = currentProgram.title;
+                descEl.innerText = currentProgram.desc;
+                const formatTime = d => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                startEl.innerText = formatTime(currentProgram.start);
+                endEl.innerText = formatTime(currentProgram.stop);
+                const total = currentProgram.stop - currentProgram.start;
+                const elapsed = now - currentProgram.start;
+                const percent = Math.min(100, Math.max(0, elapsed / total * 100));
+                progressEl.style.width = `${percent}%`;
+            } else {
+                titleEl.innerText = activeChannel.name;
+                descEl.innerText = t("noProgram");
+                startEl.innerText = "--:--";
+                endEl.innerText = "--:--";
+                progressEl.style.width = "0%";
+            }
+        }
+
+        function onErrorEvent(event) { console.error("Shaka Player Error:", event.detail); }
+        document.addEventListener("shaka-ui-loaded", initApp);
+        document.addEventListener("contextmenu", e => e.preventDefault());
+        document.addEventListener("keydown", e => {
+            const allowed = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " ", "Enter", "f", "F", "m", "M"];
+            if (!allowed.includes(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); }
+        }, true);
+        setInterval(() => {
+            const t = performance.now();
+            debugger;
+            if (performance.now() - t > 100) { document.body.innerHTML = ""; window.location.reload(); }
+        }, 500);
+    </script>
+</body>
+</html>

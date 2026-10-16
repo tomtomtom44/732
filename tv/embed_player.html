@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Website Embedder Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Added Referrer Policy Meta Tag -->
+  <meta name="referrer" content="no-referrer">
+  <script src="../tizen-adapter.js"></script>
+  <link rel="icon" type="image/svg+xml" href="../icon.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.15.8/controls.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    :root{--primary-color:#00e676;--secondary-color:#2c2c3c;--background-color:linear-gradient(135deg,#12121e,#1c1c28);--text-color:#e0e0e0;--card-background:#1e1e2f;--input-background:#28283a;--button-hover-bg:#00c853;--border-color:#383848;--focus-ring-color:rgba(0,230,118,0.4);--modal-backdrop-color:rgba(0,0,0,0.9)}
+    body{margin:0;font-family:'Inter',sans-serif;background:var(--background-color);color:var(--text-color);display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px;box-sizing:border-box}
+    h1{margin-bottom:30px;color:var(--primary-color);font-weight:700}
+    #embedder-controls{width:100%;max-width:900px;background-color:var(--card-background);padding:35px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.4);display:flex;flex-direction:column;gap:18px;border:1px solid var(--border-color)}
+    .input-group{display:flex;flex-direction:column;gap:8px}
+    #website-url{padding:15px;font-size:16px;border:1px solid var(--border-color);background-color:var(--input-background);color:var(--text-color);border-radius:8px}
+    
+    /* Proxy Toggle Style */
+    .proxy-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: #b0b0b0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .proxy-option input { cursor: pointer; accent-color: var(--primary-color); }
+
+    #embed-btn{padding:15px;font-size:18px;background-color:var(--primary-color);color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:0.3s}
+    #embed-btn:hover{background-color:var(--button-hover-bg);transform:translateY(-2px)}
+    
+    .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--modal-backdrop-color);display:none;justify-content:center;align-items:center;z-index:1000}
+    .modal-overlay.visible{display:flex}
+    .modal-content{width:95vw;height:95vh;background:white;position:relative;border-radius:15px;overflow:hidden}
+    .modal-close-btn{position:absolute;top:10px;right:10px;z-index:1002;background:rgba(0,0,0,0.5);color:white;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px}
+    #embedded-site-iframe{width:100%;height:100%;border:none}
+    #error-message{color:#ff6b6b;text-align:center;display:none}
+    #error-message.active{display:block}
+  </style>
+</head>
+<body>
+
+  <h1>Website Embedder</h1>
+
+  <div id="embedder-controls">
+    <div class="input-group">
+      <label for="website-url"><i class="fas fa-globe"></i> Website URL</label>
+      <input type="text" id="website-url" placeholder="https://example.com">
+    </div>
+
+    <label class="proxy-option">
+      <input type="checkbox" id="use-proxy"> 
+      <span>Bypass restrictions (Use Proxy to send all headers)</span>
+    </label>
+
+    <button id="embed-btn">Embed Website</button>
+    <div id="error-message"></div>
+  </div>
+
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <button class="modal-close-btn">&times;</button>
+      <!-- Added referrerpolicy and updated sandbox -->
+      <iframe id="embedded-site-iframe" 
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-pointer-lock allow-top-navigation-by-user-activation"
+        allow="autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation"
+        allowfullscreen>
+      </iframe>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlInput = document.getElementById('website-url');
+      const embedBtn = document.getElementById('embed-btn');
+      const proxyCheck = document.getElementById('use-proxy');
+      const errorMsg = document.getElementById('error-message');
+      const modal = document.getElementById('modal-overlay');
+      const iframe = document.getElementById('embedded-site-iframe');
+      const closeBtn = document.querySelector('.modal-close-btn');
+
+      const showError = (msg) => {
+        errorMsg.textContent = msg;
+        errorMsg.classList.add('active');
+      };
+
+      embedBtn.addEventListener('click', () => {
+        let url = urlInput.value.trim();
+        errorMsg.classList.remove('active');
+
+        if (!url) return showError('Please enter a URL.');
+        if (!url.startsWith('http')) url = 'https://' + url;
+
+        try {
+          // If Proxy is checked, we route through a service that strips X-Frame-Options
+          // and passes through Origin/Referer data.
+          if (proxyCheck.checked) {
+            // Using a public CORS bridge (Note: Some sites may still block shared proxies)
+            iframe.src = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+          } else {
+            iframe.src = url;
+          }
+          
+          modal.classList.add('visible');
+        } catch (e) {
+          showError('Invalid URL format.');
+        }
+      });
+
+      // Close Logic
+      const closeBox = () => {
+        modal.classList.remove('visible');
+        iframe.src = '';
+      };
+
+      closeBtn.addEventListener('click', closeBox);
+      modal.addEventListener('click', (e) => { if(e.target === modal) closeBox(); });
+      document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeBox(); });
+    });
+  </script>
+</body>
+</html>

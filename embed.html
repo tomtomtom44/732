@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="referrer" content="no-referrer">
+  <script src="tizen-adapter.js"></script>
+  <title>Stream Embed Player</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="favicon.ico">
+  
+  <!-- Shaka Player UI & Mux.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/controls.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/7.1.0/mux.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.15.11/dist/shaka-player.ui.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #player-container {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    
+    /* Loading Spinner */
+    #loading-spinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.15);
+      border-top-color: #00f0ff;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      z-index: 20;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    #loading-spinner.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Unmute Banner */
+    #unmute-banner {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(14, 15, 23, 0.92);
+      border: 1px solid rgba(0, 240, 255, 0.5);
+      color: #00f0ff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.2);
+      transition: all 0.2s ease;
+    }
+    #unmute-banner:hover {
+      background: rgba(0, 240, 255, 0.18);
+      border-color: #00f0ff;
+      transform: translateX(-50%) scale(1.04);
+    }
+
+    /* Error Message Overlay */
+    #error-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 6, 9, 0.92);
+      backdrop-filter: blur(10px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 24px;
+      text-align: center;
+      z-index: 60;
+    }
+    #error-overlay h3 {
+      font-size: 1.25rem;
+      margin-bottom: 8px;
+      color: #ff3366;
+    }
+    #error-overlay p {
+      color: #99a1b3;
+      font-size: 0.9rem;
+      max-width: 500px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+    #error-overlay button {
+      background: #00f0ff;
+      color: #000;
+      font-weight: 700;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: opacity 0.2s;
+    }
+    #error-overlay button:hover {
+      opacity: 0.9;
+    }
+
+    /* Customize Shaka UI theme */
+    .shaka-video-container {
+      width: 100% !important;
+      height: 100% !important;
+    }
+    .shaka-controls-container {
+      z-index: 30;
+    }
+    .shaka-range-container {
+      --shaka-main-color: #00f0ff;
+    }
+    .shaka-overflow-menu, .shaka-settings-menu {
+      background: rgba(14, 15, 23, 0.95) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 6px !important;
+    }
+  
+video, .shaka-video-container video {
+    background: #000 !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+    outline: none !important;
+}
+.shaka-big-buttons-container,
+.shaka-play-button-container,
+.shaka-play-button,
+.shaka-video-container.pip-placeholder,
+.pip-poster,
+.pip-blur-overlay {
+    display: none !important;
+}
+
+</style>
+</head>
+<body>
+
+<div id="player-container">
+  <video id="video" playsinline autoplay webkit-playsinline></video>
+</div>
+<div id="loading-spinner"></div>
+<button id="unmute-banner">🔊 Zvuk je ztlumen (klikněte pro zapnutí)</button>
+<div id="error-overlay">
+  <h3>Chyba přehrávání</h3>
+  <p id="error-text">Nepodařilo se načíst stream.</p>
+  <button id="btn-retry">Zkusit znovu</button>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const video = document.getElementById('video');
+  const container = document.getElementById('player-container');
+  const spinner = document.getElementById('loading-spinner');
+  const unmuteBanner = document.getElementById('unmute-banner');
+  const errorOverlay = document.getElementById('error-overlay');
+  const errorText = document.getElementById('error-text');
+  const btnRetry = document.getElementById('btn-retry');
+
+  let player = null;
+  let ui = null;
+
+  // --- Helper to parse query / hash params ---
+  function getParam(key) {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has(key)) return searchParams.get(key);
+    // Fallback to hash search
+    if (window.location.hash) {
+      const hashStr = window.location.hash.substring(1);
+      const hashParams = new URLSearchParams(hashStr);
+      if (hashParams.has(key)) return hashParams.get(key);
+    }
+    return null;
+  }
+
+  // --- Parse ClearKeys Parameter ---
+  // Supports comma-separated list of kid:key or single kid:key
+  // e.g. ?keys=117c29396ec6fd295880013241a466e1:3dfb883251884e66d784111877c44b13,kid2:key2
+  function parseClearKeys(keysParam) {
+    const clearKeys = {};
+    if (!keysParam) return clearKeys;
+
+    // Decode in case of URI encoding
+    try { keysParam = decodeURIComponent(keysParam); } catch (e) {}
+
+    // Match all pairs of hex strings separated by colon
+    const pairs = keysParam.split(/[\s,\n]+/);
+    for (const pair of pairs) {
+      const trimmed = pair.trim();
+      if (!trimmed) continue;
+      const parts = trimmed.split(':');
+      if (parts.length === 2) {
+        const kid = parts[0].replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+        const key = parts[1].replace(/[^0-9a-fA-F]/g, '').toLowerCase();
+        if (kid.length >= 16 && key.length >= 16) {
+          clearKeys[kid] = key;
+        }
+      }
+    }
+    return clearKeys;
+  }
+
+  function showSpinner() {
+    spinner.classList.remove('hidden');
+  }
+
+  function hideSpinner() {
+    spinner.classList.add('hidden');
+  }
+
+  function showError(msg) {
+    hideSpinner();
+    errorText.textContent = msg || 'Chyba při přehrávání streamu.';
+    errorOverlay.style.display = 'flex';
+  }
+
+  function hideError() {
+    errorOverlay.style.display = 'none';
+  }
+
+  // --- Audio Language Auto-Fallback ---
+  function setupAudioTrackListener() {
+    player.addEventListener('trackschanged', () => {
+      try {
+        const tracks = player.getVariantTracks ? player.getVariantTracks() : [];
+        if (!tracks || !tracks.length) return;
+        const currentAudio = player.getConfiguration().preferredAudioLanguage;
+        // Prefer Czech if available
+        const csTrack = tracks.find(t => t.language && (t.language.toLowerCase().startsWith('cs') || t.language.toLowerCase().startsWith('cz') || t.language.toLowerCase().startsWith('ces')));
+        if (csTrack && (!currentAudio || (!currentAudio.toLowerCase().startsWith('cs') && !currentAudio.toLowerCase().startsWith('cz')))) {
+          player.selectAudioLanguage(csTrack.language);
+        }
+      } catch (e) {
+        console.warn("Track change selection error:", e);
+      }
+    });
+  }
+
+  async function initPlayer() {
+    shaka.polyfill.installAll();
+
+    if (!shaka.Player.isBrowserSupported()) {
+      showError('Tento prohlížeč nepodporuje přehrávač Shaka.');
+      return;
+    }
+
+    player = new shaka.Player();
+    await player.attach(video);
+
+    // Initialize Shaka UI
+    ui = new shaka.ui.Overlay(player, container, video);
+    ui.configure({
+      controlPanelElements: [
+        'play_pause',
+        'time_and_duration',
+        'mute',
+        'volume',
+        'spacer',
+        'quality',
+        'language',
+        'picture_in_picture',
+        'fullscreen'
+      ],
+      addBigPlayButton: true,
+      fadeDelay: 8,
+      overflowMenuButtons: ['quality', 'language', 'playback_rate', 'captions']
+    });
+
+    // Networking filter: Strip any Referer headers to ensure maximum CDN compatibility
+    player.getNetworkingEngine().registerRequestFilter((type, request) => {
+      delete request.headers['Referer'];
+      delete request.headers['referer'];
+      delete request.headers['Referrer'];
+      delete request.headers['referrer'];
+    });
+
+    setupAudioTrackListener();
+
+    player.addEventListener('error', (event) => {
+      console.error('Shaka player error:', event.detail);
+      const detail = event.detail || {};
+      let msg = 'Chyba streamu (' + (detail.code || 'neznámá') + ')';
+      if (detail.category === shaka.util.Error.Category.NETWORK) {
+        msg = 'Chyba sítě: Stream je nedostupný nebo blokován (Kód ' + detail.code + ').';
+      } else if (detail.category === shaka.util.Error.Category.DRM) {
+        msg = 'Chyba DRM: Klíče nejsou platné pro tento stream.';
+      }
+      showError(msg);
+    });
+
+    video.addEventListener('waiting', showSpinner);
+    video.addEventListener('playing', () => {
+      hideSpinner();
+      hideError();
+    });
+    video.addEventListener('loadeddata', hideSpinner);
+
+    // Handle Unmute Banner
+    unmuteBanner.addEventListener('click', () => {
+      video.muted = false;
+      unmuteBanner.style.display = 'none';
+    });
+
+    btnRetry.addEventListener('click', () => {
+      loadStream();
+    });
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+      switch (e.key) {
+        case ' ':
+        case 'k':
+          e.preventDefault();
+          video.paused ? video.play() : video.pause();
+          break;
+        case 'f':
+          e.preventDefault();
+          if (!document.fullscreenElement) {
+            container.requestFullscreen().catch(() => {});
+          } else {
+            document.exitFullscreen().catch(() => {});
+          }
+          break;
+        case 'm':
+          e.preventDefault();
+          video.muted = !video.muted;
+          if (!video.muted) unmuteBanner.style.display = 'none';
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          video.currentTime = Math.max(0, video.currentTime - 5);
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          video.currentTime = video.currentTime + 5;
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          video.volume = Math.min(1, video.volume + 0.1);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          video.volume = Math.max(0, video.volume - 0.1);
+          break;
+      }
+    });
+
+    loadStream();
+  }
+
+  async function loadStream() {
+    hideError();
+    showSpinner();
+
+    try {
+      if (player) await player.unload().catch(() => {});
+    } catch (uErr) {}
+
+    // Stream URL parameter
+    let streamUrl = getParam('url') || getParam('stream') || getParam('src') || getParam('mpd') || getParam('m3u8');
+    if (!streamUrl && window.location.hash) {
+      const h = window.location.hash.substring(1);
+      if (h.startsWith('http')) streamUrl = h;
+    }
+
+    if (!streamUrl) {
+      showError('Není zadána žádná URL adresa streamu. Použijte parametr ?url=');
+      return;
+    }
+
+    // Sanitize unencoded spaces in stream URL if present
+    try {
+      streamUrl = encodeURI(decodeURI(streamUrl));
+    } catch (uriErr) {}
+
+    // Set page title if provided
+    const titleParam = getParam('title') || getParam('name');
+    if (titleParam) {
+      document.title = titleParam + ' — Stream Player';
+    }
+
+    // Keys parameter
+    const rawKeys = getParam('keys') || getParam('key') || getParam('clearkey') || getParam('clearkeys');
+    const clearKeys = parseClearKeys(rawKeys);
+
+    // Build Shaka Configuration
+    const isMpd = streamUrl.toLowerCase().includes('.mpd');
+    const config = {
+      preferredAudioLanguage: 'cs',
+      streaming: {
+        lowLatencyMode: true,
+        bufferingGoal: 10,
+        rebufferingGoal: 2,
+        safeSeekOffset: isMpd ? 7 : 0,
+        retryParameters: {
+          maxAttempts: 5,
+          baseDelay: 1000,
+          backoffFactor: 2
+        }
+      },
+      manifest: {
+        dash: {
+          ignoreMinBufferTime: true,
+          autoCorrectDrift: true
+        }
+      },
+      drm: {
+        servers: {},
+        clearKeys: clearKeys
+      }
+    };
+
+    if (Object.keys(clearKeys).length > 0) {
+      config.manifest.ignoreDrmInfo = true;
+      config.manifest.dash.ignoreDrmInfo = true;
+    }
+
+    // Check if start time / begin parameter is present
+    const beginParam = getParam('begin') || getParam('start') || getParam('t');
+    let startTime = null;
+    if (beginParam && !isNaN(parseFloat(beginParam))) {
+      startTime = parseFloat(beginParam);
+    } else if (isMpd) {
+      startTime = -7;
+    }
+
+    try {
+      player.configure(config);
+      if (startTime !== null && !isNaN(startTime)) {
+        await player.load(streamUrl, startTime);
+      } else {
+        await player.load(streamUrl);
+      }
+
+      // Attempt Playback
+      try {
+        await video.play();
+      } catch (playErr) {
+        if (playErr.name === 'NotAllowedError') {
+          // Autoplay with sound blocked: mute and play
+          video.muted = true;
+          await video.play();
+          unmuteBanner.style.display = 'flex';
+        } else {
+          console.warn('Playback error:', playErr);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load stream:', e);
+      showError('Chyba při načítání streamu (' + (e.code || e.message || 'Error') + ')');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', initPlayer);
+})();
+</script>
+</body>
+</html>

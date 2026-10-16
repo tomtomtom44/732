@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
+    <script src="../tizen-adapter.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <script>
+    // Native persistent storage bridge (persists across app updates & webview storage purges)
+    (function initNativeStorageBridge() {
+      if (typeof window !== "undefined") {
+        var syncFromNative = function() {
+          if (typeof window.AndroidNative !== "undefined" && typeof window.AndroidNative.getAllPrefsJson === "function") {
+            try {
+              var allPrefsStr = window.AndroidNative.getAllPrefsJson();
+              if (allPrefsStr) {
+                var allPrefs = JSON.parse(allPrefsStr);
+                for (var k in allPrefs) {
+                  if (Object.prototype.hasOwnProperty.call(allPrefs, k)) {
+                    try { window.localStorage.setItem(k, allPrefs[k]); } catch (e) {}
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn("Native storage sync error:", err);
+            }
+          }
+        };
+
+        var hookStorage = function() {
+          if (window._nativeStorageHooked) return;
+          window._nativeStorageHooked = true;
+          try {
+            var origSetItem = window.localStorage.setItem.bind(window.localStorage);
+            window.localStorage.setItem = function(key, val) {
+              origSetItem(key, val);
+              try {
+                if (window.AndroidNative && typeof window.AndroidNative.savePref === "function") {
+                  window.AndroidNative.savePref(key, String(val));
+                }
+              } catch (e) {}
+            };
+
+            var origRemoveItem = window.localStorage.removeItem.bind(window.localStorage);
+            window.localStorage.removeItem = function(key) {
+              origRemoveItem(key);
+              try {
+                if (window.AndroidNative && typeof window.AndroidNative.removePref === "function") {
+                  window.AndroidNative.removePref(key);
+                }
+              } catch (e) {}
+            };
+
+            if (window.AndroidNative && typeof window.AndroidNative.savePref === "function") {
+              for (var i = 0; i < window.localStorage.length; i++) {
+                var lKey = window.localStorage.key(i);
+                if (lKey) {
+                  window.AndroidNative.savePref(lKey, window.localStorage.getItem(lKey));
+                }
+              }
+            }
+          } catch (e) {}
+        };
+
+        syncFromNative();
+        hookStorage();
+        if (typeof window.AndroidNative === "undefined") {
+          var checkAttempts = 0;
+          var timer = setInterval(function() {
+            checkAttempts++;
+            if (typeof window.AndroidNative !== "undefined" || checkAttempts > 15) {
+              clearInterval(timer);
+              syncFromNative();
+              hookStorage();
+            }
+          }, 100);
+        }
+      }
+    })();
+    </script>
+    <title>CZTV Kanály</title>
+    <script>
+      if (window.location.hostname === 'yasuoyone.org' || window.location.hostname === 'www.yasuoyone.org') {
+        window.location.replace('/');
+      }
+    </script>
+    <link rel="icon" type="image/svg+xml" href="../icon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player/dist/controls.min.css">
+    <script>
+    (function() {
+      if (typeof window.fetch === "function" && !window.fetch._cetinPatched) {
+        var origFetch = window.fetch;
+        window.fetch = function(input, init) {
+          var url = typeof input === "string" ? input : (input && input.url ? input.url : "");
+          init = init || {};
+          var lowerUrl = typeof url === "string" ? url.toLowerCase() : "";
+          var isYasuoyone = lowerUrl.includes(".yasuoyone.org") || lowerUrl.includes("yasuoyone.org");
+          if (isYasuoyone) {
+            init.headers = init.headers || {};
+            if (typeof Headers !== "undefined" && init.headers instanceof Headers) {
+              init.headers.set("Origin", "https://yasuoyone.org");
+              init.headers.set("Referer", "https://yasuoyone.org/");
+            } else if (Array.isArray(init.headers)) {
+              init.headers = init.headers.filter(function(h) { return !/^(origin|referer|referrer)$/i.test(h[0]); });
+              init.headers.push(["Origin", "https://yasuoyone.org"]);
+              init.headers.push(["Referer", "https://yasuoyone.org/"]);
+            } else {
+              init.headers["Origin"] = "https://yasuoyone.org";
+              init.headers["Referer"] = "https://yasuoyone.org/";
+            }
+          } else if (lowerUrl.includes("cetin.cz") || lowerUrl.includes("mazana.tv") || lowerUrl.includes("aw-ucdn")) {
+            init.referrerPolicy = "no-referrer";
+            init.referrer = "";
+            if (init.headers) {
+              if (typeof Headers !== "undefined" && init.headers instanceof Headers) {
+                init.headers.delete("Referer");
+                init.headers.delete("referer");
+                init.headers.delete("Referrer");
+                init.headers.delete("referrer");
+                init.headers.delete("Origin");
+                init.headers.delete("origin");
+              } else if (Array.isArray(init.headers)) {
+                init.headers = init.headers.filter(function(h) { return !/^(referer|referrer|origin)$/i.test(h[0]); });
+              } else {
+                delete init.headers["Referer"];
+                delete init.headers["referer"];
+                delete init.headers["Referrer"];
+                delete init.headers["referrer"];
+                delete init.headers["Origin"];
+                delete init.headers["origin"];
+              }
+            }
+          }
+          if (!init.mode && typeof url === "string" && /^https?:\/\//i.test(url) && !url.includes(location.hostname)) {
+            init.mode = "cors";
+          }
+          if (typeof input !== "string" && input && input.url) {
+            try {
+              input = new Request(input, { referrerPolicy: "no-referrer", referrer: "" });
+            } catch (e) {}
+          }
+          return origFetch.call(this, input, init);
+        };
+        window.fetch._cetinPatched = true;
+      }
+      if (typeof XMLHttpRequest !== "undefined" && XMLHttpRequest.prototype && !XMLHttpRequest.prototype._cetinPatched) {
+        var origOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+          try { this.referrerPolicy = "no-referrer"; } catch (e) {}
+          return origOpen.apply(this, arguments);
+        };
+        XMLHttpRequest.prototype._cetinPatched = true;
+      }
+    })();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mux.js/7.1.0/mux.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/shaka-player/dist/shaka-player.ui.min.js"></script>
+    <script>
+  if ((window.parent && window.parent.__NATIVE_ANDROID__) || /Android/i.test(navigator.userAgent)) {
+    window.__NATIVE_ANDROID__ = true;
+  }
+</script>
+<script>if(typeof shaka!=='undefined'&&shaka.polyfill)shaka.polyfill.installAll();</script>
+    <script>(function(){if(typeof shaka!=='undefined'&&shaka.Player&&!shaka.Player._patched){const oC=shaka.Player.prototype.configure;shaka.Player.prototype.configure=function(c,v){if(typeof c==='object'){if(c.preferredAudioLanguage===undefined||c.preferredAudioLanguage===""||c.preferredAudioLanguage==="en"||c.preferredAudioLanguage==="eng")c.preferredAudioLanguage='cs';}else if(typeof c==='string'&&c==='preferredAudioLanguage'){if(!v||v==='en'||v==='eng')v='cs';}return oC.call(this,c,v);};const oL=shaka.Player.prototype.load;shaka.Player.prototype.load=function(url,startTime,mimeType){const assetUri=(typeof url==='string'?url:(this.getAssetUri?this.getAssetUri():''))||'';if(assetUri&&typeof assetUri==='string'){const lowerUrl=assetUri.toLowerCase();if(lowerUrl.includes('.m3u8s')){mimeType='application/x-mpegurl';}else if(lowerUrl.includes('.txt')){if(lowerUrl.includes('master')||lowerUrl.includes('m3u8')){mimeType='application/x-mpegurl';}else if(lowerUrl.includes('mpd')){mimeType='application/dash+xml';}else{mimeType='application/x-mpegurl';}}}return oL.call(this,url,startTime,mimeType);};shaka.Player._patched=true;}})();</script>
+    <style>*{margin:0;padding:0;box-sizing:border-box}:root{--bg-deep:#000000;--bg-surface:#0a0a0a;--bg-elevated:#111111;--bg-card:#161616;--bg-card-hover:#1c1c1c;--text-primary:#ffffff;--text-secondary:#a0a0a0;--text-muted:#5a5a5a;--accent:#FFC629;--accent-soft:rgba(255, 198, 41, 0.12);--accent-glow:rgba(255, 198, 41, 0.25);--border-subtle:rgba(255, 255, 255, 0.06);--border-gold:rgba(255, 198, 41, 0.4);--shadow-card:0 8px 20px rgba(0, 0, 0, 0.5);--shadow-glow:0 0 12px rgba(255, 198, 41, 0.2);--radius-md:12px;--radius-sm:8px;--transition:all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1)}body{font-family:'Inter',system-ui,-apple-system,sans-serif;background-color:var(--bg-deep);color:var(--text-primary);line-height:1.5;overflow-x:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:0 !important;padding-right:0 !important}.bg-aura{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;background:radial-gradient(circle at 20% 30%,rgba(255,198,41,0.03) 0%,transparent 60%)}.app-container{max-width:1600px;margin:0 auto;padding:2rem 2rem 4rem}.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem;margin-bottom:2.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border-subtle)}.logo-area{display:flex;align-items:center;gap:0.75rem}.logo-icon{width:44px;height:44px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.5rem;color:#000}.logo-text{font-family:'Bebas Neue',cursive;font-size:1.8rem;letter-spacing:2px;background:linear-gradient(135deg,#FFC629,#FFB347);-webkit-background-clip:text;background-clip:text;color:transparent}.search-wrapper{position:relative;width:280px}.search-wrapper i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none}#channel-search{width:100%;padding:0.75rem 1rem 0.75rem 2.5rem;background:var(--bg-elevated);border:1px solid var(--border-subtle);border-radius:50px;color:var(--text-primary);font-size:0.9rem;transition:var(--transition)}#channel-search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}.categories-wrapper{margin-bottom:2rem;overflow-x:auto;scrollbar-width:thin}.categories-list{display:flex;gap:0.75rem;flex-wrap:nowrap;padding-bottom:0.5rem}.category-btn{background:var(--bg-elevated);border:1px solid var(--border-subtle);padding:0.6rem 1.4rem;border-radius:40px;font-size:0.85rem;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:var(--transition);white-space:nowrap}.category-btn.active{background:var(--accent);color:#000;border-color:var(--accent);box-shadow:var(--shadow-glow);font-weight:600}.category-btn:hover:not(.active){background:var(--bg-card);color:var(--text-primary);border-color:var(--border-gold)}.channels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1.5rem;margin:2rem 0}.channel-card{background:var(--bg-card);border-radius:var(--radius-md);aspect-ratio:16/9;overflow:hidden;position:relative;cursor:pointer;transition:var(--transition);border:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:center;will-change:transform}.channel-card:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:var(--shadow-card),0 0 0 1px var(--accent-soft)}.channel-logo{max-width:85%;max-height:75%;object-fit:contain;filter:brightness(0.95);transition:var(--transition)}.channel-card:hover .channel-logo{filter:brightness(1.1);transform:scale(1.02)}.channel-name{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,0.85) 0%,transparent 100%);padding:1rem 0.5rem 0.5rem;text-align:center;font-size:0.8rem;font-weight:500;color:white;transform:translateY(100%);transition:transform 0.2s ease;pointer-events:none}.channel-card:hover .channel-name{transform:translateY(0)}.loader-trigger{text-align:center;margin:2rem 0}.btn-load-more{background:var(--bg-elevated);border:1px solid var(--border-subtle);color:var(--text-primary);padding:0.8rem 2rem;border-radius:40px;cursor:pointer;font-weight:600;transition:var(--transition)}.btn-load-more:hover{background:var(--accent);color:#000}.spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border-subtle);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.player-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000;z-index:2000;display:none;flex-direction:column;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}.player-overlay.active{display:flex !important}.player-overlay.controls-hidden{cursor:none}.player-header{position:absolute;top:0;left:0;right:0;padding:calc(1.2rem + env(safe-area-inset-top, 0px)) calc(2rem + env(safe-area-inset-right, 0px)) 1.2rem calc(2rem + env(safe-area-inset-left, 0px));background:linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%);display:flex;justify-content:space-between;align-items:center;z-index:10;transition:transform 0.3s cubic-bezier(0.4,0,0.2,1),opacity 0.3s ease}.player-overlay.controls-hidden .player-header{transform:translateY(-100%);opacity:0;pointer-events:none}.player-channel-title{font-size:1.1rem;font-weight:600;background:var(--accent-soft);padding:0.4rem 1rem;border-radius:40px;border-left:3px solid var(--accent)}.close-player{background:rgba(255,255,255,0.1);border:none;width:44px;height:44px;border-radius:50%;font-size:1.4rem;cursor:pointer;color:white;transition:var(--transition)}.close-player:hover{background:#ff3b3b;transform:scale(1.05)}.shaka-video-container .shaka-fullscreen-button.shaka-hidden{display:inline-block !important}.material-icons-round,.shaka-fullscreen-button{font-family:'Material Icons Round' !important;font-style:normal;text-transform:none;letter-spacing:normal;word-wrap:normal;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}.video-container,.shaka-video-container{width:100% !important;height:100% !important;flex:1 !important;position:relative !important;display:flex !important;align-items:center !important;justify-content:center !important;background:#000 !important;overflow:hidden !important}#video,video,.shaka-video-container video{display:block !important;width:100% !important;height:100% !important;object-fit:contain !important;background:#000 !important;transform:translateZ(0) !important;-webkit-transform:translateZ(0) !important;outline:none !important}.audio-fallback{display:none;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;padding:2rem}.audio-fallback audio{width:80%;max-width:500px}.empty-state{text-align:center;padding:4rem;color:var(--text-muted)}@media(max-width:768px){.app-container{padding:1rem 1rem 3rem}.header{flex-direction:column;align-items:stretch}.search-wrapper{width:100%}.channels-grid{gap:0.8rem;grid-template-columns:repeat(2,1fr)}.channel-name{font-size:0.7rem}}.maintenance-overlay{position:fixed;inset:0;top:0;left:0;width:100vw;height:100vh;background:rgba(5,7,12,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}.maintenance-card{background:#111622;border:1px solid rgba(255,198,41,0.35);box-shadow:0 0 40px rgba(0,0,0,0.8),0 0 20px rgba(255,198,41,0.15);border-radius:20px;max-width:480px;width:100%;padding:32px 28px;text-align:center;color:#f1f5f9;font-family:inherit;animation:modalPopIn 0.3s cubic-bezier(0.34,1.56,0.64,1)}@keyframes modalPopIn{from{opacity:0;transform:scale(0.9) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}.maintenance-icon-wrap{width:64px;height:64px;background:rgba(255,198,41,0.12);border:1px solid rgba(255,198,41,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.8rem;color:#ffc629}.maintenance-title{font-size:1.4rem;font-weight:700;margin-bottom:14px;color:#fff;letter-spacing:-0.3px}.maintenance-text{font-size:0.95rem;line-height:1.6;color:#cbd5e1;margin-bottom:24px}.maintenance-text strong{color:#ffc629;font-weight:600}.maintenance-actions{display:flex;flex-direction:column;gap:10px}.btn-open-mazana{background:linear-gradient(135deg,#ffc629,#f59e0b);color:#000;font-weight:700;font-size:1rem;padding:14px 24px;border-radius:50px;border:none;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(255,198,41,0.3);transition:all 0.2s ease}.btn-open-mazana:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,198,41,0.45);background:linear-gradient(135deg,#ffd043,#fbbf24)}.btn-stay-here{background:rgba(255,255,255,0.06);color:#94a3b8;font-weight:500;font-size:0.85rem;padding:10px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:all 0.2s ease}.btn-stay-here:hover{background:rgba(255,255,255,0.12);color:#fff}
+/* TV Remote D-Pad Navigation & Focus Styles */
+.channel-card:focus, .channel-card:focus-visible {
+    outline: none !important;
+    border-color: #FFC629 !important;
+    box-shadow: 0 0 25px rgba(255, 198, 41, 0.7), 0 0 0 3px #FFC629 !important;
+    transform: scale(1.08) !important;
+    z-index: 100 !important;
+}
+.channel-card:focus .channel-name, .channel-card:focus-visible .channel-name {
+    transform: translateY(0) !important;
+}
+.category-btn:focus, .category-btn:focus-visible {
+    outline: none !important;
+    background: #FFC629 !important;
+    color: #000 !important;
+    border-color: #FFC629 !important;
+    box-shadow: 0 0 20px rgba(255, 198, 41, 0.6) !important;
+    transform: scale(1.06) !important;
+}
+.close-player:focus, .close-player:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 16px rgba(255, 59, 59, 0.8) !important;
+    transform: scale(1.1) !important;
+}
+.shaka-big-buttons-container,
+.shaka-play-button-container,
+.shaka-play-button,
+.shaka-video-container.pip-placeholder,
+.pip-poster,
+.pip-blur-overlay {
+    display: none !important;
+}
+
+.top-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    padding: 0 12px;
+    height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-right: 10px;
+    box-sizing: border-box;
+}
+.top-back-btn:hover, .top-back-btn:focus, .top-back-btn:focus-visible {
+    background: var(--accent, #FFC629);
+    color: #000000;
+    outline: none !important;
+    border-color: var(--accent, #FFC629) !important;
+    box-shadow: 0 0 10px rgba(255, 198, 41, 0.35) !important;
+    transform: translateY(-1px);
+}
+@media (max-width: 640px) {
+    .top-back-btn {
+        padding: 0 9px;
+        height: 30px;
+        margin-right: 6px;
+    }
+    .top-back-btn span {
+        display: none;
+    }
+}
+
+
+:fullscreen, :-webkit-full-screen {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+}
+:fullscreen video, :-webkit-full-screen video,
+:fullscreen .video-container, :-webkit-full-screen .video-container,
+:fullscreen .shaka-video-container, :-webkit-full-screen .shaka-video-container {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+}
+</style>
+</head>
+<body>
+<div class="bg-aura"></div>
+<main class="app-container">
+    <div class="header">
+        <div class="logo-area">
+        <a href="../index.html" id="top-back-btn" class="top-back-btn" onclick="window.goBackToRozcestnik(event)" title="Zpět na Rozcestník" aria-label="Zpět"><i class="fas fa-arrow-left"></i><span>Rozcestník</span></a>
+            <div class="logo-icon">📺</div>
+            <div class="logo-text">CZTV PREMIUM</div>
+        </div>
+        <div class="search-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" id="channel-search" placeholder="Hledat kanál...">
+        </div>
+    </div>
+    <div class="categories-wrapper"><div class="categories-list" id="category-filters"></div></div>
+    <div class="channels-grid" id="channels-grid"></div>
+    <div class="loader-trigger" id="load-more-container" style="display:none;"><button id="btn-load-more" class="btn-load-more">Načíst další</button></div>
+</main>
+<div id="player-overlay" class="player-overlay">
+    <div class="player-header">
+        <div class="player-channel-title" id="player-channel-name">Načítání...</div>
+        <button class="close-player" id="close-player-btn"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="video-container" data-shaka-player-container id="shaka-container">
+        <video id="video" data-shaka-player autoplay playsinline webkit-playsinline referrerpolicy="no-referrer" style="width:100% !important;height:100% !important;object-fit:contain !important;background:#000 !important;transform:translateZ(0) !important;-webkit-transform:translateZ(0) !important;outline:none !important;"></video>
+    </div>
+    <div id="audio-fallback" class="audio-fallback" style="display:none;">
+        <i class="fas fa-headphones" style="font-size:3rem; color:var(--accent)"></i>
+        <div>Audio stream</div>
+        <audio controls autoplay crossorigin="anonymous" referrerpolicy="no-referrer" style="width:100%"></audio>
+    </div>
+</div>
+<script>
+(function() {
+  function getClearanceToken() {
+    var token = "";
+    try {
+      var p = new URLSearchParams(window.location.search);
+      token = p.get("cf_clearance") || p.get("clearance") || p.get("token") || "";
+    } catch (e) {}
+
+    if (!token && window.__cf_clearance_token) {
+      token = window.__cf_clearance_token;
+    }
+
+    if (!token) {
+      try {
+        if (window.parent && window.parent !== window) {
+          token = window.parent.__cf_clearance_token ||
+                  window.parent.sessionStorage.getItem("cf_clearance_token") ||
+                  window.parent.localStorage.getItem("cf_clearance_token") || "";
+        }
+      } catch (e) {}
+    }
+
+    if (!token) {
+      try {
+        token = sessionStorage.getItem("cf_clearance_token") || sessionStorage.getItem("cf_clearance") || "";
+      } catch (e) {}
+    }
+
+    if (!token) {
+      try {
+        token = localStorage.getItem("cf_clearance_token") || localStorage.getItem("cf_clearance") || "";
+      } catch (e) {}
+    }
+
+    if (!token) {
+      try {
+        var match = document.cookie.match(/(?:^|;\s*)cf_clearance=([^;]+)/);
+        if (match) token = decodeURIComponent(match[1]);
+      } catch (e) {}
+    }
+
+    if (token) {
+      window.__cf_clearance_token = token;
+      try { sessionStorage.setItem("cf_clearance_token", token); } catch (e) {}
+      try { localStorage.setItem("cf_clearance_token", token); } catch (e) {}
+    }
+
+    return token;
+  }
+
+  window.getClearanceToken = getClearanceToken;
+
+  function isClearanceTarget(url) {
+    if (!url || typeof url !== "string") return false;
+    // Strictly forbid clearance on stream proxies, CDNs, and media files
+    if (
+      url.includes("opg.yasuoyone.org") ||
+      url.includes("cetin.cz") ||
+      url.includes("mazana.tv") ||
+      url.includes("aw-ucdn") ||
+      url.includes(".m3u8") ||
+      url.includes(".mpd") ||
+      url.includes(".ts")
+    ) {
+      return false;
+    }
+    return (
+      url.includes("e.yasuoyone.org") ||
+      url.includes("oepg.yasuoyone.org") ||
+      url.includes("epg.yasuoyone.org") ||
+      url.includes("opevent.yasuoyone.org")
+    );
+  }
+
+  window.isClearanceTarget = isClearanceTarget;
+
+  window.attachClearance = function(url) {
+    if (!url || typeof url !== "string") return url;
+    // If by any chance url has cf_clearance on a stream, strip it immediately
+    if (url.includes("opg.yasuoyone.org") || url.includes("cetin.cz") || url.includes("mazana.tv") || url.includes("aw-ucdn")) {
+      return url.replace(/([?&])(cf_clearance|clearance)=[^&]*/g, '').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+    }
+    if (!isClearanceTarget(url)) return url;
+    var token = getClearanceToken();
+    if (!token) return url;
+    if (!url.includes("cf_clearance=") && !url.includes("clearance=") && !url.includes("token=")) {
+      var sep = url.includes("?") ? "&" : "?";
+      return url + sep + "cf_clearance=" + encodeURIComponent(token);
+    }
+    return url;
+  };
+
+  // Monkey-patch window.fetch to automatically include cf_clearance and X-Clearance-Token header ONLY for clearance workers
+  var origFetch = window.fetch;
+  window.fetch = function(input, init) {
+    var token = getClearanceToken();
+    var url = typeof input === "string" ? input : (input && input.url ? input.url : "");
+
+    if (typeof url === "string" && url.includes("cetin.cz")) {
+      init = init || {};
+      init.referrerPolicy = "no-referrer";
+      init.referrer = "";
+      if (init.headers) {
+        if (typeof Headers !== "undefined" && init.headers instanceof Headers) {
+          init.headers.delete("Referer");
+          init.headers.delete("referer");
+        } else if (Array.isArray(init.headers)) {
+          init.headers = init.headers.filter(h => !/^referer$/i.test(h[0]));
+        } else {
+          delete init.headers["Referer"];
+          delete init.headers["referer"];
+        }
+      }
+    }
+
+    if (token && isClearanceTarget(url)) {
+      url = window.attachClearance(url);
+      if (typeof input === "string") {
+        input = url;
+      } else if (typeof Request !== "undefined" && input instanceof Request) {
+        input = new Request(url, input);
+      }
+
+      init = init || {};
+      if (init.headers) {
+        if (typeof Headers !== "undefined" && init.headers instanceof Headers) {
+          if (!init.headers.has("X-Clearance-Token")) init.headers.set("X-Clearance-Token", token);
+        } else if (Array.isArray(init.headers)) {
+          init.headers.push(["X-Clearance-Token", token]);
+        } else {
+          init.headers["X-Clearance-Token"] = token;
+        }
+      } else {
+        init.headers = { "X-Clearance-Token": token };
+      }
+    }
+
+    return origFetch.call(this, input, init);
+  };
+
+  // Clean asynchronous sequential script loading
+  function loadScriptAsync(src, callback) {
+    var s = document.createElement("script");
+    s.src = src;
+    s.async = false;
+    if (callback) s.onload = callback;
+    document.head.appendChild(s);
+  }
+  var clr = getClearanceToken();
+  var q = clr ? ("?cf_clearance=" + encodeURIComponent(clr)) : "";
+  loadScriptAsync("https://e.yasuoyone.org/category.js" + q, function() {
+    loadScriptAsync("https://e.yasuoyone.org/channels.js" + q);
+  });
+
+  // Resilient fallback retry
+  setTimeout(function() {
+    if (!window.channels || !window.channels.length) {
+      var tok = getClearanceToken();
+      var qk = tok ? ("?cf_clearance=" + encodeURIComponent(tok) + "&t=" + Date.now()) : ("?t=" + Date.now());
+      var s1 = document.createElement("script");
+      s1.src = "https://e.yasuoyone.org/category.js" + qk;
+      s1.onload = function() {
+        var s2 = document.createElement("script");
+        s2.src = "https://e.yasuoyone.org/channels.js" + qk;
+        document.head.appendChild(s2);
+      };
+      document.head.appendChild(s1);
+    }
+  }, 2500);
+})();
+</script>
+<script>(function(){
+    const TR = {
+        cs: {
+            title: "CZTV Kanály",
+            searchPlaceholder: "Hledat kanál...",
+            loadMore: "Načíst další",
+            loading: "Načítání...",
+            streamUnavailable: "Stream nedostupný",
+            noChannels: "Žádné kanály nenalezeny",
+            adultConfirm: "Tato sekce obsahuje obsah pro dospělé (18+). Je vám více než 18 let a přejete si pokračovat?",
+            browserNotSupported: "Váš prohlížeč nepodporuje přehrávač.",
+            cats: {
+                'Všechny kanály': 'Všechny kanály',
+                'Základní': 'Základní',
+                'Slovenské hlavní': 'Slovenské hlavní',
+                'Filmy a seriály': 'Filmy a seriály',
+                'Zpravodajské': 'Zpravodajské',
+                'Sport': 'Sport',
+                'Dokumentární': 'Dokumentární',
+                'Dětské': 'Dětské',
+                'Lifestyle': 'Lifestyle',
+                'Hudební': 'Hudební',
+                'Pro dospělé': 'Pro dospělé',
+                'Audiodeskripce': 'Audiodeskripce',
+                'Slow TV': 'Slow TV'
+            }
+        },
+        en: {
+            title: "CZTV Channels",
+            searchPlaceholder: "Search channel...",
+            loadMore: "Load more",
+            loading: "Loading...",
+            streamUnavailable: "Stream unavailable",
+            noChannels: "No channels found",
+            adultConfirm: "This section contains adult content (18+). Are you over 18 years old and wish to continue?",
+            browserNotSupported: "Your browser does not support the player.",
+            cats: {
+                'Všechny kanály': 'All channels',
+                'Základní': 'Basic',
+                'Slovenské hlavní': 'Slovak main',
+                'Filmy a seriály': 'Movies & TV Shows',
+                'Zpravodajské': 'News',
+                'Sport': 'Sports',
+                'Dokumentární': 'Documentaries',
+                'Dětské': 'Kids',
+                'Lifestyle': 'Lifestyle',
+                'Hudební': 'Music',
+                'Pro dospělé': 'Adult (18+)',
+                'Audiodeskripce': 'Audio Description',
+                'Slow TV': 'Slow TV'
+            }
+        }
+    };
+    let lang = localStorage.getItem('tv_lang');
+    if (!lang) {
+        const userLangs = navigator.languages || [navigator.language || ''];
+        const isCzOrSk = userLangs.some(l => {
+            const low = l.toLowerCase();
+            return low.startsWith('cs') || low.startsWith('sk');
+        });
+        lang = isCzOrSk ? 'cs' : 'en';
+    }
+    function t(k) { return (TR[lang] && TR[lang][k]) || (TR['cs'] && TR['cs'][k]) || k; }
+
+    function trUI() {
+        document.title = t('title');
+        const searchInput = document.getElementById('channel-search');
+        if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+        const loadMoreBtn = document.getElementById('btn-load-more');
+        if (loadMoreBtn) loadMoreBtn.textContent = t('loadMore');
+        const playerChannelNameSpan = document.getElementById('player-channel-name');
+        if (playerChannelNameSpan) playerChannelNameSpan.textContent = t('loading');
+    }
+
+    // Wrap/patch window.asC to resolve category mismatches and force movie channels to Filmy a seriály
+    const originalAsC = window.asC;
+    window.asC = function(name) {
+        if (!name) return 'Základní';
+        const s = name.toLowerCase().trim();
+        if (s.includes('amc') || s.includes('film') || s.includes('cinema') || s.includes('hbo') || s.includes('axn') || s.includes('epic drama') || s.includes('canal+ action') || s.includes('paramount')) return 'Filmy a seriály';
+        if (typeof originalAsC === 'function') {
+            const cat = originalAsC(name);
+            if (cat === 'Filmy') return 'Filmy a seriály';
+            if (cat === 'Sportovní') return 'Sport';
+            if (cat === 'Zpravodajství') return 'Zpravodajské';
+            if (cat === 'Hudba') return 'Hudební';
+            return cat;
+        }
+        return 'Základní';
+    };
+
+const grid=document.getElementById('channels-grid');
+const categoryContainer=document.getElementById('category-filters');
+const searchInput=document.getElementById('channel-search');
+const playerOverlay=document.getElementById('player-overlay');
+const closePlayerBtn=document.getElementById('close-player-btn');
+const playerChannelNameSpan=document.getElementById('player-channel-name');
+const videoElem=document.getElementById('video');
+const audioFallbackDiv=document.getElementById('audio-fallback');
+
+// Sync volume from cache on initialization
+const cachedVol = localStorage.getItem('player_volume');
+if (cachedVol !== null) {
+    videoElem.volume = parseFloat(cachedVol);
+}
+const cachedMuted = localStorage.getItem('player_muted');
+if (cachedMuted !== null) {
+    videoElem.muted = (cachedMuted === 'true');
+}
+
+// Track volume changes to update the cache
+videoElem.addEventListener('volumechange', () => {
+    localStorage.setItem('player_volume', videoElem.volume.toString());
+    localStorage.setItem('player_muted', videoElem.muted ? 'true' : 'false');
+});
+const shakaContainer=document.getElementById('shaka-container');
+const loadMoreBtn=document.getElementById('btn-load-more');
+const loadMoreContainer=document.getElementById('load-more-container');
+
+let allChannels=[];
+let currentCategory='Všechny kanály';
+let searchTerm='';
+let renderedCount=0;
+let shakaPlayer=null;
+let shakaControls=null;
+let currentAudioElement=null;
+let currentChannelObj=null;
+let currentStreamUrl = '';
+let currentLoadId=0;
+
+function getChannelCategory(channelName){return(typeof window.asC==='function')?window.asC(channelName):'Ostatní'}
+function getFilteredChannels(){return allChannels.filter(ch=>{const catMatch=(currentCategory==='Všechny kanály'||getChannelCategory(ch.name)===currentCategory);const nameMatch=ch.name.toLowerCase().includes(searchTerm.toLowerCase());const idMatch=ch.id&&ch.id.toString().includes(searchTerm);return catMatch&&(nameMatch||idMatch)})}
+function renderNextBatch(){const filtered=getFilteredChannels();const batchSize=30;const nextChunks=filtered.slice(renderedCount,renderedCount+batchSize);nextChunks.forEach(ch=>appendChannelCard(ch));renderedCount+=nextChunks.length;if(renderedCount>=filtered.length){loadMoreContainer.style.display='none'}else{loadMoreContainer.style.display='block'}}
+let lastActiveCard=null;
+function appendChannelCard(channel){
+    const card=document.createElement('div');
+    card.className='channel-card';
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', channel.name);
+    card.innerHTML=`<img src="${channel.icon||''}" class="channel-logo" alt="${channel.name}" loading="lazy" decoding="async"><div class="channel-name">${channel.name}</div>`;
+    card.addEventListener('click',()=>playChannel(channel, card));
+    card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23) {
+            e.preventDefault();
+            playChannel(channel, card);
+        }
+    });
+    grid.appendChild(card);
+}
+function resetAndRender(){grid.innerHTML='';renderedCount=0;const filtered=getFilteredChannels();if(filtered.length===0){grid.innerHTML='<div class="empty-state"><i class="fas fa-tv" style="font-size:3rem; margin-bottom:1rem; display:block"></i>' + t('noChannels') + '</div>';loadMoreContainer.style.display='none';return}renderNextBatch()}
+
+async function unloadShaka(){
+    if(shakaPlayer){try{await shakaPlayer.unload()}catch(e){}}
+    videoElem.pause();
+    videoElem.removeAttribute('poster');
+    videoElem.poster='';
+}
+
+async function initShakaOnce(){
+    if(shakaPlayer)return shakaPlayer;
+    if(!shaka.Player.isBrowserSupported()){alert(t('browserNotSupported'));return null}
+    if(!videoElem._posterListenersAdded){
+        videoElem._posterListenersAdded=true;
+        videoElem.addEventListener('playing',()=>videoElem.removeAttribute('poster'));
+        videoElem.addEventListener('loadeddata',()=>videoElem.removeAttribute('poster'));
+        videoElem.addEventListener('canplay',()=>videoElem.removeAttribute('poster'));
+    }
+    let ui=videoElem['ui'];
+    if(!ui){
+        shakaPlayer=new shaka.Player(videoElem);
+        ui=new shaka.ui.Overlay(shakaPlayer, shakaContainer, videoElem);
+    }
+    ui.configure({
+        doubleClickForFullscreen: false,
+        fadeDelay: 8,
+        bigButtons: [],
+        controlPanelElements: [
+            'play_pause',
+            'mute',
+            'volume',
+            'time_and_duration',
+            'spacer',
+            'overflow_menu',
+            'fullscreen'
+        ]
+    });
+    shakaControls=ui.getControls();
+    shakaPlayer=shakaControls.getPlayer();
+    shakaContainer.addEventListener('click',e=>{const t=e.target.closest('.shaka-current-time');if(t&&shakaPlayer.isLive())videoElem.currentTime=shakaPlayer.seekRange().end});
+    
+    // Intercept native fullscreen button click via capture listener on container to run our robust bypass toggle
+    if (!shakaContainer._fsListenerAdded) {
+        shakaContainer._fsListenerAdded = true;
+        shakaContainer.addEventListener('click', (e) => {
+            const fsBtn = e.target.closest('.shaka-fullscreen-button');
+            if (fsBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                toggleFullscreen(playerOverlay, videoElem);
+            }
+        }, true);
+    }
+
+    shakaPlayer.configure({
+        streaming: {
+            safeSeekOffset: 7,
+            bufferingGoal: 10,
+            rebufferingGoal: 2
+        },
+        manifest: {
+            dash: { ignoreMinBufferTime: true, autoCorrectDrift: true }
+        }
+    });
+    shakaPlayer.getNetworkingEngine().registerRequestFilter((type, request) => {
+        try {
+            if (request && request.uris) {
+                var isYasuoyone = request.uris.some(u => typeof u === "string" && (u.toLowerCase().includes(".yasuoyone.org") || u.toLowerCase().includes("yasuoyone.org")));
+                if (isYasuoyone) {
+                    request.headers = request.headers || {};
+                    request.headers['Origin'] = 'https://yasuoyone.org';
+                    request.headers['Referer'] = 'https://yasuoyone.org/';
+                } else if (request.uris.some(u => typeof u === "string" && (u.toLowerCase().includes("cetin.cz") || u.toLowerCase().includes("mazana.tv") || u.toLowerCase().includes("aw-ucdn")))) {
+                    if (request.headers) {
+                        delete request.headers['Referer'];
+                        delete request.headers['referer'];
+                        delete request.headers['Referrer'];
+                        delete request.headers['referrer'];
+                        delete request.headers['Origin'];
+                        delete request.headers['origin'];
+                    }
+                }
+            }
+            const token = (typeof getClearanceToken === "function") ? getClearanceToken() : "";
+            if (token && request && request.uris) {
+                for (let i = 0; i < request.uris.length; i++) {
+                    let u = request.uris[i];
+                    if (typeof isClearanceTarget === "function" && isClearanceTarget(u)) {
+                        request.headers['X-Clearance-Token'] = token;
+                    }
+                }
+            }
+
+        } catch (e) {}
+    });
+    return shakaPlayer;
+}
+
+async function playChannel(channel, cardElem){
+    if (cardElem) lastActiveCard = cardElem;
+    currentChannelObj=channel;
+    const loadId = ++currentLoadId;
+    playerChannelNameSpan.textContent=channel.name;
+    playerOverlay.classList.add('active');
+    if (typeof showControls === 'function') showControls();
+    document.body.style.overflow='hidden';
+    
+    if(currentAudioElement){
+        currentAudioElement.pause();
+        currentAudioElement.removeAttribute('src');
+        currentAudioElement.load();
+        currentAudioElement=null;
+    }
+    audioFallbackDiv.style.display='none';
+    shakaContainer.style.display='block';
+    videoElem.removeAttribute('poster');
+    videoElem.poster='';
+    
+    await unloadShaka();
+    if (loadId !== currentLoadId) return;
+    
+    let modifiedStreamUrl = '';
+    const isRadio = channel.name.toLowerCase().includes('radio') || channel.name.toLowerCase().includes('fm');
+    try {
+        const res = await fetch(`https://e.yasuoyone.org/api/get-stream?id=${encodeURIComponent(channel.name)}`);
+        if (loadId !== currentLoadId) return;
+        const data = await res.json();
+        if (!data.stream) throw new Error('Stream not found');
+        
+        const streamRes = await fetch(`https://e.yasuoyone.org${data.stream}`);
+        if (loadId !== currentLoadId) return;
+        const streamUrl = (await streamRes.text()).trim();
+        
+        if (isRadio) throw new Error('audio_fallback');
+        
+        await initShakaOnce();
+        if (loadId !== currentLoadId) return;
+        
+        modifiedStreamUrl = streamUrl.replace(/([?&])(cf_clearance|clearance)=[^&]*/g, '').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+        try {
+            if (modifiedStreamUrl.includes('cetin.cz')) {
+                const vEl = document.getElementById('video');
+                if (vEl) {
+                    vEl.setAttribute('referrerpolicy', 'no-referrer');
+                    try { vEl.referrerPolicy = 'no-referrer'; } catch (e) {}
+                }
+            }
+        } catch (urlErr) {
+            console.warn('URL modifying error:', urlErr);
+        }
+
+        currentStreamUrl = modifiedStreamUrl;
+        console.log('Attempting to load stream into Shaka:', modifiedStreamUrl);
+        await shakaPlayer.load(modifiedStreamUrl);
+        console.log('Shaka stream loaded successfully!');
+        
+        if (loadId !== currentLoadId) return;
+        
+        try {
+            await videoElem.play();
+        } catch (playErr) {
+            console.warn('videoElem.play() unmuted failed, trying muted:', playErr);
+            videoElem.muted = true;
+            await videoElem.play();
+        }
+
+        // Fallback timer removed - Shaka Player with mux.js manages MSE decoding directly
+    } catch (err) {
+        console.error('CRITICAL: playChannel failed in Shaka:', err);
+        if (loadId !== currentLoadId) return;
+        if (!isRadio && modifiedStreamUrl) {
+            try {
+                console.log('Attempting native direct video playback failover:', modifiedStreamUrl);
+                await unloadShaka();
+                videoElem.src = modifiedStreamUrl;
+                await videoElem.play();
+                return;
+            } catch (nativeErr) {
+                console.warn('Native video failover also failed:', nativeErr);
+            }
+        }
+        shakaContainer.style.display = 'none';
+        audioFallbackDiv.style.display = 'flex';
+        const audioElem = audioFallbackDiv.querySelector('audio');
+        audioElem.removeAttribute('src');
+        audioElem.load();
+        
+        try{
+            const audioRes=await fetch(`https://e.yasuoyone.org/api/get-stream?id=${encodeURIComponent(channel.name)}`);
+            if (loadId !== currentLoadId) return;
+            const audioData=await audioRes.json();
+            
+            if(audioData.stream){
+                const audioStreamRes=await fetch(`https://e.yasuoyone.org${audioData.stream}`);
+                if (loadId !== currentLoadId) return;
+                const audioUrl=(await audioStreamRes.text()).trim();
+                if (audioUrl.includes('cetin.cz')) {
+                    audioElem.setAttribute('referrerpolicy', 'no-referrer');
+                }
+                audioElem.src=audioUrl;
+                currentAudioElement=audioElem;
+                const cachedVol = localStorage.getItem('player_volume');
+                if (cachedVol !== null) {
+                    audioElem.volume = parseFloat(cachedVol);
+                }
+                const cachedMuted = localStorage.getItem('player_muted');
+                if (cachedMuted !== null) {
+                    audioElem.muted = (cachedMuted === 'true');
+                }
+                audioElem.onvolumechange = () => {
+                    localStorage.setItem('player_volume', audioElem.volume.toString());
+                    localStorage.setItem('player_muted', audioElem.muted ? 'true' : 'false');
+                };
+                await audioElem.play();
+            }else{
+                throw new Error('No audio stream');
+            }
+        }catch(audioErr){
+            if (loadId !== currentLoadId) return;
+            audioFallbackDiv.innerHTML=`<div style="color:#ff8888"><i class="fas fa-exclamation-triangle"></i> ${t('streamUnavailable')}</div>`;
+        }
+    }
+}
+
+async function closePlayer(){
+    if (typeof window.AndroidNative !== "undefined" && window.AndroidNative.setFullscreen) {
+        try { window.AndroidNative.setFullscreen(false); } catch (e) {}
+    }
+    if (window.self !== window.top) {
+        try { window.parent.postMessage({ type: "setFullscreen", fullscreen: false }, "*"); } catch (e) {}
+    }
+    try {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+        if (window.self !== window.top && window.parent && window.parent.document) {
+            if (window.parent.document.fullscreenElement || window.parent.document.webkitFullscreenElement) {
+                if (window.parent.document.exitFullscreen) window.parent.document.exitFullscreen();
+                else if (window.parent.document.webkitExitFullscreen) window.parent.document.webkitExitFullscreen();
+            }
+        }
+    } catch(e) {}
+    currentLoadId++; // Cancel ongoing loads
+    playerOverlay.classList.remove('active');
+    playerOverlay.classList.remove('controls-hidden');
+    if (typeof controlsTimeout !== 'undefined') clearTimeout(controlsTimeout);
+    document.body.style.overflow='';
+    
+    if(currentAudioElement){
+        currentAudioElement.pause();
+        currentAudioElement.removeAttribute('src');
+        currentAudioElement.load();
+        currentAudioElement=null;
+    }
+    
+    await unloadShaka();
+    audioFallbackDiv.style.display='none';
+    shakaContainer.style.display='block';
+    currentChannelObj=null;
+    if (lastActiveCard && typeof lastActiveCard.focus === 'function') {
+        try { lastActiveCard.focus(); } catch (e) {}
+    }
+}
+
+function buildCategoryFilters(){
+    if(!window.categories||!window.categories.length){
+        window.categories=['Všechny kanály', 'Základní', 'Slovenské hlavní', 'Filmy a seriály', 'Zpravodajské', 'Sport', 'Dokumentární', 'Dětské', 'Lifestyle', 'Hudební', 'Pro dospělé', 'Audiodeskripce', 'Slow TV'];
+    }
+    const cats=window.categories;
+    categoryContainer.innerHTML='';
+    cats.forEach(cat=>{
+        const btn=document.createElement('button');
+        btn.className=`category-btn ${cat===currentCategory?'active':''}`;
+        btn.setAttribute('tabindex', '0');
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13 || e.keyCode === 23) {
+                e.preventDefault();
+                btn.click();
+            }
+        });
+        btn.textContent=(TR[lang] && TR[lang].cats && TR[lang].cats[cat]) ? TR[lang].cats[cat] : cat;
+        btn.addEventListener('click',()=>{
+            if(cat === 'Pro dospělé' && !localStorage.getItem('adult_confirmed')){
+                const confirm = window.confirm(t('adultConfirm'));
+                if(confirm){
+                    localStorage.setItem('adult_confirmed', 'true');
+                } else {
+                    return;
+                }
+            }
+            currentCategory=cat;
+            searchTerm=searchInput.value;
+            resetAndRender();
+            document.querySelectorAll('.category-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+        categoryContainer.appendChild(btn);
+    });
+}
+
+function loadChannels(){
+    if(window.channels&&window.channels.length){
+        allChannels=window.channels.filter(c => !c.name.toLowerCase().includes('mozaika'));
+        buildCategoryFilters();
+        resetAndRender();
+    }else{
+        setTimeout(loadChannels,200);
+    }
+}
+
+searchInput.addEventListener('input',(e)=>{searchTerm=e.target.value;resetAndRender()});
+loadMoreBtn.addEventListener('click',renderNextBatch);
+closePlayerBtn.addEventListener('click',closePlayer);
+
+function toggleFullscreen(container, videoElement) {
+    let targetEl = container;
+    let targetDoc = document;
+    let isEmbedded = window.self !== window.top;
+    
+    if (isEmbedded) {
+        try {
+            const parentIframes = window.parent.document.querySelectorAll("iframe");
+            for (let i = 0; i < parentIframes.length; i++) {
+                if (parentIframes[i].contentWindow === window.self) {
+                    targetEl = parentIframes[i];
+                    targetDoc = window.parent.document;
+                    break;
+                }
+            }
+        } catch (e) {
+            console.warn("Cross-origin or parent access blocked:", e);
+        }
+    }
+
+    const isFs = !!(targetDoc.fullscreenElement || 
+                    targetDoc.webkitFullscreenElement || 
+                    targetDoc.mozFullScreenElement || 
+                    targetDoc.msFullscreenElement ||
+                    document.fullscreenElement || 
+                    document.webkitFullscreenElement || 
+                    document.mozFullScreenElement || 
+                    document.msFullscreenElement);
+
+    if (!isFs) {
+        // Enter fullscreen
+        const requestFS = (el) => {
+            if (el.requestFullscreen) return el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+            else if (el.mozRequestFullScreen) return el.mozRequestFullScreen();
+            else if (el.msRequestFullscreen) return el.msRequestFullscreen();
+            return Promise.reject("Not supported");
+        };
+
+        requestFS(targetEl).then(() => {
+            updateFullscreenButton();
+        }).catch(err => {
+            console.warn("Fullscreen request on target failed, trying local container:", err);
+            // Fallback to local container if parent fails
+            if (container.requestFullscreen) {
+                container.requestFullscreen().then(() => updateFullscreenButton()).catch(e => enterNativeFullscreen(videoElement));
+            } else {
+                enterNativeFullscreen(videoElement);
+            }
+        });
+    } else {
+        // Exit fullscreen
+        const exitFS = (doc) => {
+            if (doc.exitFullscreen) return doc.exitFullscreen();
+            else if (doc.webkitExitFullscreen) return doc.webkitExitFullscreen();
+            else if (doc.mozCancelFullScreen) return doc.mozCancelFullScreen();
+            else if (doc.msExitFullscreen) return doc.msExitFullscreen();
+        };
+
+        try {
+            if (targetDoc.fullscreenElement || targetDoc.webkitFullscreenElement) {
+                exitFS(targetDoc);
+            }
+        } catch (err) {}
+        try {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                exitFS(document);
+            }
+        } catch (e) {}
+        setTimeout(updateFullscreenButton, 100);
+    }
+}
+
+function enterNativeFullscreen(videoElement) {
+    if (videoElement.webkitEnterFullscreen) {
+        try {
+            videoElement.webkitEnterFullscreen();
+        } catch (e) {
+            console.warn("webkitEnterFullscreen failed:", e);
+        }
+    } else if (videoElement.requestFullscreen) {
+        videoElement.requestFullscreen().catch(err => {
+            console.warn("videoElement.requestFullscreen failed:", err);
+        });
+    } else {
+        alert(t('browserNotSupported'));
+    }
+}
+
+function updateFullscreenButton() {
+    const isFs = !!(document.fullscreenElement || 
+                 document.webkitFullscreenElement || 
+                 document.mozFullScreenElement || 
+                 document.msFullscreenElement ||
+                 (() => {
+                     try {
+                         return window.self !== window.top && 
+                                (window.parent.document.fullscreenElement || 
+                                 window.parent.document.webkitFullscreenElement || 
+                                 window.parent.document.mozFullScreenElement || 
+                                 window.parent.document.msFullscreenElement);
+                     } catch(e) { return false; }
+                 })());
+                 
+    if (typeof window.AndroidNative !== "undefined" && window.AndroidNative.setFullscreen) {
+        try { window.AndroidNative.setFullscreen(isFs); } catch (e) {}
+    }
+    if (window.self !== window.top) {
+        try { window.parent.postMessage({ type: "setFullscreen", fullscreen: isFs }, "*"); } catch (e) {}
+    }
+
+    const shakaFsBtn = shakaContainer ? shakaContainer.querySelector('.shaka-fullscreen-button') : null;
+    if (shakaFsBtn) {
+        shakaFsBtn.textContent = isFs ? 'fullscreen_exit' : 'fullscreen';
+        shakaFsBtn.setAttribute('aria-label', isFs ? 'Ukončit celou obrazovku' : 'Celá obrazovka');
+        shakaFsBtn.classList.add('material-icons-round');
+    }
+}
+
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+document.addEventListener('MSFullscreenChange', updateFullscreenButton);
+
+try {
+    if (window.self !== window.top && window.parent && window.parent.document) {
+        window.parent.document.addEventListener('fullscreenchange', updateFullscreenButton);
+        window.parent.document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+    }
+} catch (e) {}
+
+window.addEventListener('message', (e) => {
+    if (e.data && (e.data.type === 'fullscreenchange' || e.data.type === 'setFullscreen')) {
+        setTimeout(updateFullscreenButton, 50);
+    }
+});
+
+if (shakaContainer) {
+    shakaContainer.addEventListener('dblclick', () => {
+        toggleFullscreen(playerOverlay, videoElem);
+    });
+    let lastTap = 0;
+    shakaContainer.addEventListener('touchend', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            e.preventDefault();
+            toggleFullscreen(playerOverlay, videoElem);
+        }
+        lastTap = currentTime;
+    });
+}
+
+var controlsTimeout;
+var isHoveringHeader = false;
+
+function showControls() {
+    playerOverlay.classList.remove('controls-hidden');
+    clearTimeout(controlsTimeout);
+    if (playerOverlay.classList.contains('active') && !videoElem.paused && !isHoveringHeader && audioFallbackDiv.style.display !== 'flex') {
+        controlsTimeout = setTimeout(hideControls, 8000);
+    }
+}
+
+function hideControls() {
+    if (playerOverlay.classList.contains('active') && !videoElem.paused && !isHoveringHeader && audioFallbackDiv.style.display !== 'flex') {
+        playerOverlay.classList.add('controls-hidden');
+    }
+}
+
+const playerHeader = playerOverlay.querySelector('.player-header');
+if (playerHeader) {
+    playerHeader.addEventListener('mouseenter', () => {
+        isHoveringHeader = true;
+        showControls();
+    });
+    playerHeader.addEventListener('mouseleave', () => {
+        isHoveringHeader = false;
+        showControls();
+    });
+}
+
+playerOverlay.addEventListener('mousemove', showControls);
+playerOverlay.addEventListener('touchstart', showControls);
+playerOverlay.addEventListener('pointermove', showControls);
+playerOverlay.addEventListener('click', showControls);
+
+videoElem.addEventListener('play', showControls);
+videoElem.addEventListener('pause', showControls);
+
+trUI();
+loadChannels();
+
+
+
+// TV Remote & Keyboard Controls
+window.addEventListener('keydown', (e) => {
+    var isBack = e.key === 'Escape' || e.keyCode === 27 || e.keyCode === 4 || e.keyCode === 10009 || e.key === 'Back' || e.key === 'XF86Back';
+    if (playerOverlay.classList.contains('active')) {
+        // Back / Escape closes player
+        if (isBack) {
+            e.preventDefault();
+            closePlayer();
+            return;
+        }
+        // Space / MediaPlayPause toggles playback
+        if (e.keyCode === 32 || e.keyCode === 179 || e.keyCode === 10252) {
+            e.preventDefault();
+            if (videoElem.paused) videoElem.play(); else videoElem.pause();
+            return;
+        }
+        // Left arrow rewinds 10s
+        if (e.keyCode === 37) {
+            videoElem.currentTime = Math.max(0, videoElem.currentTime - 10);
+            showControls();
+            return;
+        }
+        // Right arrow skips 10s
+        if (e.keyCode === 39) {
+            videoElem.currentTime = videoElem.currentTime + 10;
+            showControls();
+            return;
+        }
+    } else {
+        if (isBack) {
+            e.preventDefault();
+            window.goBackToRozcestnik(e);
+            return;
+        }
+    }
+});
+
+
+window.addEventListener('beforeunload',()=>{
+    if(shakaPlayer) shakaPlayer.destroy();
+});
+})();</script>
+<script src="update-checker.js" defer></script>
+<script>
+window.goBackToRozcestnik = function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = '../index.html';
+  }
+};
+if (window.self !== window.top) {
+  var b = document.getElementById('top-back-btn');
+  if (b) b.style.setProperty('display', 'none', 'important');
+}
+</script>
+</body>
+</html>

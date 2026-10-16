@@ -1,0 +1,69 @@
+{
+  "version": "1.3.0",
+  "platforms": {
+    "windows": {
+      "version": "1.0.3",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-Setup-x64.exe",
+      "portableUrl": "https://r2.yasuoyone.org/Rozcestnik-Portable.exe",
+      "downloadZipUrl": "https://r2.yasuoyone.org/Rozcestnik-Setup-x64.zip",
+      "portableZipUrl": "https://r2.yasuoyone.org/Rozcestnik-Portable.zip",
+      "virusTotalInstallerUrl": "https://www.virustotal.com/gui/file/9e1b9eb185cc54176c65111123844495d2a89dd39b900d6760d24fcc0e4bb5e6?nocache=1",
+      "virusTotalPortableUrl": "https://www.virustotal.com/gui/file-analysis/YTU3MDUzYTRmMjZhNGQ4YjhlYmY0ZGNjOThlOWM1YzY6MTc4OTgzMzAxNg==",
+      "releaseNotes": "Aktualizace v1.0.3: Přímý .exe instalátor z vlastní domény r2.yasuoyone.org, oprava DRM sportovních streamů a automatický in-app instalátor."
+    },
+    "android": {
+      "version": "1.3.0",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-1.3.0.apk",
+      "latestUrl": "https://r2.yasuoyone.org/Rozcestnik.apk",
+      "virusTotalUrl": "https://www.virustotal.com/gui/file/ee97381bb63c2db4beb7fc9d9a89ac443f9dd71fd1191ad13fc147abe5485181?nocache=1",
+      "releaseNotes": "DŮLEŽITÉ: Rozcestník se přesunul na novou doménu yasuoyone.org. Nainstalujte verzi 1.3.0 přes stávající aplikaci, jinak přestane fungovat a nebude dostávat aktualizace."
+    },
+    "android_tv": {
+      "version": "1.3.0",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-TV-1.3.0.apk",
+      "fullUrl": "https://r2.yasuoyone.org/Rozcestnik-TV-1.3.0.apk",
+      "epgUrl": "https://r2.yasuoyone.org/Rozcestnik-TV-EPG-1.3.0.apk",
+      "latestDownloadUrl": "https://r2.yasuoyone.org/Rozcestnik-TV.apk",
+      "latestFullUrl": "https://r2.yasuoyone.org/Rozcestnik-TV.apk",
+      "latestEpgUrl": "https://r2.yasuoyone.org/Rozcestnik-TV-EPG.apk",
+      "virusTotalUrl": "https://www.virustotal.com/gui/file/80e649d525eee9d7540060924ee0cc94e60675bd10b59624c76f448704471461?nocache=1",
+      "releaseNotes": "DŮLEŽITÉ: Rozcestník se přesunul na novou doménu yasuoyone.org. Nainstalujte verzi 1.3.0 přes stávající aplikaci, jinak přestane fungovat a nebude dostávat aktualizace."
+    },
+    "macos_arm64": {
+      "version": "1.0.3",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-macOS-arm64.tar.gz",
+      "virusTotalUrl": "https://www.virustotal.com/gui/file/21d9647c206a890247f2711af7a5e2aa6bdbd260b1110cdae3a23deb319b24a4?nocache=1",
+      "releaseNotes": "Aktualizace v1.0.3: Nativní Apple Silicon (M1-M4) architektura, plynulé 120Hz ProMotion vykreslování, oprava Metal GPU akcelerace a oprava stahování balíčku pro macOS."
+    },
+    "macos_x64": {
+      "version": "1.0.3",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-macOS-x64.tar.gz",
+      "virusTotalUrl": "https://www.virustotal.com/gui/file/21d9647c206a890247f2711af7a5e2aa6bdbd260b1110cdae3a23deb319b24a4?nocache=1",
+      "releaseNotes": "Aktualizace v1.0.3: Optimalizace pro procesory Intel Mac s Metal akcelerací."
+    },
+    "linux_x64": {
+      "version": "1.0.3",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-Linux-x64.tar.gz",
+      "virusTotalUrl": "https://www.virustotal.com/gui/file/79fc2cecf21bfcb3e6d79846bc010e633dfac3c3bf426944468f37b38329a596?nocache=1",
+      "releaseNotes": "Aktualizace v1.0.3: Podpora pro 64bitové distribuce Linuxu."
+    },
+    "source": {
+      "version": "1.0.3",
+      "downloadUrl": "https://r2.yasuoyone.org/Rozcestnik-Source.zip",
+      "size": "0.34 MB",
+      "sha256": "c7d9ad4ae09e568ddc9e2ccde46e3c6af5501529587b4ab3fa3f5b171b7d3261",
+      "releaseNotes": "Kompletní otevřený zdrojový kód aplikace (Electron + UI) pro nezávislý audit a vlastní kompilaci (npm run build)."
+    }
+  },
+  "notice": {
+    "id": "domain-move-yasuoyone-2026-10",
+    "platforms": [
+      "android",
+      "android_tv"
+    ],
+    "title": "Rozcestník se přesunul na yasuoyone.org",
+    "message": "Aplikace nyní běží na nové doméně yasuoyone.org. Stará doména tomuver.org už nefunguje.\n\nWeb i aktualizace aplikace najdete na https://yasuoyone.org.",
+    "buttonText": "Otevřít yasuoyone.org",
+    "buttonUrl": "https://yasuoyone.org"
+  }
+}
