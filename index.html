@@ -3803,21 +3803,58 @@ function plyUrl(i, r, o, isManualClick) {
       u = DOM.plyF,
       m = ++loadGen;
 
-    if (n)
-      if (c.classList.remove("active"), u.src = "about:blank", d.classList.add("active"), initShaka(), player) {
-        var a = null;
-        i && "object" == typeof i && (l = i.clearkeys || i.clearkey || i.keys || i.key) && ("object" == typeof l ? a = l : "string" == typeof l && (a = {}, l.split(/[\s,\n]+/).forEach(function(e) {
-          var t;
-          2 === (e = e.trim().split(":")).length && (t = e[0].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), e = e[1].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), 32 <= t.length) && 32 <= e.length && (a[t] = e)
-        }))), a && 0 < Object.keys(a).length ? player.configure({
-          drm: {
-            clearKeys: a
-          }
-        }) : player.configure({
-          drm: {
-            clearKeys: {}
+    if (typeof window.tvDiag === "function") {
+      window.tvDiag('proxy', window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (přímé spojení)</span>');
+      window.tvDiag('url', s);
+      window.tvDiag('status', 'Příprava přehrávání...', '#ffc629');
+    }
+
+    if (n) {
+      if (c) c.classList.remove("active");
+      if (u) u.src = "about:blank";
+      if (d) d.classList.add("active");
+
+      var a = null;
+      i && "object" == typeof i && (l = i.clearkeys || i.clearkey || i.keys || i.key) && ("object" == typeof l ? a = l : "string" == typeof l && (a = {}, l.split(/[\s,\n]+/).forEach(function(e) {
+        var t;
+        2 === (e = e.trim().split(":")).length && (t = e[0].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), e = e[1].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), 32 <= t.length) && 32 <= e.length && (a[t] = e)
+      })));
+      var hasDrm = a && 0 < Object.keys(a).length;
+
+      // First priority on Samsung Smart TV: Try native hardware AVPlayer chip!
+      if (!hasDrm && window.TizenAVPlay && window.TizenAVPlay.isAvailable()) {
+        console.log("[Tizen] Delegating stream to Samsung Hardware AVPlay:", s);
+        var avplayUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(s) : s;
+        var avStarted = window.TizenAVPlay.play(avplayUrl, {
+          onSuccess: function() {
+            console.log("[AVPlay] Hardware playback running!");
+          },
+          onError: function(avErr) {
+            console.warn("[AVPlay] Hardware playback error, falling back to Shaka:", avErr);
+            if (typeof window.tvDiag === "function") {
+              window.tvDiag('status', 'AVPlay selhal, zkouším Shaka...', '#ffbb00');
+            }
+            startShakaPlay();
           }
         });
+        if (avStarted) return;
+      }
+
+      startShakaPlay();
+
+      function startShakaPlay() {
+        if (typeof window.tvDiag === "function") {
+          window.tvDiag('engine', hasDrm ? '<span style="color:#ffbb00">Shaka Player (ClearKey DRM)</span>' : '<span style="color:#00e5ff">Shaka Player (Web MSE)</span>');
+          window.tvDiag('status', 'Načítám stream přes Shaka...', '#ffc629');
+        }
+        initShaka();
+        if (player) {
+
+        if (hasDrm) {
+          player.configure({ drm: { clearKeys: a } });
+        } else {
+          player.configure({ drm: { clearKeys: {} } });
+        }
         var isMpd = e.includes(".mpd") || e.includes("aiv-cdn.net") || e.includes("pv-cdn.net");
         if (isMpd) {
           try {
@@ -3837,6 +3874,9 @@ function plyUrl(i, r, o, isManualClick) {
           } catch (x) {}
         }
         player.load(s, isMpd ? -7 : null).then(function() {
+          if (typeof window.tvDiag === "function") {
+            window.tvDiag('status', 'Přehrává se (Shaka Player OK)', '#00ff88');
+          }
           var e;
           if (m !== loadGen) {
             if (player && player.unload) player.unload().catch(function() {});
@@ -3954,7 +3994,12 @@ function plyUrl(i, r, o, isManualClick) {
           }
         })()) : (checkAndNotifyOtteFirefoxError(s), showToast(t("streamErr"), "error"));
       }
-    else d.classList.remove("active"), resetShaka(), c.classList.add("active"), u.src = s
+    }
+  } else {
+    d.classList.remove("active");
+    resetShaka();
+    c.classList.add("active");
+    u.src = s;
   }
 }
 
@@ -4043,6 +4088,8 @@ function openP(r) {
 function clP(e) {
   loadGen++;
   currentStreamIsManualClick = false;
+  if (window.TizenAVPlay) window.TizenAVPlay.stop();
+  if (typeof window.hideTvDiag === "function") window.hideTvDiag();
   DOM.plyL.classList.remove("active");
   DOM.plyF.removeAttribute("src");
   DOM.plyF.src = "about:blank";

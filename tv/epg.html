@@ -1854,6 +1854,37 @@
             },
           });
           currentStreamUrl = u;
+
+          if (typeof window.tvDiag === 'function') {
+            window.tvDiag('proxy', window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (přímé spojení)</span>');
+            window.tvDiag('url', u);
+            window.tvDiag('status', 'Příprava kanálu: ' + n, '#ffc629');
+          }
+
+          // Try Samsung Hardware AVPlay first!
+          if (window.TizenAVPlay && window.TizenAVPlay.isAvailable()) {
+            console.log('[Tizen EPG] Using Samsung Hardware AVPlay for:', u);
+            var avUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(u) : u;
+            var avStarted = window.TizenAVPlay.play(avUrl, {
+              onSuccess: function() {
+                updatePlayerEPG(n);
+                startPlayerTicker();
+              },
+              onError: function(err) {
+                console.warn('[Tizen EPG] Hardware AVPlay failed, fallback to Shaka:', err);
+                if (typeof window.tvDiag === 'function') {
+                  window.tvDiag('status', 'AVPlay selhal, zkouším Shaka...', '#ffbb00');
+                }
+              }
+            });
+            if (avStarted) return;
+          }
+
+          if (typeof window.tvDiag === 'function') {
+            window.tvDiag('engine', '<span style="color:#00e5ff">Shaka Player (Web MSE)</span>');
+            window.tvDiag('status', 'Načítám přes Shaka Player...', '#ffc629');
+          }
+
           if (els.video) {
             els.video.removeAttribute('poster');
             els.video.poster = '';
@@ -1866,6 +1897,9 @@
           }
           
           await sp.load(u);
+          if (typeof window.tvDiag === 'function') {
+            window.tvDiag('status', 'Přehrává se (Shaka Player OK)', '#00ff88');
+          }
           const currentEpgUrl = u;
 
           updatePlayerEPG(n);
@@ -3597,6 +3631,8 @@
               exitFS(targetDoc);
             } catch (e) {}
           }
+          if (window.TizenAVPlay) window.TizenAVPlay.stop();
+          if (typeof window.hideTvDiag === 'function') window.hideTvDiag();
           if (playerTickerId) {
             cancelAnimationFrame(playerTickerId);
             playerTickerId = null;

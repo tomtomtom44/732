@@ -2860,6 +2860,11 @@ const CHANNELS_DATA = [
 
             try {
                 const streamUrl = (channel.mpd || '').replace(/\/([a-zA-Z0-9]+)-nitro\//gi, '/fra-nitro/');
+                if (typeof window.tvDiag === 'function') {
+                    window.tvDiag('proxy', window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (Přímo z TV)</span>');
+                    window.tvDiag('url', streamUrl);
+                    window.tvDiag('status', 'Příprava sportovního přenosu: ' + (channel.name || ''), '#ffc629');
+                }
                 const isMpd = streamUrl.toLowerCase().includes('.mpd') || streamUrl.toLowerCase().includes('aiv-cdn.net') || streamUrl.toLowerCase().includes('pv-cdn.net');
                 if (isMpd) {
                     player.configure({
@@ -2902,6 +2907,8 @@ const CHANNELS_DATA = [
         const btnCloseModal = document.getElementById('btn-close-modal');
         if (btnCloseModal) {
             btnCloseModal.addEventListener('click', async () => {
+                if (window.TizenAVPlay) window.TizenAVPlay.stop();
+                if (typeof window.hideTvDiag === 'function') window.hideTvDiag();
                 document.getElementById('player-modal').classList.remove('active');
                 currentLoadedChannel = null;
                 if (player) {

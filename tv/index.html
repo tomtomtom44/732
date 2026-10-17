@@ -753,10 +753,41 @@ async function playChannel(channel, cardElem){
         
         if (isRadio) throw new Error('audio_fallback');
         
+        modifiedStreamUrl = streamUrl.replace(/([?&])(cf_clearance|clearance)=[^&]*/g, '').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+        currentStreamUrl = modifiedStreamUrl;
+
+        if (typeof window.tvDiag === 'function') {
+            window.tvDiag('proxy', window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (Přímo z TV)</span>');
+            window.tvDiag('url', modifiedStreamUrl);
+            window.tvDiag('status', 'Příprava kanálu: ' + channel.name, '#ffc629');
+        }
+
+        // Try Samsung Hardware AVPlay first!
+        if (window.TizenAVPlay && window.TizenAVPlay.isAvailable()) {
+            console.log('[Tizen TV] Delegating channel stream to Samsung Hardware AVPlay:', modifiedStreamUrl);
+            var avplayUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(modifiedStreamUrl) : modifiedStreamUrl;
+            var avStarted = window.TizenAVPlay.play(avplayUrl, {
+                onSuccess: function() {
+                    console.log('[AVPlay] Channel hardware playback running successfully!');
+                },
+                onError: function(avErr) {
+                    console.warn('[AVPlay] Channel hardware playback failed, trying Shaka:', avErr);
+                    if (typeof window.tvDiag === 'function') {
+                        window.tvDiag('status', 'AVPlay selhal, zkouším Shaka...', '#ffbb00');
+                    }
+                }
+            });
+            if (avStarted) return;
+        }
+
         await initShakaOnce();
         if (loadId !== currentLoadId) return;
-        
-        modifiedStreamUrl = streamUrl.replace(/([?&])(cf_clearance|clearance)=[^&]*/g, '').replace(/\?&/, '?').replace(/&&+/, '&').replace(/[?&]$/, '');
+
+        if (typeof window.tvDiag === 'function') {
+            window.tvDiag('engine', '<span style="color:#00e5ff">Shaka Player (Web MSE)</span>');
+            window.tvDiag('status', 'Načítám přes Shaka Player...', '#ffc629');
+        }
+
         try {
             if (modifiedStreamUrl.includes('cetin.cz')) {
                 const vEl = document.getElementById('video');
@@ -769,10 +800,12 @@ async function playChannel(channel, cardElem){
             console.warn('URL modifying error:', urlErr);
         }
 
-        currentStreamUrl = modifiedStreamUrl;
         console.log('Attempting to load stream into Shaka:', modifiedStreamUrl);
         await shakaPlayer.load(modifiedStreamUrl);
         console.log('Shaka stream loaded successfully!');
+        if (typeof window.tvDiag === 'function') {
+            window.tvDiag('status', 'Přehrává se (Shaka Player OK)', '#00ff88');
+        }
         
         if (loadId !== currentLoadId) return;
         
@@ -845,6 +878,8 @@ async function playChannel(channel, cardElem){
 }
 
 async function closePlayer(){
+    if (window.TizenAVPlay) window.TizenAVPlay.stop();
+    if (typeof window.hideTvDiag === 'function') window.hideTvDiag();
     if (typeof window.AndroidNative !== "undefined" && window.AndroidNative.setFullscreen) {
         try { window.AndroidNative.setFullscreen(false); } catch (e) {}
     }
