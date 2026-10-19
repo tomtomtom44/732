@@ -65,6 +65,29 @@
   window.__NATIVE_ANDROID__ = false;
   window.isTvPlatform = true;
 
+  // ── 2b. Auto-load Samsung AVPlay Native Layer ─────────────────────────
+  (function loadAVPlayScript() {
+    if (typeof window !== 'undefined' && typeof window.TizenAVPlay === 'undefined') {
+      var isSubPage = window.location.pathname.indexOf('/tv/') !== -1 ||
+                      window.location.pathname.indexOf('/alt/') !== -1 ||
+                      window.location.href.indexOf('/tv/') !== -1 ||
+                      window.location.href.indexOf('/alt/') !== -1;
+      var scriptSrc = isSubPage ? '../tizen-avplay.js' : 'tizen-avplay.js';
+      var el = document.createElement('script');
+      el.src = scriptSrc;
+      el.async = false;
+      (document.head || document.documentElement).appendChild(el);
+    }
+  })();
+
+  window.__tizenPlayStream = function(url, options) {
+    if (typeof window.TizenAVPlay !== 'undefined' && window.TizenAVPlay.isAvailable()) {
+      window.TizenAVPlay.play(url, options);
+      return true;
+    }
+    return false;
+  };
+
   // ── 3. TizenBrew Local Proxy Integration & Network Enforcement ─────────
   var PROXY_PORT = 3007;
   var PROXY_HOST = 'http://127.0.0.1:' + PROXY_PORT;
@@ -251,175 +274,13 @@
     document.addEventListener('DOMContentLoaded', injectFocusStyles);
   }
 
-  // ── TV On-Screen Diagnostic HUD ───────────────────────────────────────
-  window.tvDiag = function(key, val, color) {
-    try {
-      var box = document.getElementById('tv-diag-box');
-      if (!box) {
-        box = document.createElement('div');
-        box.id = 'tv-diag-box';
-        box.style.cssText = 'position:fixed;bottom:25px;left:25px;right:25px;background:rgba(12,12,18,0.96);border:2px solid #ffc629;border-radius:12px;padding:12px 20px;font-family:monospace;font-size:14px;color:#fff;z-index:99999999;box-shadow:0 10px 40px rgba(0,0,0,0.95);pointer-events:none;display:block;';
-        box.innerHTML = '<div style="font-weight:900;color:#ffc629;font-size:15px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">' +
-          '<span><i class="fa-solid fa-satellite-dish" style="margin-right:8px;color:#ffc629;"></i>ROZCESTNÍK TV DIAGNOSTIKA</span>' +
-          '<span id="tv-diag-hw-badge" style="font-size:11px;padding:3px 8px;border-radius:4px;background:#222;color:#aaa;">AVPlay HW: testuji...</span>' +
-          '</div>' +
-          '<div id="tv-diag-proxy" style="margin-bottom:3px;color:#ddd;font-size:13px;">Proxy: ' + (window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (přímé spojení)</span>') + '</div>' +
-          '<div id="tv-diag-engine" style="margin-bottom:3px;color:#ddd;font-size:13px;">Přehrávač: -</div>' +
-          '<div id="tv-diag-url" style="margin-bottom:3px;word-break:break-all;color:#999;font-size:12px;">URL: -</div>' +
-          '<div id="tv-diag-status" style="font-weight:bold;color:#ffc629;font-size:14px;margin-top:4px;">Stav: Připraveno</div>';
-        (document.body || document.documentElement).appendChild(box);
-
-        var badge = document.getElementById('tv-diag-hw-badge');
-        if (badge) {
-          var hasAvplay = typeof webapis !== 'undefined' && webapis.avplay;
-          badge.innerHTML = hasAvplay ? '<span style="color:#00ff88;">AVPlay HW: PODPOROVÁNO</span>' : '<span style="color:#ffbb00;">AVPlay HW: NEDOSTUPNÉ</span>';
-        }
-      }
-      box.style.display = 'block';
-
-      if (key === 'proxy') {
-        var pEl = document.getElementById('tv-diag-proxy');
-        if (pEl) pEl.innerHTML = 'Proxy: ' + val;
-      } else if (key === 'engine') {
-        var eEl = document.getElementById('tv-diag-engine');
-        if (eEl) eEl.innerHTML = 'Přehrávač: ' + val;
-      } else if (key === 'url') {
-        var uEl = document.getElementById('tv-diag-url');
-        if (uEl) uEl.innerHTML = 'URL: ' + val;
-      } else if (key === 'status') {
-        var sEl = document.getElementById('tv-diag-status');
-        if (sEl) {
-          sEl.innerHTML = 'Stav: ' + val;
-          if (color) sEl.style.color = color;
-        }
-      }
-    } catch (e) {}
-  };
-
-  window.hideTvDiag = function() {
-    try {
-      var box = document.getElementById('tv-diag-box');
-      if (box) box.style.display = 'none';
-    } catch (e) {}
-  };
-
-  // ── Samsung Hardware AVPlay API Integration (webapis.avplay) ─────────
-  window.TizenAVPlay = {
-    isAvailable: function() {
-      return typeof webapis !== 'undefined' && webapis.avplay && typeof webapis.avplay.open === 'function';
-    },
-    active: false,
-    currentUrl: null,
-    play: function(streamUrl, options) {
-      options = options || {};
-      var self = this;
-      if (!this.isAvailable()) {
-        if (options.onError) options.onError(new Error("webapis.avplay not supported"));
-        return false;
-      }
-
-      this.stop();
-
-      try {
-        window.tvDiag('engine', '<span style="color:#00e5ff;font-weight:bold;">Samsung Hardware AVPlay čip</span>');
-        window.tvDiag('url', streamUrl);
-        window.tvDiag('status', 'Otevírám AVPlay...', '#ffc629');
-
-        webapis.avplay.open(streamUrl);
-        this.currentUrl = streamUrl;
-        this.active = true;
-
-        var screenW = window.innerWidth || 1920;
-        var screenH = window.innerHeight || 1080;
-        try {
-          webapis.avplay.setDisplayRect(0, 0, screenW, screenH);
-        } catch (eRect) {}
-
-        try {
-          webapis.avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_LETTER_BOX');
-        } catch (eMethod) {}
-
-        // Set User-Agent to standard Chrome desktop to bypass Cloudflare bot filtering
-        try {
-          webapis.avplay.setStreamingProperty("USER_AGENT", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-        } catch (eProp) {}
-
-        // Make web video transparent so hardware plane beneath is visible
-        var videoEl = document.getElementById('video');
-        if (videoEl) videoEl.style.opacity = '0';
-        var shaC = document.getElementById('sha-c');
-        if (shaC) shaC.style.backgroundColor = 'transparent';
-
-        var listener = {
-          onbufferingstart: function() {
-            window.tvDiag('status', 'Buffering (stahuji data ze serveru)...', '#ffc629');
-          },
-          onbufferingprogress: function(percent) {
-            window.tvDiag('status', 'Buffering: ' + percent + '%', '#ffc629');
-          },
-          onbufferingcomplete: function() {
-            window.tvDiag('status', 'Přehrává se (Samsung AVPlay OK)', '#00ff88');
-          },
-          oncurrentplaytime: function(time) {},
-          onerror: function(eventType) {
-            console.error('[AVPlay] Hardware error:', eventType);
-            window.tvDiag('status', 'CHYBA AVPlay Hardware: ' + eventType, '#ff4444');
-            self.active = false;
-            if (options.onError) options.onError(eventType);
-          }
-        };
-        webapis.avplay.setListener(listener);
-
-        webapis.avplay.prepareAsync(function() {
-          try {
-            webapis.avplay.play();
-            window.tvDiag('status', 'Přehrává se (Samsung AVPlay OK)', '#00ff88');
-            if (options.onSuccess) options.onSuccess();
-          } catch (ePlay) {
-            console.error('[AVPlay] Play exception:', ePlay);
-            window.tvDiag('status', 'CHYBA při spuštění AVPlay: ' + ePlay.message, '#ff4444');
-            self.active = false;
-            if (options.onError) options.onError(ePlay);
-          }
-        }, function(ePrep) {
-          console.error('[AVPlay] Prepare error:', ePrep);
-          window.tvDiag('status', 'CHYBA AVPlay Prepare: ' + JSON.stringify(ePrep), '#ff4444');
-          self.active = false;
-          if (options.onError) options.onError(ePrep);
-        });
-
-        return true;
-      } catch (err) {
-        console.error('[AVPlay] Open exception:', err);
-        window.tvDiag('status', 'CHYBA AVPlay Open: ' + err.message, '#ff4444');
-        self.active = false;
-        if (options.onError) options.onError(err);
-        return false;
-      }
-    },
-    stop: function() {
-      if (this.isAvailable()) {
-        try {
-          var state = webapis.avplay.getState();
-          if (state !== 'NONE' && state !== 'IDLE') {
-            webapis.avplay.stop();
-          }
-          webapis.avplay.close();
-        } catch (e) {}
-      }
-      this.active = false;
-      this.currentUrl = null;
-      var videoEl = document.getElementById('video');
-      if (videoEl) videoEl.style.opacity = '1';
-    }
-  };
-
   // ── 6. Universal Samsung TV Back / Return Key Handler (10009) ─────────
   function handleSamsungBackKey(e) {
-    if (window.TizenAVPlay && window.TizenAVPlay.active) {
-      window.TizenAVPlay.stop();
-      if (typeof window.hideTvDiag === 'function') window.hideTvDiag();
+    // If native AVPlay is currently playing, stop it cleanly
+    if (window.TizenAVPlay && typeof window.TizenAVPlay.isPlaying === 'function' && window.TizenAVPlay.isPlaying()) {
+      try { window.TizenAVPlay.stop(); } catch(err) {}
     }
+
     // Check TV Settings Modal
     var sm = document.getElementById('tv-settings-modal');
     if (sm && (sm.classList.contains('active') || sm.style.display === 'flex' || sm.style.display === 'block')) {

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="referrer" content="no-referrer">
     <script src="tizen-adapter.js"></script>
+    <script src="tizen-avplay.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#0a0a0a">
     <meta name="description" content="Rozcestník">
@@ -3679,6 +3680,9 @@ function initShaka() {
   }
 }
 async function resetShaka() {
+  if (typeof TizenAVPlay !== 'undefined') {
+    try { TizenAVPlay.stop(); } catch (e) {}
+  }
   if (player) try {
     await player.unload()
   } catch (e) {}
@@ -3686,6 +3690,9 @@ async function resetShaka() {
   e && (e.pause(), e.removeAttribute("src"), e.load())
 }
 async function destroyShaka() {
+  if (typeof TizenAVPlay !== 'undefined') {
+    try { TizenAVPlay.stop(); } catch (e) {}
+  }
   var t = DOM.video;
   if (t && t.ui) {
     try {
@@ -3748,8 +3755,11 @@ function attachPlayerErrorHandler(p) {
   });
 }
 
-function plyUrl(i, r, o, isManualClick) {
+function plyUrl(i, r, o, isManualClick, skipAvplay) {
   currentStreamIsManualClick = !!isManualClick;
+  if (!skipAvplay && typeof TizenAVPlay !== 'undefined') {
+    try { TizenAVPlay.stop(); } catch(e) {}
+  }
   var s = "object" == typeof i && i.url ? i.url.trim().replace(/\/([a-zA-Z0-9]+)-nitro\//gi, "/fra-nitro/") : i ? i.trim().replace(/\/([a-zA-Z0-9]+)-nitro\//gi, "/fra-nitro/") : null;
   var extractedKeys = null;
   if (s && s.includes('|')) {
@@ -3803,58 +3813,96 @@ function plyUrl(i, r, o, isManualClick) {
       u = DOM.plyF,
       m = ++loadGen;
 
-    if (typeof window.tvDiag === "function") {
-      window.tvDiag('proxy', window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (přímé spojení)</span>');
-      window.tvDiag('url', s);
-      window.tvDiag('status', 'Příprava přehrávání...', '#ffc629');
-    }
+    // ── Samsung AVPlay Native Playback (CORS-free) ──────────────────
+    // On Samsung Tizen TVs, route HLS/DASH through the native hardware
+    // decoder which bypasses CORS, natively decodes MPEG-TS, and supports
+    // custom HTTP headers. This is the primary fix for stream playback.
+    if (n && !skipAvplay && typeof TizenAVPlay !== 'undefined' && TizenAVPlay.isAvailable()) {
+      console.log('[Rozcestník] Using Samsung AVPlay for native playback:', s.substring(0, 60));
+      c.classList.remove("active");
+      u.src = "about:blank";
+      d.classList.add("active");
 
-    if (n) {
-      if (c) c.classList.remove("active");
-      if (u) u.src = "about:blank";
-      if (d) d.classList.add("active");
-
-      var a = null;
-      i && "object" == typeof i && (l = i.clearkeys || i.clearkey || i.keys || i.key) && ("object" == typeof l ? a = l : "string" == typeof l && (a = {}, l.split(/[\s,\n]+/).forEach(function(e) {
-        var t;
-        2 === (e = e.trim().split(":")).length && (t = e[0].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), e = e[1].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), 32 <= t.length) && 32 <= e.length && (a[t] = e)
-      })));
-      var hasDrm = a && 0 < Object.keys(a).length;
-
-      // First priority on Samsung Smart TV: Try native hardware AVPlayer chip!
-      if (!hasDrm && window.TizenAVPlay && window.TizenAVPlay.isAvailable()) {
-        console.log("[Tizen] Delegating stream to Samsung Hardware AVPlay:", s);
-        var avplayUrl = (window.__wrapWithProxy && window.__TB_PROXY_ACTIVE__) ? window.__wrapWithProxy(s) : s;
-        var avStarted = window.TizenAVPlay.play(avplayUrl, {
-          onSuccess: function() {
-            console.log("[AVPlay] Hardware playback running!");
-          },
-          onError: function(avErr) {
-            console.warn("[AVPlay] Hardware playback error, falling back to Shaka:", avErr);
-            if (typeof window.tvDiag === "function") {
-              window.tvDiag('status', 'AVPlay selhal, zkouším Shaka...', '#ffbb00');
+      // Parse ClearKey DRM keys if present
+      var avClearKeys = null;
+      if (i && "object" == typeof i) {
+        var avKeyData = i.clearkeys || i.clearkey || i.keys || i.key;
+        if (avKeyData) {
+          if ("object" == typeof avKeyData) {
+            avClearKeys = avKeyData;
+          } else if ("string" == typeof avKeyData) {
+            avClearKeys = {};
+            avKeyData.split(/[\s,\n]+/).forEach(function(e) {
+              var parts = e.trim().split(":");
+              if (parts.length === 2) {
+                var kid = parts[0].replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+                var key = parts[1].replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+                if (kid.length >= 32 && key.length >= 32) {
+                  avClearKeys[kid] = key;
+                }
+              }
+            });
+          }
+        }
+      }
+      if (extractedKeys) {
+        if (!avClearKeys) avClearKeys = {};
+        extractedKeys.split(/[\s,\n]+/).forEach(function(e) {
+          var parts = e.trim().split(":");
+          if (parts.length === 2) {
+            var kid = parts[0].replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+            var key = parts[1].replace(/[^0-9a-fA-F]/g, "").toLowerCase();
+            if (kid.length >= 32 && key.length >= 32) {
+              avClearKeys[kid] = key;
             }
-            startShakaPlay();
           }
         });
-        if (avStarted) return;
       }
 
-      startShakaPlay();
+      // Get the Shaka container element as the display target
+      var avContainer = document.getElementById("sha-c") || DOM.shaC;
 
-      function startShakaPlay() {
-        if (typeof window.tvDiag === "function") {
-          window.tvDiag('engine', hasDrm ? '<span style="color:#ffbb00">Shaka Player (ClearKey DRM)</span>' : '<span style="color:#00e5ff">Shaka Player (Web MSE)</span>');
-          window.tvDiag('status', 'Načítám stream přes Shaka...', '#ffc629');
+      TizenAVPlay.play(s, {
+        containerEl: avContainer,
+        clearKeys: avClearKeys,
+        onPlaying: function() {
+          console.log('[Rozcestník] AVPlay stream playing successfully');
+          showToast("cs" === lang ? "Stream přehrává" : "Stream playing", "success");
+        },
+        onBuffering: function(phase, percent) {
+          if (phase === 'start') {
+            showToast("cs" === lang ? "Načítání streamu..." : "Loading stream...", "info");
+          }
+        },
+        onError: function(errorType) {
+          console.warn('[Rozcestník] AVPlay failed (' + errorType + '), falling back to Shaka Player');
+          try { TizenAVPlay.stop(); } catch(e) {}
+          plyUrl(i, r, o, isManualClick, true);
+        },
+        onComplete: function() {
+          console.log('[Rozcestník] AVPlay stream completed');
+          try { TizenAVPlay.stop(); } catch(e) {}
         }
-        initShaka();
-        if (player) {
+      });
+      return;
+    }
+    // ── End AVPlay Block ─────────────────────────────────────────────
 
-        if (hasDrm) {
-          player.configure({ drm: { clearKeys: a } });
-        } else {
-          player.configure({ drm: { clearKeys: {} } });
-        }
+    if (n)
+      if (c.classList.remove("active"), u.src = "about:blank", d.classList.add("active"), initShaka(), player) {
+        var a = null;
+        i && "object" == typeof i && (l = i.clearkeys || i.clearkey || i.keys || i.key) && ("object" == typeof l ? a = l : "string" == typeof l && (a = {}, l.split(/[\s,\n]+/).forEach(function(e) {
+          var t;
+          2 === (e = e.trim().split(":")).length && (t = e[0].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), e = e[1].replace(/[^0-9a-fA-F]/g, "").toLowerCase(), 32 <= t.length) && 32 <= e.length && (a[t] = e)
+        }))), a && 0 < Object.keys(a).length ? player.configure({
+          drm: {
+            clearKeys: a
+          }
+        }) : player.configure({
+          drm: {
+            clearKeys: {}
+          }
+        });
         var isMpd = e.includes(".mpd") || e.includes("aiv-cdn.net") || e.includes("pv-cdn.net");
         if (isMpd) {
           try {
@@ -3874,9 +3922,6 @@ function plyUrl(i, r, o, isManualClick) {
           } catch (x) {}
         }
         player.load(s, isMpd ? -7 : null).then(function() {
-          if (typeof window.tvDiag === "function") {
-            window.tvDiag('status', 'Přehrává se (Shaka Player OK)', '#00ff88');
-          }
           var e;
           if (m !== loadGen) {
             if (player && player.unload) player.unload().catch(function() {});
@@ -3994,12 +4039,7 @@ function plyUrl(i, r, o, isManualClick) {
           }
         })()) : (checkAndNotifyOtteFirefoxError(s), showToast(t("streamErr"), "error"));
       }
-    }
-  } else {
-    d.classList.remove("active");
-    resetShaka();
-    c.classList.add("active");
-    u.src = s;
+    else d.classList.remove("active"), resetShaka(), c.classList.add("active"), u.src = s
   }
 }
 
@@ -4088,8 +4128,6 @@ function openP(r) {
 function clP(e) {
   loadGen++;
   currentStreamIsManualClick = false;
-  if (window.TizenAVPlay) window.TizenAVPlay.stop();
-  if (typeof window.hideTvDiag === "function") window.hideTvDiag();
   DOM.plyL.classList.remove("active");
   DOM.plyF.removeAttribute("src");
   DOM.plyF.src = "about:blank";

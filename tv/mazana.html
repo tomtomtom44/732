@@ -3,6 +3,7 @@
 <head>
   <meta name="referrer" content="no-referrer">
   <script src="../tizen-adapter.js"></script>
+  <script src="../tizen-avplay.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MAZANA</title>
@@ -1682,6 +1683,30 @@ video {
       }
 
       const video = document.getElementById('videoPlayer');
+
+      if (typeof TizenAVPlay !== 'undefined' && TizenAVPlay.isAvailable()) {
+        console.log('[Mazana] Playing via Samsung AVPlay:', url);
+        const container = video.parentElement;
+        video.style.display = 'none';
+        TizenAVPlay.play(url, {
+          containerEl: container,
+          onPlaying: function() {
+            console.log('[Mazana] AVPlay playing');
+          },
+          onError: function(errType) {
+            console.warn('[Mazana] AVPlay error:', errType, 'falling back to Shaka');
+            try { TizenAVPlay.stop(); } catch(e){}
+            video.style.display = '';
+            if (!shakaPlayer) initShakaPlayer();
+            shakaPlayer.load(url).then(() => {
+              video.play().catch(e => console.log('Autoplay prevented', e));
+            }).catch(e => {
+              console.warn('Shaka Player load failed:', e);
+            });
+          }
+        });
+        return;
+      }
 
       if (!shakaPlayer) {
         initShakaPlayer();

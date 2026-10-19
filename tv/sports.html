@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="referrer" content="no-referrer">
     <script src="../tizen-adapter.js"></script>
+    <script src="../tizen-avplay.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#040508">
     <title>Pro Sports TV - Live DASH Streams</title>
@@ -2860,11 +2861,6 @@ const CHANNELS_DATA = [
 
             try {
                 const streamUrl = (channel.mpd || '').replace(/\/([a-zA-Z0-9]+)-nitro\//gi, '/fra-nitro/');
-                if (typeof window.tvDiag === 'function') {
-                    window.tvDiag('proxy', window.__TB_PROXY_ACTIVE__ ? '<span style="color:#00ff88;font-weight:bold;">AKTIVNÍ (127.0.0.1:3007)</span>' : '<span style="color:#ff6666;font-weight:bold;">NEBĚŽÍ (Přímo z TV)</span>');
-                    window.tvDiag('url', streamUrl);
-                    window.tvDiag('status', 'Příprava sportovního přenosu: ' + (channel.name || ''), '#ffc629');
-                }
                 const isMpd = streamUrl.toLowerCase().includes('.mpd') || streamUrl.toLowerCase().includes('aiv-cdn.net') || streamUrl.toLowerCase().includes('pv-cdn.net');
                 if (isMpd) {
                     player.configure({
@@ -2886,6 +2882,31 @@ const CHANNELS_DATA = [
                         }
                     });
                 }
+                if (typeof TizenAVPlay !== 'undefined' && TizenAVPlay.isAvailable()) {
+                    console.log('[Sports TV] Playing via Samsung AVPlay:', streamUrl);
+                    const container = document.getElementById('player-container');
+                    const video = document.getElementById('shaka-video');
+                    if (video) video.style.display = 'none';
+                    TizenAVPlay.play(streamUrl, {
+                        containerEl: container,
+                        clearKeys: clearKeys,
+                        onPlaying: function() {
+                            console.log('[Sports TV] AVPlay playing');
+                        },
+                        onError: function(errType) {
+                            console.warn('[Sports TV] AVPlay error:', errType, 'falling back to Shaka');
+                            try { TizenAVPlay.stop(); } catch(e){}
+                            if (video) video.style.display = '';
+                            player.load(streamUrl, isMpd ? currentLiveOffset : null).then(function() {
+                                video.play().catch(function() {});
+                            }).catch(function(shakaErr) {
+                                console.error('Shaka fallback error:', shakaErr);
+                            });
+                        }
+                    });
+                    return;
+                }
+
                 await player.load(streamUrl, isMpd ? currentLiveOffset : null);
                 const video = document.getElementById('shaka-video');
                 
@@ -2907,10 +2928,13 @@ const CHANNELS_DATA = [
         const btnCloseModal = document.getElementById('btn-close-modal');
         if (btnCloseModal) {
             btnCloseModal.addEventListener('click', async () => {
-                if (window.TizenAVPlay) window.TizenAVPlay.stop();
-                if (typeof window.hideTvDiag === 'function') window.hideTvDiag();
                 document.getElementById('player-modal').classList.remove('active');
                 currentLoadedChannel = null;
+                if (typeof TizenAVPlay !== 'undefined') {
+                    try { TizenAVPlay.stop(); } catch(e) {}
+                }
+                const v = document.getElementById('shaka-video');
+                if (v) v.style.display = '';
                 if (player) {
                     try {
                         await player.unload();
