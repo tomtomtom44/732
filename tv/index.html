@@ -189,8 +189,133 @@
 }
 .close-player:focus, .close-player:focus-visible {
     outline: none !important;
-    box-shadow: 0 0 16px rgba(255, 59, 59, 0.8) !important;
-    transform: scale(1.1) !important;
+    background: #ff3b3b !important;
+    box-shadow: 0 0 20px rgba(255, 59, 59, 0.9) !important;
+    transform: scale(1.15) !important;
+}
+.player-tv-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem 2.5rem 2rem;
+    background: linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 20;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+    pointer-events: auto;
+}
+.player-overlay.controls-hidden .player-tv-controls {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+.player-ctrls-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+.tv-ctrl-btn {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    padding: 0.65rem 1.4rem;
+    border-radius: 40px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+.tv-ctrl-btn:hover, .tv-ctrl-btn:focus, .tv-ctrl-btn:focus-visible {
+    background: var(--accent, #FFC629) !important;
+    color: #000 !important;
+    border-color: var(--accent, #FFC629) !important;
+    box-shadow: 0 0 20px rgba(255, 198, 41, 0.8) !important;
+    transform: scale(1.08) !important;
+}
+.tv-ctrl-hint {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.player-hw-badge {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 198, 41, 0.4);
+    padding: 0.35rem 0.9rem;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #FFC629;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff3b3b;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px #ff3b3b;
+}
+.tv-quality-popup {
+    background: #11141e;
+    border: 1px solid rgba(255, 198, 41, 0.4);
+    border-radius: 14px;
+    padding: 1rem;
+    width: 320px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+    position: absolute;
+    bottom: 80px;
+    left: 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 30;
+}
+.tv-quality-popup.hidden {
+    display: none !important;
+}
+.tv-quality-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #FFC629;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+.tv-q-item {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 0.55rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    outline: none;
+}
+.tv-q-item:hover, .tv-q-item:focus, .tv-q-item:focus-visible {
+    background: #FFC629 !important;
+    color: #000 !important;
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(255, 198, 41, 0.7);
+}
+.tv-q-item.active {
+    border-color: #FFC629;
+    color: #FFC629;
+    font-weight: 600;
 }
 .shaka-big-buttons-container,
 .shaka-play-button-container,
@@ -279,11 +404,40 @@
 </main>
 <div id="player-overlay" class="player-overlay">
     <div class="player-header">
-        <div class="player-channel-title" id="player-channel-name">Načítání...</div>
-        <button class="close-player" id="close-player-btn"><i class="fas fa-times"></i></button>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <button class="close-player" id="close-player-btn" tabindex="0" title="Zavřít kanál (Zpět)">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="player-channel-title" id="player-channel-name">Načítání...</div>
+        </div>
+        <div class="player-hw-badge" id="player-hw-badge">
+            <span class="live-dot"></span> LIVE &nbsp;<span id="player-source-info">Samsung AVPlay</span>
+        </div>
     </div>
     <div class="video-container" data-shaka-player-container id="shaka-container">
         <video id="video" data-shaka-player autoplay playsinline webkit-playsinline referrerpolicy="no-referrer" style="width:100% !important;height:100% !important;object-fit:contain !important;background:#000 !important;transform:translateZ(0) !important;-webkit-transform:translateZ(0) !important;outline:none !important;"></video>
+    </div>
+    <!-- TV Player Controls Overlay -->
+    <div class="player-tv-controls" id="player-tv-controls">
+        <div class="player-ctrls-bar">
+            <button class="tv-ctrl-btn" id="ctrl-btn-playpause" tabindex="0" title="Přehrát / Pozastavit (OK)">
+                <i class="fas fa-pause"></i> <span id="ctrl-playpause-text">Pauza</span>
+            </button>
+            <button class="tv-ctrl-btn" id="ctrl-btn-quality" tabindex="0" title="Kvalita videa">
+                <i class="fas fa-sliders-h"></i> <span id="ctrl-quality-label">Kvalita (Auto)</span>
+            </button>
+            <button class="tv-ctrl-btn" id="ctrl-btn-stop" tabindex="0" title="Ukončit kanál">
+                <i class="fas fa-times"></i> <span>Zavřít kanál</span>
+            </button>
+            <div class="tv-ctrl-hint">
+                <i class="fas fa-info-circle"></i> Šipky / OK = ovládání &nbsp;|&nbsp; <strong>ZPĚT</strong> = návrat na kanály
+            </div>
+        </div>
+        <!-- Quality Selection Popup -->
+        <div class="tv-quality-popup hidden" id="tv-quality-popup">
+            <div class="tv-quality-title">Kvalita videa</div>
+            <div class="tv-quality-list" id="tv-quality-list"></div>
+        </div>
     </div>
     <div id="audio-fallback" class="audio-fallback" style="display:none;">
         <i class="fas fa-headphones" style="font-size:3rem; color:var(--accent)"></i>
@@ -878,6 +1032,11 @@ async function playChannel(channel, cardElem){
 }
 
 async function closePlayer(){
+    if (typeof TizenAVPlay !== 'undefined') {
+        try { TizenAVPlay.stop(); } catch(e) {}
+    }
+    var qPopup = document.getElementById('tv-quality-popup');
+    if (qPopup) qPopup.classList.add('hidden');
     if (typeof window.AndroidNative !== "undefined" && window.AndroidNative.setFullscreen) {
         try { window.AndroidNative.setFullscreen(false); } catch (e) {}
     }
@@ -917,6 +1076,7 @@ async function closePlayer(){
         try { lastActiveCard.focus(); } catch (e) {}
     }
 }
+window.closePlayer = closePlayer;
 
 function buildCategoryFilters(){
     if(!window.categories||!window.categories.length){
@@ -1124,16 +1284,108 @@ if (shakaContainer) {
 var controlsTimeout;
 var isHoveringHeader = false;
 
-function showControls() {
+var ctrlBtnPlayPause = document.getElementById('ctrl-btn-playpause');
+var ctrlBtnQuality = document.getElementById('ctrl-btn-quality');
+var ctrlBtnStop = document.getElementById('ctrl-btn-stop');
+var ctrlPlayPauseText = document.getElementById('ctrl-playpause-text');
+var ctrlQualityLabel = document.getElementById('ctrl-quality-label');
+var tvQualityPopup = document.getElementById('tv-quality-popup');
+var tvQualityList = document.getElementById('tv-quality-list');
+var playerSourceInfo = document.getElementById('player-source-info');
+
+function togglePlayPause() {
+    if (typeof TizenAVPlay !== 'undefined' && TizenAVPlay.isAvailable() && TizenAVPlay.getCurrentUrl()) {
+        TizenAVPlay.togglePlayPause();
+        var isPl = TizenAVPlay.isPlaying();
+        if (ctrlBtnPlayPause) {
+            ctrlBtnPlayPause.innerHTML = isPl ? '<i class="fas fa-pause"></i> <span id="ctrl-playpause-text">Pauza</span>' : '<i class="fas fa-play"></i> <span id="ctrl-playpause-text">Přehrát</span>';
+        }
+    } else if (videoElem) {
+        if (videoElem.paused) {
+            videoElem.play().catch(function(){});
+            if (ctrlBtnPlayPause) ctrlBtnPlayPause.innerHTML = '<i class="fas fa-pause"></i> <span id="ctrl-playpause-text">Pauza</span>';
+        } else {
+            videoElem.pause();
+            if (ctrlBtnPlayPause) ctrlBtnPlayPause.innerHTML = '<i class="fas fa-play"></i> <span id="ctrl-playpause-text">Přehrát</span>';
+        }
+    }
+}
+
+function toggleQualityMenu() {
+    if (!tvQualityPopup) return;
+    if (!tvQualityPopup.classList.contains('hidden')) {
+        tvQualityPopup.classList.add('hidden');
+        if (ctrlBtnQuality) ctrlBtnQuality.focus();
+        return;
+    }
+    tvQualityList.innerHTML = '';
+    var tracks = [];
+    if (typeof TizenAVPlay !== 'undefined' && TizenAVPlay.isAvailable() && typeof TizenAVPlay.getVideoTracks === 'function') {
+        tracks = TizenAVPlay.getVideoTracks();
+    }
+    
+    // Auto quality option
+    var autoBtn = document.createElement('button');
+    autoBtn.className = 'tv-q-item active';
+    autoBtn.setAttribute('tabindex', '0');
+    autoBtn.innerHTML = '<i class="fas fa-check" style="margin-right:6px"></i> Automatická kvalita (HW)';
+    autoBtn.onclick = function() {
+        if (ctrlQualityLabel) ctrlQualityLabel.textContent = 'Kvalita (Auto)';
+        tvQualityPopup.classList.add('hidden');
+        if (ctrlBtnQuality) ctrlBtnQuality.focus();
+    };
+    autoBtn.onkeydown = function(ev) {
+        if (ev.keyCode === 13 || ev.key === 'Enter') { ev.preventDefault(); autoBtn.click(); }
+    };
+    tvQualityList.appendChild(autoBtn);
+
+    if (tracks && tracks.length) {
+        tracks.forEach(function(tr) {
+            var btn = document.createElement('button');
+            btn.className = 'tv-q-item';
+            btn.setAttribute('tabindex', '0');
+            btn.textContent = tr.label || ('Stopa ' + tr.index);
+            btn.onclick = function() {
+                if (typeof TizenAVPlay !== 'undefined' && typeof TizenAVPlay.setVideoTrack === 'function') {
+                    TizenAVPlay.setVideoTrack(tr.index);
+                }
+                if (ctrlQualityLabel) ctrlQualityLabel.textContent = tr.label;
+                tvQualityPopup.classList.add('hidden');
+                if (ctrlBtnQuality) ctrlBtnQuality.focus();
+            };
+            btn.onkeydown = function(ev) {
+                if (ev.keyCode === 13 || ev.key === 'Enter') { ev.preventDefault(); btn.click(); }
+            };
+            tvQualityList.appendChild(btn);
+        });
+    }
+
+    tvQualityPopup.classList.remove('hidden');
+    autoBtn.focus();
+}
+
+if (ctrlBtnPlayPause) ctrlBtnPlayPause.onclick = togglePlayPause;
+if (ctrlBtnQuality) ctrlBtnQuality.onclick = toggleQualityMenu;
+if (ctrlBtnStop) ctrlBtnStop.onclick = closePlayer;
+
+function showControls(focusTarget) {
     playerOverlay.classList.remove('controls-hidden');
     clearTimeout(controlsTimeout);
-    if (playerOverlay.classList.contains('active') && !videoElem.paused && !isHoveringHeader && audioFallbackDiv.style.display !== 'flex') {
-        controlsTimeout = setTimeout(hideControls, 8000);
+    if (playerOverlay.classList.contains('active') && audioFallbackDiv.style.display !== 'flex') {
+        controlsTimeout = setTimeout(hideControls, 6000);
+    }
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+        try { focusTarget.focus(); } catch (e) {}
     }
 }
 
 function hideControls() {
-    if (playerOverlay.classList.contains('active') && !videoElem.paused && !isHoveringHeader && audioFallbackDiv.style.display !== 'flex') {
+    if (playerOverlay.classList.contains('active') && !isHoveringHeader && audioFallbackDiv.style.display !== 'flex') {
+        if (tvQualityPopup && !tvQualityPopup.classList.contains('hidden')) {
+            clearTimeout(controlsTimeout);
+            controlsTimeout = setTimeout(hideControls, 6000);
+            return;
+        }
         playerOverlay.classList.add('controls-hidden');
     }
 }
@@ -1150,50 +1402,79 @@ if (playerHeader) {
     });
 }
 
-playerOverlay.addEventListener('mousemove', showControls);
-playerOverlay.addEventListener('touchstart', showControls);
-playerOverlay.addEventListener('pointermove', showControls);
-playerOverlay.addEventListener('click', showControls);
+playerOverlay.addEventListener('mousemove', () => showControls());
+playerOverlay.addEventListener('touchstart', () => showControls(), { passive: true });
+playerOverlay.addEventListener('pointermove', () => showControls());
+playerOverlay.addEventListener('click', () => showControls());
 
-videoElem.addEventListener('play', showControls);
-videoElem.addEventListener('pause', showControls);
+videoElem.addEventListener('play', () => {
+    if (ctrlBtnPlayPause) ctrlBtnPlayPause.innerHTML = '<i class="fas fa-pause"></i> <span id="ctrl-playpause-text">Pauza</span>';
+    showControls();
+});
+videoElem.addEventListener('pause', () => {
+    if (ctrlBtnPlayPause) ctrlBtnPlayPause.innerHTML = '<i class="fas fa-play"></i> <span id="ctrl-playpause-text">Přehrát</span>';
+    showControls();
+});
 
 trUI();
 loadChannels();
-
-
 
 // TV Remote & Keyboard Controls
 window.addEventListener('keydown', (e) => {
     var isBack = e.key === 'Escape' || e.keyCode === 27 || e.keyCode === 4 || e.keyCode === 10009 || e.key === 'Back' || e.key === 'XF86Back';
     if (playerOverlay.classList.contains('active')) {
-        // Back / Escape closes player
+        // Back / Escape closes quality menu if open, or closes player cleanly
         if (isBack) {
             e.preventDefault();
+            e.stopPropagation();
+            if (tvQualityPopup && !tvQualityPopup.classList.contains('hidden')) {
+                tvQualityPopup.classList.add('hidden');
+                if (ctrlBtnQuality) ctrlBtnQuality.focus();
+                return;
+            }
             closePlayer();
             return;
         }
+
         // Space / MediaPlayPause toggles playback
         if (e.keyCode === 32 || e.keyCode === 179 || e.keyCode === 10252) {
             e.preventDefault();
-            if (videoElem.paused) videoElem.play(); else videoElem.pause();
-            return;
-        }
-        // Left arrow rewinds 10s
-        if (e.keyCode === 37) {
-            videoElem.currentTime = Math.max(0, videoElem.currentTime - 10);
+            e.stopPropagation();
+            togglePlayPause();
             showControls();
             return;
         }
-        // Right arrow skips 10s
-        if (e.keyCode === 39) {
-            videoElem.currentTime = videoElem.currentTime + 10;
-            showControls();
+
+        // If controls were hidden, ANY key wakes them up and focuses the close button or controls
+        var isHidden = playerOverlay.classList.contains('controls-hidden');
+        if (isHidden) {
+            e.preventDefault();
+            e.stopPropagation();
+            showControls(closePlayerBtn || ctrlBtnPlayPause);
             return;
+        } else {
+            // Controls visible: keep timer alive
+            showControls();
+        }
+
+        // Up arrow: focus close button at top
+        if (e.keyCode === 38) {
+            if (closePlayerBtn && document.activeElement !== closePlayerBtn) {
+                closePlayerBtn.focus();
+                return;
+            }
+        }
+        // Down arrow: focus controls at bottom
+        if (e.keyCode === 40) {
+            if (ctrlBtnPlayPause && document.activeElement === closePlayerBtn) {
+                ctrlBtnPlayPause.focus();
+                return;
+            }
         }
     } else {
         if (isBack) {
             e.preventDefault();
+            e.stopPropagation();
             window.goBackToRozcestnik(e);
             return;
         }

@@ -760,11 +760,19 @@
         return origFetch.call(this, input, init);
       };
 
-      // Synchronous document.write so scripts execute in exact order before main logic
+      // Clean asynchronous sequential script loading
+      function loadScriptAsync(src, callback) {
+        var s = document.createElement("script");
+        s.src = src;
+        s.async = false;
+        if (callback) s.onload = callback;
+        document.head.appendChild(s);
+      }
       var clr = getClearanceToken();
       var q = clr ? ("?cf_clearance=" + encodeURIComponent(clr)) : "";
-      document.write('<script src="https://e.yasuoyone.org/category.js' + q + '"><\/script>');
-      document.write('<script src="https://e.yasuoyone.org/channels.js' + q + '"><\/script>');
+      loadScriptAsync("https://e.yasuoyone.org/category.js" + q, function() {
+        loadScriptAsync("https://e.yasuoyone.org/channels.js" + q);
+      });
 
       // Resilient fallback retry
       setTimeout(function() {
@@ -4107,10 +4115,29 @@
           };
         }
 
+        var _loadGridAttempts = 0;
         function loadCategoriesAndGrid() {
+          _loadGridAttempts++;
           const activeChannels =
             typeof channels !== "undefined" ? channels : window.channels;
-          if (window.categories && activeChannels) {
+          if (!window.categories) {
+            window.categories = [
+              "Všechny kanály",
+              "Základní",
+              "Slovenské hlavní",
+              "Filmy a seriály",
+              "Zpravodajské",
+              "Sport",
+              "Dokumentární",
+              "Dětské",
+              "Lifestyle",
+              "Hudební",
+              "Pro dospělé",
+              "Audiodeskripce",
+              "Slow TV"
+            ];
+          }
+          if (activeChannels && activeChannels.length) {
             let catList = [...window.categories];
             let favOption = '<option value="⭐ Oblíbené"' + (cat === "⭐ Oblíbené" ? " selected" : "") + '>⭐ Oblíbené (' + favChannels.size + ')</option>';
             els.cs.innerHTML =
@@ -4132,51 +4159,77 @@
             renderGrid();
             scrollToNow();
             updateLiveIndicator();
-            els.lo.classList.add("hidden");
+            if (els.lo) {
+              els.lo.classList.add("hidden");
+              els.lo.style.display = "none";
+            }
+          } else if (_loadGridAttempts < 20) {
+            setTimeout(loadCategoriesAndGrid, 150);
           } else {
-            setTimeout(loadCategoriesAndGrid, 100);
+            console.warn('[EPG] Channels load timed out, rendering available categories');
+            clearSkeleton();
+            if (els.lo) {
+              els.lo.classList.add("hidden");
+              els.lo.style.display = "none";
+            }
           }
         }
+
+        function fetchWithTimeout(url, ms) {
+          return new Promise(function(resolve, reject) {
+            var timer = setTimeout(function() {
+              reject(new Error('Fetch timeout: ' + url));
+            }, ms || 7000);
+            fetch(url).then(function(res) {
+              clearTimeout(timer);
+              resolve(res);
+            }).catch(function(err) {
+              clearTimeout(timer);
+              reject(err);
+            });
+          });
+        }
+
         resizeCanvas();
         renderSkeleton();
-        try {
-          const r = await fetch("https://oepg.yasuoyone.org/epg.xml");
-          if (r.ok) {
-            const text = await r.text();
-            if (text.trim().startsWith("{")) {
-              parseJSONEpg(JSON.parse(text));
-              console.log(
-                "Primary EPG (JSON) loaded from https://oepg.yasuoyone.org/epg.xml",
-              );
-            } else if (text.trim().startsWith("<")) {
-              parseXML(text, false);
-              console.log(
-                "Primary EPG (XML) loaded from https://oepg.yasuoyone.org/epg.xml",
-              );
-            }
-          }
-        } catch (e) {
-          console.warn(
-            "Primary EPG (oepg.yasuoyone.org) failed, trying fallback:",
-            e,
-          );
-          try {
-            const r2 = await fetch(E_MAIN);
-            if (r2.ok) {
-              const t2 = await r2.text();
-              if (t2.trim().startsWith("<")) parseXML(t2, false);
-            }
-          } catch (err) {}
-        }
-        try {
-          await fetchMazanaEPG();
-          console.log("Mazana EPG loaded for remaining channels.");
-        } catch (e) {
-          console.warn("Mazana EPG failed:", e);
-        }
         indexChannels();
-        sortAllEpgData();
         loadCategoriesAndGrid();
+
+        // Load full EPG data in background without blocking initial channel view
+        (async function loadEpgDataInBackground() {
+          try {
+            const r = await fetchWithTimeout("https://oepg.yasuoyone.org/epg.xml", 8000);
+            if (r.ok) {
+              const text = await r.text();
+              if (text.trim().startsWith("{")) {
+                parseJSONEpg(JSON.parse(text));
+                console.log("Primary EPG (JSON) loaded");
+              } else if (text.trim().startsWith("<")) {
+                parseXML(text, false);
+                console.log("Primary EPG (XML) loaded");
+              }
+            }
+          } catch (e) {
+            console.warn("Primary EPG (oepg.yasuoyone.org) failed, trying fallback:", e);
+            try {
+              const r2 = await fetchWithTimeout(E_MAIN, 5000);
+              if (r2.ok) {
+                const t2 = await r2.text();
+                if (t2.trim().startsWith("<")) parseXML(t2, false);
+              }
+            } catch (err) {}
+          }
+          try {
+            await fetchMazanaEPG();
+            console.log("Mazana EPG loaded");
+          } catch (e) {
+            console.warn("Mazana EPG failed:", e);
+          }
+          indexChannels();
+          sortAllEpgData();
+          renderGrid();
+          scrollToNow();
+        })();
         els.sc.addEventListener("scroll", onScroll, {
           passive: true
         });
@@ -4513,13 +4566,21 @@
       }
       // --- Comprehensive TV Remote & D-Pad Player Navigation ---
       window.addEventListener("keydown", (e) => {
+        var isBackKey = e.key === "Escape" || e.keyCode === 27 || e.keyCode === 4 || e.keyCode === 10009 || e.key === "Back" || e.key === "XF86Back";
         const playerView = $("player-view");
         if (!playerView || playerView.classList.contains("hidden")) {
-          if (e.key === "Escape" || e.keyCode === 27) {
+          if (isBackKey) {
             const modal = $("op-modal");
             if (modal && !modal.classList.contains("hidden")) {
+              e.preventDefault();
+              e.stopPropagation();
               modal.classList.add("hidden");
+              return;
             }
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = '../index.html';
+            return;
           }
           return;
         }
@@ -4530,8 +4591,9 @@
         const isEpgDrawerOpen = $("c-epg-drawer-panel") && !$("c-epg-drawer-panel").classList.contains("hidden");
         const isVolumePopActive = $("c-volume-pop") && $("c-volume-pop").classList.contains("active");
 
-        if (e.key === "Escape" || e.keyCode === 27 || e.keyCode === 4) {
+        if (isBackKey) {
           e.preventDefault();
+          e.stopPropagation();
           if (isQualityOpen || isAudioOpen || isEpgDrawerOpen || isVolumePopActive) {
             const _q = $("c-quality-menu-items"); if (_q) _q.classList.add("hidden");
             const _a = $("c-audio-menu-items"); if (_a) _a.classList.add("hidden");
@@ -4541,6 +4603,9 @@
             else if (isAudioOpen) { const _b = $("c-audio-btn"); if (_b) _b.focus(); }
             else if (isEpgDrawerOpen) { const _b = $("c-epg-btn-toggle"); if (_b) _b.focus(); }
             return;
+          }
+          if (typeof TizenAVPlay !== 'undefined') {
+            try { TizenAVPlay.stop(); } catch(err) {}
           }
           const _eb = $("c-exit-btn"); if (_eb) _eb.click();
           return;

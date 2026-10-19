@@ -275,16 +275,108 @@
   }
 
   // ── 6. Universal Samsung TV Back / Return Key Handler (10009) ─────────
+  var _lastBackPressTime = 0;
+
+  function showExitToast() {
+    try {
+      var t = document.getElementById('tb-exit-toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'tb-exit-toast';
+        t.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.95);color:#fff;padding:12px 24px;border-radius:30px;border:1px solid rgba(255,198,41,0.5);font-size:15px;font-family:sans-serif;z-index:999999;box-shadow:0 8px 24px rgba(0,0,0,0.8);pointer-events:none;transition:opacity 0.3s;';
+        t.textContent = 'Stiskněte ZPĚT znovu pro ukončení';
+        document.body.appendChild(t);
+      }
+      t.style.opacity = '1';
+      t.style.display = 'block';
+      clearTimeout(t._hideTimer);
+      t._hideTimer = setTimeout(function() {
+        t.style.opacity = '0';
+        setTimeout(function() { t.style.display = 'none'; }, 300);
+      }, 2400);
+    } catch (e) {}
+  }
+
   function handleSamsungBackKey(e) {
-    // If native AVPlay is currently playing, stop it cleanly
-    if (window.TizenAVPlay && typeof window.TizenAVPlay.isPlaying === 'function' && window.TizenAVPlay.isPlaying()) {
-      try { window.TizenAVPlay.stop(); } catch(err) {}
+    // 1. Check dedicated video overlay in tv/index.html (with hyphen or camelCase)
+    var playerOverlay = document.getElementById('player-overlay') ||
+                        document.getElementById('playerOverlay') ||
+                        document.querySelector('.player-overlay.active');
+    if (playerOverlay && (playerOverlay.classList.contains('active') || playerOverlay.style.display === 'flex' || playerOverlay.style.display === 'block')) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (window.TizenAVPlay && typeof window.TizenAVPlay.stop === 'function') {
+        try { window.TizenAVPlay.stop(); } catch(err) {}
+      }
+      if (typeof window.closePlayer === 'function') {
+        window.closePlayer();
+      } else {
+        playerOverlay.classList.remove('active');
+        playerOverlay.style.display = 'none';
+      }
+      return true;
     }
 
-    // Check TV Settings Modal
+    // 2. Check Shaka / App Player in index.html
+    if (window.playerOpen && typeof window.clP === 'function') {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (window.TizenAVPlay && typeof window.TizenAVPlay.stop === 'function') {
+        try { window.TizenAVPlay.stop(); } catch(err) {}
+      }
+      window.clP(true);
+      return true;
+    }
+
+    // 3. Check player-view in tv/epg.html
+    var playerView = document.getElementById('player-view');
+    if (playerView && !playerView.classList.contains('hidden') && playerView.style.display !== 'none') {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (window.TizenAVPlay && typeof window.TizenAVPlay.stop === 'function') {
+        try { window.TizenAVPlay.stop(); } catch(err) {}
+      }
+      var exitBtn = document.getElementById('c-exit-btn');
+      if (exitBtn) {
+        exitBtn.click();
+      } else {
+        playerView.classList.add('hidden');
+        playerView.style.display = 'none';
+      }
+      return true;
+    }
+
+    // 4. Check player modal in tv/sports.html
+    var playerModal = document.getElementById('player-modal');
+    if (playerModal && (playerModal.classList.contains('active') || playerModal.style.display === 'flex' || playerModal.style.display === 'block')) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      if (window.TizenAVPlay && typeof window.TizenAVPlay.stop === 'function') {
+        try { window.TizenAVPlay.stop(); } catch(err) {}
+      }
+      var btnClosePlayer = document.getElementById('btn-close-modal') || document.getElementById('btn-close-player');
+      if (btnClosePlayer) {
+        btnClosePlayer.click();
+      } else {
+        playerModal.classList.remove('active');
+        playerModal.style.display = 'none';
+      }
+      return true;
+    }
+
+    // 5. If AVPlay is playing without a detected container, stop it cleanly
+    if (window.TizenAVPlay && typeof window.TizenAVPlay.isPlaying === 'function' && window.TizenAVPlay.isPlaying()) {
+      try { window.TizenAVPlay.stop(); } catch(err) {}
+      if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
+      return true;
+    }
+
+    // 6. Check TV Settings Modal
     var sm = document.getElementById('tv-settings-modal');
     if (sm && (sm.classList.contains('active') || sm.style.display === 'flex' || sm.style.display === 'block')) {
       if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
       if (typeof window.closeTvSettings === 'function') {
         window.closeTvSettings();
       } else {
@@ -294,51 +386,11 @@
       return true;
     }
 
-    // Check Shaka / App Player
-    if (window.playerOpen && typeof window.clP === 'function') {
-      if (e && e.preventDefault) e.preventDefault();
-      window.clP();
-      return true;
-    }
-
-    // Check dedicated video overlay in tv/index.html
-    var playerOverlay = document.getElementById('playerOverlay');
-    if (playerOverlay && playerOverlay.classList.contains('active')) {
-      if (e && e.preventDefault) e.preventDefault();
-      if (typeof window.closePlayer === 'function') {
-        window.closePlayer();
-      } else {
-        playerOverlay.classList.remove('active');
-      }
-      return true;
-    }
-
-    // Check player-view in epg.html
-    var playerView = document.getElementById('player-view');
-    if (playerView && !playerView.classList.contains('hidden')) {
-      if (e && e.preventDefault) e.preventDefault();
-      var exitBtn = document.getElementById('c-exit-btn');
-      if (exitBtn) exitBtn.click();
-      return true;
-    }
-
-    // Check player modal in sports.html
-    var playerModal = document.getElementById('player-modal');
-    if (playerModal && playerModal.classList.contains('active')) {
-      if (e && e.preventDefault) e.preventDefault();
-      var btnClosePlayer = document.getElementById('btn-close-player');
-      if (btnClosePlayer) {
-        btnClosePlayer.click();
-      } else {
-        playerModal.classList.remove('active');
-      }
-      return true;
-    }
-
-    // Check focus-modal (in 4net.html & ultraplayer.html)
+    // 7. Check focus-modal (in 4net.html & ultraplayer.html)
     var focusModal = document.getElementById('focus-modal');
     if (focusModal && (focusModal.style.display === 'flex' || focusModal.style.display === 'block')) {
       if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
       if (typeof window.closeFocus === 'function') {
         window.closeFocus();
       } else {
@@ -347,49 +399,54 @@
       return true;
     }
 
-    // Check active modals / popups
+    // 8. Check active modals / popups
     var activeModal = document.querySelector('.player-modal-backdrop.active, .info-modal-backdrop.active, .pp-overlay.active, #apk-overlay.active, #pp-overlay.active, .modal-overlay.active, .tv-settings-overlay.active');
     if (activeModal) {
       if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
       activeModal.classList.remove('active');
       if (activeModal.style) activeModal.style.display = 'none';
       return true;
     }
 
-    // Check subpage navigation (if in tv/*.html or alt/*.html)
+    // 9. Check subpage navigation (if in tv/*.html or alt/*.html): go back to main Rozcestník menu
     var isSubPage = window.location.pathname.includes('/tv/') ||
                     window.location.pathname.includes('/alt/') ||
                     (window.location.href.includes('/tv/') || window.location.href.includes('/alt/'));
 
     if (isSubPage) {
       if (e && e.preventDefault) e.preventDefault();
-      if (typeof window.goBackToRozcestnik === 'function') {
-        window.goBackToRozcestnik(e);
-      } else if (window.history.length > 1) {
-        window.history.back();
-      } else {
-        window.location.href = '../index.html';
-      }
+      if (e && e.stopPropagation) e.stopPropagation();
+      window.location.href = '../index.html';
       return true;
     }
 
-    // On main index.html: return to 'home' view if in another view
+    // 10. On main index.html: return to 'home' view if in another view
     if (window.curV && window.curV !== 'home') {
       if (e && e.preventDefault) e.preventDefault();
+      if (e && e.stopPropagation) e.stopPropagation();
       if (typeof window.swV === 'function') {
         window.swV('home', true);
         return true;
       }
     }
 
-    // If on main page home view: cleanly exit app on Samsung Tizen TV
+    // 11. If on main page home view: require double press to cleanly exit on Samsung Tizen TV
     if (typeof tizen !== 'undefined' && tizen.application) {
       if (e && e.preventDefault) e.preventDefault();
-      try {
-        tizen.application.getCurrentApplication().exit();
+      if (e && e.stopPropagation) e.stopPropagation();
+      var now = Date.now();
+      if (now - _lastBackPressTime < 2500) {
+        try {
+          tizen.application.getCurrentApplication().exit();
+          return true;
+        } catch (err) {
+          console.warn('Could not exit Tizen application:', err);
+        }
+      } else {
+        _lastBackPressTime = now;
+        showExitToast();
         return true;
-      } catch (err) {
-        console.warn('Could not exit Tizen application:', err);
       }
     }
 

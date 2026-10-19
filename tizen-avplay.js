@@ -725,6 +725,118 @@
      */
     getCurrentUrl: function() {
       return _currentUrl;
+    },
+
+    /**
+     * Get available video tracks (qualities/bitrates)
+     * @returns {Array<{index: number, width: number, height: number, bitrate: number, label: string}>}
+     */
+    getVideoTracks: function() {
+      if (!isAvailable()) return [];
+      try {
+        var totalInfo = webapis.avplay.getTotalTrackInfo();
+        if (!totalInfo || !totalInfo.length) return [];
+        var videoTracks = [];
+        for (var i = 0; i < totalInfo.length; i++) {
+          var t = totalInfo[i];
+          if (t && (t.type === 'VIDEO' || t.type === 'video')) {
+            var extra = {};
+            if (typeof t.extra_info === 'string') {
+              try {
+                extra = JSON.parse(t.extra_info);
+              } catch (e) {
+                var pairs = t.extra_info.split(/[;,]/);
+                for (var p = 0; p < pairs.length; p++) {
+                  var kv = pairs[p].split('=');
+                  if (kv.length === 2) extra[kv[0].trim()] = kv[1].trim();
+                }
+              }
+            } else if (typeof t.extra_info === 'object' && t.extra_info !== null) {
+              extra = t.extra_info;
+            }
+            var w = parseInt(extra.Width || extra.width || 0, 10);
+            var h = parseInt(extra.Height || extra.height || 0, 10);
+            var br = parseInt(extra.Bit_rate || extra.bitrate || extra.Bitrate || 0, 10);
+            var label = '';
+            if (h > 0) {
+              label = h + 'p';
+              if (br > 0) label += ' (' + Math.round(br / 1000) + ' kbps)';
+            } else if (br > 0) {
+              label = Math.round(br / 1000) + ' kbps';
+            } else {
+              label = 'Stopa ' + (t.index !== undefined ? t.index : (i + 1));
+            }
+            videoTracks.push({
+              index: t.index !== undefined ? t.index : i,
+              width: w,
+              height: h,
+              bitrate: br,
+              label: label
+            });
+          }
+        }
+        return videoTracks;
+      } catch (err) {
+        warn('Error fetching video tracks:', err);
+        return [];
+      }
+    },
+
+    /**
+     * Set active video track
+     * @param {number} trackIndex
+     */
+    setVideoTrack: function(trackIndex) {
+      if (!isAvailable()) return;
+      safeCall(function() {
+        webapis.avplay.setSelectTrack('VIDEO', trackIndex);
+        log('Selected video track:', trackIndex);
+      });
+    },
+
+    /**
+     * Get available audio tracks
+     * @returns {Array<{index: number, language: string, label: string}>}
+     */
+    getAudioTracks: function() {
+      if (!isAvailable()) return [];
+      try {
+        var totalInfo = webapis.avplay.getTotalTrackInfo();
+        if (!totalInfo || !totalInfo.length) return [];
+        var audioTracks = [];
+        for (var i = 0; i < totalInfo.length; i++) {
+          var t = totalInfo[i];
+          if (t && (t.type === 'AUDIO' || t.type === 'audio')) {
+            var extra = {};
+            if (typeof t.extra_info === 'string') {
+              try { extra = JSON.parse(t.extra_info); } catch (e) {}
+            } else if (typeof t.extra_info === 'object' && t.extra_info !== null) {
+              extra = t.extra_info;
+            }
+            var lang = extra.Language || extra.language || extra.Four_CC || ('Audio ' + (t.index !== undefined ? t.index : (i + 1)));
+            audioTracks.push({
+              index: t.index !== undefined ? t.index : i,
+              language: lang,
+              label: lang
+            });
+          }
+        }
+        return audioTracks;
+      } catch (err) {
+        return [];
+      }
+    },
+
+    /**
+     * Set active audio track
+     * @param {number} trackIndex
+     */
+    setAudioTrack: function(trackIndex) {
+      if (!isAvailable()) return;
+      safeCall(function() {
+        webapis.avplay.setSelectTrack('AUDIO', trackIndex);
+        log('Selected audio track:', trackIndex);
+      });
     }
   };
 
