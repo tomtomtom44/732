@@ -298,6 +298,38 @@
   }
 
   function handleSamsungBackKey(e) {
+    // 0. Check if an embedded iframe has an active player overlay (safety net)
+    var embIframe = document.getElementById('emb-f');
+    if (embIframe && embIframe.contentWindow) {
+      try {
+        var embWin = embIframe.contentWindow;
+        var embDoc = embIframe.contentDocument || embWin.document;
+        if (embDoc) {
+          var embOverlay = embDoc.getElementById('player-overlay') ||
+                           embDoc.getElementById('playerOverlay') ||
+                           embDoc.querySelector('.player-overlay.active') ||
+                           embDoc.getElementById('player-view');
+          var isIframePlaying = (embOverlay && (embOverlay.classList.contains('active') || !embOverlay.classList.contains('hidden') || embOverlay.style.display === 'flex' || embOverlay.style.display === 'block')) ||
+                                (embWin.TizenAVPlay && typeof embWin.TizenAVPlay.isPlaying === 'function' && embWin.TizenAVPlay.isPlaying());
+          if (isIframePlaying) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
+            if (embWin.TizenAVPlay && typeof embWin.TizenAVPlay.stop === 'function') {
+              try { embWin.TizenAVPlay.stop(); } catch (err) {}
+            }
+            if (typeof embWin.closePlayer === 'function') {
+              embWin.closePlayer();
+            } else if (embOverlay) {
+              embOverlay.classList.remove('active');
+              embOverlay.classList.add('hidden');
+              embOverlay.style.display = 'none';
+            }
+            return true;
+          }
+        }
+      } catch (iframeErr) {}
+    }
+
     // 1. Check dedicated video overlay in tv/index.html (with hyphen or camelCase)
     var playerOverlay = document.getElementById('player-overlay') ||
                         document.getElementById('playerOverlay') ||

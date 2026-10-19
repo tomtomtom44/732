@@ -2408,6 +2408,9 @@ function isAndroidNativeApp() {
     window.__NATIVE_APP__ ||
     window.__NATIVE_ANDROID__ ||
     window.AndroidNative ||
+    typeof tizen !== "undefined" ||
+    /Tizen/i.test(navigator.userAgent) ||
+    window.__TIZEN__ ||
     (window.location.protocol === "file:" && /Android|Tizen/i.test(navigator.userAgent))
   );
 }
